@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 saar = { path = "../../packages/saar" }
+web-sys = "0.3.77"
 
