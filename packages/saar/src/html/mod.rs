@@ -1,21 +1,21 @@
-use crate::component::{Component, BaseComponent, ComponentRef, Callback};
+use crate::component::{ComponentRef, Context};
 
 use std::collections::HashMap;
 use std::any::Any;
 
 
-pub struct Html {
+pub struct Html<'a> {
     pub(crate) component: ComponentRef,
     pub(crate) attributes: HashMap<String, fn() -> Box<dyn Any>>,
-    pub(crate) children: Vec<Html>,
+    pub(crate) children: &'a [Html<'a>],
 }
 
-impl Html {
+impl<'a> Html<'a> {
     pub fn new(
         component: ComponentRef,
         attributes: &[(String, fn() -> Box<dyn Any>)],
-        children: Vec<Html>,
-    ) -> Html {
+        children: &'a [Html<'a>],
+    ) -> Html<'a> {
         Html {
             attributes: attributes.into_iter().cloned().collect(),
             component,
@@ -23,7 +23,8 @@ impl Html {
         }
     }
 
-    pub fn render(&self) {
+    pub fn render(&self) -> String {
+        self.component.render(Context::new(&self.children))
     }
 }
 

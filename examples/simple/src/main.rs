@@ -1,7 +1,4 @@
-#[allow(unused_imports)]
-use web_sys;
-
-use saar::component::{Component, BaseComponent, ComponentRef, Callback};
+use saar::component::{Component, ComponentRef, Context, Callback};
 use saar::render::Renderer;
 use saar::html::Html;
 
@@ -33,11 +30,11 @@ impl Component for App {
         }
     }
 
-    fn view(&self) -> Html {
+    fn view<'a>(&self, ctx: Context<'a>) -> Html<'a> {
         Html::new(
-            ComponentRef::Base(BaseComponent::new("h1", &[])),
+            ComponentRef::Block(|| "<h1>Welcome to Saar Web Framework</h1>".to_string()),
             &[],
-            Vec::new(),
+            ctx.props,
         )
     }
 }

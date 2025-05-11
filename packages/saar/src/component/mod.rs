@@ -1,9 +1,9 @@
 use crate::html::Html;
 
-use std::collections::HashMap;
-
 
 pub trait Callback {}
+
+impl Callback for Box<dyn Callback> {}
 
 pub trait Component: 'static {
     type Callback: Callback + 'static;
@@ -12,34 +12,33 @@ pub trait Component: 'static {
 
     fn callback(&mut self, callback: Self::Callback);
 
-    fn view(&self) -> Html;
+    fn view<'a>(&self, ctx: Context<'a>) -> Html<'a>;
 }
 
-pub struct BaseComponent {
-    name: String,
-    attributes: HashMap<String, String>,
+pub enum ComponentRef {
+    Component(Box<dyn Component<Callback = Box<dyn Callback>>>),
+    Block(fn() -> String),
 }
 
-impl BaseComponent {
-    pub fn new(name: &str, attributes: &[(String, String)]) -> BaseComponent {
-        BaseComponent {
-            name: name.to_string(),
-            attributes: attributes.into_iter().cloned().collect(),
+impl ComponentRef {
+    pub fn render(&self, context: Context) -> String {
+        match self {
+            ComponentRef::Component(component) => component.view(context).render(),
+            ComponentRef::Block(block) => block(),
         }
     }
 }
 
-// TODO: we also need a block component type where the user can pass in a function that returns a
-// string
-//
-// this type might replace the base type
-
-pub enum ComponentRef {
-    Component(Box<dyn Component<Callback = Box<dyn Callback>>>),
-    Base(BaseComponent),
+pub struct Context<'a> {
+    pub props: &'a [Html<'a>],
 }
 
-impl ComponentRef {
+impl<'a> Context<'a> {
+    pub fn new(props: &'a [Html<'a>]) -> Context<'a> {
+        Context {
+            props,
+        }
+    }
 }
 
 
