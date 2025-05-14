@@ -80,6 +80,7 @@ name = "simple"
 version = "0.1.0"
 dependencies = [
  "saar",
+ "wasm-bindgen",
  "web-sys",
 ]
 
