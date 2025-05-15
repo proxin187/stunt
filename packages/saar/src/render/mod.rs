@@ -1,6 +1,7 @@
 use crate::component::{Component, Context};
 
-use web_sys::HtmlElement;
+use wasm_bindgen::prelude::*;
+use web_sys::{HtmlElement, Document};
 
 
 pub struct Renderer<T: Component> {
@@ -19,15 +20,14 @@ impl<T: Component> Renderer<T> {
         }
     }
 
-    pub fn render(&mut self) {
-        web_sys::console::log_1(&"starting rendering".into());
-
+    pub fn render(&mut self) -> Result<(), JsValue> {
         let raw = self.component.view(Context::new(&[])).render();
+
+        web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 
         self.body.set_inner_html(&raw);
 
-        loop {
-        }
+        Ok(())
     }
 }
 
