@@ -21,6 +21,8 @@ impl<T: Component> Renderer<T> {
     }
 
     pub fn render(&mut self) -> Result<(), JsValue> {
+        // TODO: render system where it only updates what hasnt already been updated
+
         let raw = self.component.view(Context::new(&[])).render();
 
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());

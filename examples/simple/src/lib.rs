@@ -2,6 +2,8 @@ use saar::component::{Component, ComponentRef, Context, Callback};
 use saar::render::Renderer;
 use saar::html::Html;
 
+use saar_components::*;
+
 use wasm_bindgen::prelude::*;
 
 
@@ -43,14 +45,12 @@ impl Component for App {
 
 #[wasm_bindgen(start)]
 fn main() -> Result<(), JsValue> {
-    // for some magic reason it only works when you put a console log at the start wtf, thats so
+    // NOTE: for some magic reason it only works when you put a console log at the start wtf, thats so
     // weird
 
     web_sys::console::log_1(&"loading wasm".into());
 
-    Renderer::<App>::new().render()?;
-
-    Ok(())
+    Renderer::<App>::new().render()
 }
 
 

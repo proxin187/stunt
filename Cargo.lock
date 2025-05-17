@@ -69,6 +69,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "saar_components"
+version = "0.1.0"
+dependencies = [
+ "saar",
+ "syn",
+]
+
+[[package]]
 name = "saar_macro"
 version = "0.1.0"
 dependencies = [
@@ -80,6 +88,7 @@ name = "simple"
 version = "0.1.0"
 dependencies = [
  "saar",
+ "saar_components",
  "wasm-bindgen",
  "web-sys",
 ]
