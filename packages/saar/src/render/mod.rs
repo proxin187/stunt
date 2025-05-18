@@ -1,4 +1,5 @@
 use crate::component::{Component, Context};
+use crate::html::Props;
 
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlElement, Document};
@@ -23,7 +24,7 @@ impl<T: Component> Renderer<T> {
     pub fn render(&mut self) -> Result<(), JsValue> {
         // TODO: render system where it only updates what hasnt already been updated
 
-        let raw = self.component.view(Context::new(&[])).render();
+        let raw = self.component.view(Context::new(Props::new(Vec::new()))).render();
 
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 

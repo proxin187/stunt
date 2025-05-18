@@ -1,6 +1,6 @@
 use saar::component::{Component, ComponentRef, Context, Callback};
+use saar::html::{Html, Props};
 use saar::render::Renderer;
-use saar::html::Html;
 
 use saar_components::*;
 
@@ -34,11 +34,11 @@ impl Component for App {
         }
     }
 
-    fn view<'a>(&self, ctx: Context<'a>) -> Html<'a> {
+    fn view(&self, ctx: Context) -> Html {
         Html::new(
-            ComponentRef::Block(|| "<h1>Welcome to Saar Web Framework</h1>".to_string()),
+            ComponentRef::Component(Box::new(H1::create())),
             &[],
-            ctx.props,
+            Props::new(Vec::new()),
         )
     }
 }

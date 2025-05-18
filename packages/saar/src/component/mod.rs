@@ -1,4 +1,4 @@
-use crate::html::Html;
+use crate::html::{Html, Props};
 
 
 pub trait Callback {}
@@ -12,29 +12,32 @@ pub trait Component: 'static {
 
     fn callback(&mut self, callback: Self::Callback);
 
-    fn view<'a>(&self, ctx: Context<'a>) -> Html<'a>;
+    fn view(&self, ctx: Context) -> Html;
 }
 
+// we could maybe use the any::TypeId struct
+// the issue is that we have to find a better way to represent callback maybe
+// TODO: figure out how to represent the component here
 pub enum ComponentRef {
     Component(Box<dyn Component<Callback = Box<dyn Callback>>>),
-    Block(fn() -> String),
+    Block(fn(Context) -> String),
 }
 
 impl ComponentRef {
     pub fn render(&self, context: Context) -> String {
         match self {
             ComponentRef::Component(component) => component.view(context).render(),
-            ComponentRef::Block(block) => block(),
+            ComponentRef::Block(block) => block(context),
         }
     }
 }
 
-pub struct Context<'a> {
-    pub props: &'a [Html<'a>],
+pub struct Context {
+    pub props: Props,
 }
 
-impl<'a> Context<'a> {
-    pub fn new(props: &'a [Html<'a>]) -> Context<'a> {
+impl Context {
+    pub fn new(props: Props) -> Context {
         Context {
             props,
         }

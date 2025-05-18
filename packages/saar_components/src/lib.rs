@@ -3,40 +3,34 @@ use saar::html::Html;
 
 // TODO: create a macro that automatically generates a template for all the default html components
 
-
-macro_rules! component {
-    ($name:ident, $tag:expr) => {
-    }
-}
-
-component!(H1, "h1");
-
 pub struct Message;
 
 impl Callback for Message {}
 
-pub struct H1 {
-    count: usize,
-}
+macro_rules! create_component {
+    ($name:ident, $tag:expr) => {
+        pub struct $name;
 
-impl Component for App {
-    type Callback = Message;
+        impl Component for $name {
+            type Callback = Message;
 
-    fn create() -> App {
-        App {
-            count: 0,
+            fn create() -> $name { $name }
+
+            fn callback(&mut self, _message: Message) {}
+
+            fn view(&self, ctx: Context) -> Html {
+                Html::new(
+                    ComponentRef::Block(|ctx| { format!("<{}>{}</{}>", $tag, ctx.props.render(), $tag) }),
+                    &[],
+                    ctx.props,
+                )
+            }
         }
     }
-
-    fn callback(&mut self, _message: Message) {}
-
-    fn view<'a>(&self, ctx: Context<'a>) -> Html<'a> {
-        Html::new(
-            ComponentRef::Block(|| "<h1>Welcome to Saar Web Framework</h1>".to_string()),
-            &[],
-            ctx.props,
-        )
-    }
 }
+
+create_component!(H1, "h1");
+create_component!(Div, "div");
+create_component!(P, "p");
 
 
