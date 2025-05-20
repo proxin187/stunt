@@ -1,4 +1,4 @@
-use saar::component::{Component, ComponentRef, Context, Callback};
+use saar::component::{Component, ComponentRef, Context};
 use saar::html::{Html, Props};
 use saar::render::Renderer;
 
@@ -6,39 +6,46 @@ use saar_components::*;
 
 use wasm_bindgen::prelude::*;
 
+use std::any::Any;
+
 
 pub enum Message {
     Add,
 }
-
-impl Callback for Message {}
 
 pub struct App {
     count: usize,
 }
 
 impl Component for App {
-    type Callback = Message;
-
     fn create() -> App {
         App {
             count: 0,
         }
     }
 
-    fn callback(&mut self, message: Message) {
-        match message {
-            Message::Add => {
+    fn callback(&mut self, callback: Box<dyn Any>) {
+        match callback.downcast_ref::<Message>() {
+            Some(Message::Add) => {
                 self.count += 1;
             },
+            None => unreachable!(),
         }
     }
 
     fn view(&self, ctx: Context) -> Html {
+        let count = self.count;
+
         Html::new(
             ComponentRef::Component(Box::new(H1::create())),
             &[],
-            Props::new(Vec::new()),
+            Props::new(vec![
+                Html::new(
+                    ComponentRef::Block(Box::new(move || format!("Welcome to saar web framework demo: {}", count))),
+                    &[],
+                    Props::new(Vec::new()),
+                ),
+            ]),
         )
     }
 }

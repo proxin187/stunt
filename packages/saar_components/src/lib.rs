@@ -1,28 +1,25 @@
-use saar::component::{Component, ComponentRef, Callback, Context};
-use saar::html::Html;
+use saar::component::{Component, ComponentRef, Context};
+use saar::html::{Html, Props};
 
-// TODO: create a macro that automatically generates a template for all the default html components
+use std::any::Any;
 
-pub struct Message;
-
-impl Callback for Message {}
 
 macro_rules! create_component {
     ($name:ident, $tag:expr) => {
         pub struct $name;
 
         impl Component for $name {
-            type Callback = Message;
-
             fn create() -> $name { $name }
 
-            fn callback(&mut self, _message: Message) {}
+            fn callback(&mut self, _callback: Box<dyn Any>) {}
 
             fn view(&self, ctx: Context) -> Html {
+                let inner = ctx.props.render();
+
                 Html::new(
-                    ComponentRef::Block(|ctx| { format!("<{}>{}</{}>", $tag, ctx.props.render(), $tag) }),
+                    ComponentRef::Block(Box::new(move || { format!("<{}>{}</{}>", $tag, inner, $tag) })),
                     &[],
-                    ctx.props,
+                    Props::new(Vec::new()),
                 )
             }
         }
