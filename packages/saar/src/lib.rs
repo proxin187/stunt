@@ -1,6 +1,5 @@
-pub mod component;
 pub mod render;
-pub mod html;
+pub mod dom;
 
 #[allow(unused_imports)]
 pub use web_sys;

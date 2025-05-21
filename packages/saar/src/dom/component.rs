@@ -1,4 +1,4 @@
-use crate::html::{Html, Props};
+use crate::dom::html::{Html, Props};
 
 use std::any::Any;
 
@@ -10,13 +10,6 @@ pub trait Component {
 
     fn view(&self, ctx: Context) -> Html;
 }
-
-// we could maybe use the any::TypeId struct
-// the issue is that we have to find a better way to represent callback maybe
-// TODO: figure out how to represent the component here
-//
-// the issue is only really the callback
-// maybe we could represent the callback with any?
 
 pub enum ComponentRef {
     Component(Box<dyn Component>),

@@ -1,4 +1,4 @@
-use crate::component::{ComponentRef, Context};
+use crate::dom::component::{ComponentRef, Context};
 
 use std::collections::HashMap;
 use std::any::Any;

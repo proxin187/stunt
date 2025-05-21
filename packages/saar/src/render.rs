@@ -1,8 +1,8 @@
-use crate::component::{Component, Context};
-use crate::html::Props;
+use crate::dom::component::{Component, Context};
+use crate::dom::html::Props;
 
 use wasm_bindgen::prelude::*;
-use web_sys::{HtmlElement, Document};
+use web_sys::HtmlElement;
 
 
 pub struct Renderer<T: Component> {
