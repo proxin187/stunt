@@ -1,5 +1,5 @@
-use saar::component::{Component, ComponentRef, Context};
-use saar::html::{Html, Props};
+use saar::dom::component::{Component, ComponentRef, Context};
+use saar::dom::html::{Html, Props, Attributes};
 use saar::render::Renderer;
 
 use saar_components::*;
@@ -38,11 +38,13 @@ impl Component for App {
 
         Html::new(
             ComponentRef::Component(Box::new(H1::create())),
-            &[],
+            Attributes::new(Vec::new()),
+            Vec::new(),
             Props::new(vec![
                 Html::new(
                     ComponentRef::Block(Box::new(move || format!("Welcome to saar web framework demo: {}", count))),
-                    &[],
+                    Attributes::new(vec![(String::from("style"), || { String::from("background-color: black;") })]),
+                    Vec::new(),
                     Props::new(Vec::new()),
                 ),
             ]),

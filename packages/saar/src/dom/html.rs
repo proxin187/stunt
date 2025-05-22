@@ -1,10 +1,8 @@
 use crate::dom::component::{ComponentRef, Context};
 
-use std::collections::HashMap;
 use std::any::Any;
 
 
-// TODO: make this into a slice again after we are done with the componentsref issue
 pub struct Props {
     props: Vec<Html>,
 }
@@ -16,34 +14,55 @@ impl Props {
         }
     }
 
-    pub fn render(self) -> String {
-        self.props.into_iter()
+    pub fn render(&self) -> String {
+        self.props.iter()
             .map(|html| html.render())
             .collect()
     }
 }
 
+pub struct Attributes {
+    attributes: Vec<(String, fn() -> String)>,
+}
+
+impl Attributes {
+    pub fn new(attributes: Vec<(String, fn() -> String)>) -> Attributes {
+        Attributes {
+            attributes,
+        }
+    }
+
+    pub fn render(&self) -> String {
+        self.attributes.iter()
+            .map(|(key, value)| format!("{}={} ", key, value()))
+            .collect()
+    }
+}
+
 pub struct Html {
-    pub(crate) component: ComponentRef,
-    pub(crate) attributes: HashMap<String, fn() -> Box<dyn Any>>,
-    pub(crate) props: Props,
+    component: ComponentRef,
+    attributes: Attributes,
+    callback: Vec<(String, fn() -> Box<dyn Any>)>,
+    props: Props,
 }
 
 impl Html {
     pub fn new(
         component: ComponentRef,
-        attributes: &[(String, fn() -> Box<dyn Any>)],
+        attributes: Attributes,
+        callback: Vec<(String, fn() -> Box<dyn Any>)>,
         props: Props,
     ) -> Html {
         Html {
             component,
-            attributes: attributes.into_iter().cloned().collect(),
+            attributes,
+            callback,
             props,
         }
     }
 
-    pub fn render(self) -> String {
-        self.component.render(Context::new(self.props))
+    pub fn render(&self) -> String {
+        self.component.render(Context::new(&self.props, &self.attributes))
     }
 }
 

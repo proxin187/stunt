@@ -1,8 +1,10 @@
 use crate::dom::component::{Component, Context};
-use crate::dom::html::Props;
+use crate::dom::html::{Props, Attributes};
 
 use wasm_bindgen::prelude::*;
 use web_sys::HtmlElement;
+
+use std::collections::HashMap;
 
 
 pub struct Renderer<T: Component> {
@@ -24,7 +26,10 @@ impl<T: Component> Renderer<T> {
     pub fn render(&mut self) -> Result<(), JsValue> {
         // TODO: render system where it only updates what hasnt already been updated
 
-        let raw = self.component.view(Context::new(Props::new(Vec::new()))).render();
+        let attributes = Attributes::new(Vec::new());
+        let props = Props::new(Vec::new());
+
+        let raw = self.component.view(Context::new(&props, &attributes)).render();
 
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 

@@ -1,4 +1,4 @@
-use crate::dom::html::{Html, Props};
+use crate::dom::html::{Html, Props, Attributes};
 
 use std::any::Any;
 
@@ -25,14 +25,16 @@ impl ComponentRef {
     }
 }
 
-pub struct Context {
-    pub props: Props,
+pub struct Context<'a> {
+    pub props: &'a Props,
+    pub attributes: &'a Attributes,
 }
 
-impl Context {
-    pub fn new(props: Props) -> Context {
+impl<'a> Context<'a> {
+    pub fn new(props: &'a Props, attributes: &'a Attributes) -> Context<'a> {
         Context {
             props,
+            attributes,
         }
     }
 }
