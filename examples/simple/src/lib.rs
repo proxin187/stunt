@@ -37,15 +37,35 @@ impl Component for App {
         let count = self.count;
 
         Html::new(
-            ComponentRef::Component(Box::new(H1::create())),
+            ComponentRef::Component(Box::new(Div::create())),
             Attributes::new(Vec::new()),
             Vec::new(),
             Props::new(vec![
                 Html::new(
-                    ComponentRef::Block(Box::new(move || format!("Welcome to saar web framework demo: {}", count))),
-                    Attributes::new(vec![(String::from("style"), || { String::from("background-color: black;") })]),
+                    ComponentRef::Component(Box::new(H1::create())),
+                    Attributes::new(vec![(String::from("style"), || { String::from("background-color: yellow;") })]),
                     Vec::new(),
-                    Props::new(Vec::new()),
+                    Props::new(vec![
+                        Html::new(
+                            ComponentRef::Block(Box::new(move || format!("Welcome to saar web framework demo: {}", count))),
+                            Attributes::new(Vec::new()),
+                            Vec::new(),
+                            Props::new(Vec::new()),
+                        ),
+                    ]),
+                ),
+                Html::new(
+                    ComponentRef::Component(Box::new(Button::create())),
+                    Attributes::new(Vec::new()),
+                    Vec::new(),
+                    Props::new(vec![
+                        Html::new(
+                            ComponentRef::Block(Box::new(move || String::from("increment"))),
+                            Attributes::new(Vec::new()),
+                            Vec::new(),
+                            Props::new(Vec::new()),
+                        ),
+                    ]),
                 ),
             ]),
         )

@@ -1,39 +1,36 @@
-use crate::dom::component::{Component, Context};
-use crate::dom::html::{Props, Attributes};
+use crate::dom::html::Html;
 
 use wasm_bindgen::prelude::*;
-use web_sys::HtmlElement;
 
-use std::collections::HashMap;
+use std::sync::LazyLock;
 
 
-pub struct Renderer<T: Component> {
-    body: HtmlElement,
-    component: T,
+pub static RENDERER: LazyLock<Option<Renderer>> = LazyLock::new(|| None);
+
+
+pub struct Renderer {
+    base: Html,
 }
 
-impl<T: Component> Renderer<T> {
-    pub fn new() -> Renderer<T> {
-        let window = web_sys::window().expect("no global window exists");
-        let document = window.document().expect("should have a document on window");
-
+impl Renderer {
+    pub fn new(base: Html) -> Renderer {
         Renderer {
-            body: document.body().expect("document should have a body"),
-            component: T::create(),
+            base,
         }
     }
 
     pub fn render(&mut self) -> Result<(), JsValue> {
         // TODO: render system where it only updates what hasnt already been updated
 
-        let attributes = Attributes::new(Vec::new());
-        let props = Props::new(Vec::new());
-
-        let raw = self.component.view(Context::new(&props, &attributes)).render();
+        let raw = self.base.render();
 
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 
-        self.body.set_inner_html(&raw);
+        let window = web_sys::window().expect("no global window exists");
+        let document = window.document().expect("should have a document on window");
+        let body = document.body().expect("document should have a body");
+
+        body.set_inner_html(&raw);
 
         Ok(())
     }

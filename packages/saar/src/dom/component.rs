@@ -12,8 +12,8 @@ pub trait Component {
 }
 
 pub enum ComponentRef {
-    Component(Box<dyn Component>),
-    Block(Box<dyn Fn() -> String>),
+    Component(Box<dyn Component + Send + Sync>),
+    Block(Box<dyn Fn() -> String + Send + Sync>),
 }
 
 impl ComponentRef {
@@ -22,6 +22,26 @@ impl ComponentRef {
             ComponentRef::Component(component) => component.view(context).render(),
             ComponentRef::Block(block) => block(),
         }
+    }
+}
+
+pub struct Base;
+
+impl Component for Base {
+    fn create() -> Base { Base }
+
+    fn callback(&mut self, _callback: Box<dyn Any>) {}
+
+    fn view(&self, ctx: Context) -> Html {
+        let inner = ctx.props.render();
+        let attr = ctx.attributes.render();
+
+        Html::new(
+            ComponentRef::Block(Box::new(move || { format!("<div {}>{}</div>", attr, inner) })),
+            Attributes::new(Vec::new()),
+            Vec::new(),
+            Props::new(Vec::new()),
+        )
     }
 }
 

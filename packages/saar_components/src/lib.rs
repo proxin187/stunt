@@ -30,6 +30,6 @@ macro_rules! create_component {
 
 create_component!(H1, "h1");
 create_component!(Div, "div");
-create_component!(P, "p");
+create_component!(Button, "button");
 
 
