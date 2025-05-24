@@ -1,6 +1,7 @@
 mod scheduler;
 
 pub mod render;
+pub mod error;
 pub mod dom;
 
 #[allow(unused_imports)]

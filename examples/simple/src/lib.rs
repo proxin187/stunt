@@ -79,7 +79,7 @@ fn main() -> Result<(), JsValue> {
 
     web_sys::console::log_1(&"loading wasm".into());
 
-    Renderer::<App>::new().render()
+    Renderer::<App>::new().init()
 }
 
 
