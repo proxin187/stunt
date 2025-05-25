@@ -6,6 +6,7 @@ use saar_components::*;
 
 use wasm_bindgen::prelude::*;
 
+use std::sync::Arc;
 use std::any::Any;
 
 
@@ -41,31 +42,39 @@ impl Component for App {
             Attributes::new(Vec::new()),
             Vec::new(),
             Props::new(vec![
-                Html::new(
-                    ComponentRef::Component(Box::new(H1::create())),
-                    Attributes::new(vec![(String::from("style"), || { String::from("background-color: yellow;") })]),
-                    Vec::new(),
-                    Props::new(vec![
-                        Html::new(
-                            ComponentRef::Block(Box::new(move || format!("Welcome to saar web framework demo: {}", count))),
-                            Attributes::new(Vec::new()),
-                            Vec::new(),
-                            Props::new(Vec::new()),
-                        ),
-                    ]),
+                Arc::new(
+                    Html::new(
+                        ComponentRef::Component(Box::new(H1::create())),
+                        Attributes::new(vec![(String::from("style"), || { String::from("background-color: yellow;") })]),
+                        Vec::new(),
+                        Props::new(vec![
+                            Arc::new(
+                                Html::new(
+                                    ComponentRef::Block(Box::new(move || format!("Welcome to saar web framework demo: {}", count))),
+                                    Attributes::new(Vec::new()),
+                                    Vec::new(),
+                                    Props::new(Vec::new()),
+                                )
+                            ),
+                        ]),
+                    )
                 ),
-                Html::new(
-                    ComponentRef::Component(Box::new(Button::create())),
-                    Attributes::new(Vec::new()),
-                    Vec::new(),
-                    Props::new(vec![
-                        Html::new(
-                            ComponentRef::Block(Box::new(move || String::from("increment"))),
-                            Attributes::new(Vec::new()),
-                            Vec::new(),
-                            Props::new(Vec::new()),
-                        ),
-                    ]),
+                Arc::new(
+                    Html::new(
+                        ComponentRef::Component(Box::new(Button::create())),
+                        Attributes::new(Vec::new()),
+                        Vec::new(),
+                        Props::new(vec![
+                            Arc::new(
+                                Html::new(
+                                    ComponentRef::Block(Box::new(move || String::from("increment"))),
+                                    Attributes::new(Vec::new()),
+                                    Vec::new(),
+                                    Props::new(Vec::new()),
+                                )
+                            ),
+                        ]),
+                    )
                 ),
             ]),
         )

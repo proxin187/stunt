@@ -1,5 +1,6 @@
 use crate::dom::component::{Component, Context};
 use crate::dom::html::{Props, Attributes};
+use crate::dom::tree::{self, Tree};
 use crate::scheduler;
 
 use web_sys::HtmlElement;
@@ -27,6 +28,8 @@ impl<T: Component> Renderer<T> {
     }
 
     fn render(&mut self) {
+        tree::with(|tree| *tree = Tree::new());
+
         let props = Props::new(Vec::new());
         let attributes = Attributes::new(Vec::new());
 

@@ -1,7 +1,7 @@
 pub mod component;
 pub mod html;
 
-mod listener;
-mod tree;
+pub(crate) mod listener;
+pub(crate) mod tree;
 
 

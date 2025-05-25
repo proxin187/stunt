@@ -41,7 +41,6 @@ impl Component for Base {
             Attributes::new(Vec::new()),
             Vec::new(),
             Props::new(Vec::new()),
-            0,
         )
     }
 }

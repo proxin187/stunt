@@ -12,7 +12,7 @@ pub struct Props {
 impl Props {
     pub fn new(props: Vec<Arc<Html>>) -> Props {
         for prop in &props {
-            tree::insert(prop.id, prop.clone());
+            tree::with(|tree| tree.insert(prop.id, prop.clone()));
         }
 
         Props {
@@ -60,7 +60,7 @@ impl Html {
         callback: Vec<(String, fn() -> Box<dyn Any>)>,
         props: Props,
     ) -> Html {
-        let id = tree::alloc_id();
+        let id = tree::with(|tree| tree.alloc_id());
 
         Html {
             component,
