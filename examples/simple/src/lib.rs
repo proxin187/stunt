@@ -37,6 +37,14 @@ impl Component for App {
     fn view(&self, ctx: Context) -> Html {
         let count = self.count;
 
+        // TODO: we cant create a new component everytime we render, we will have to store the
+        // state somehow
+        //
+        // TODO: we can have so that view is only called once and cached
+        //
+        // we can fix the issue of code before return by just having the self passed through the
+        // context
+
         Html::new(
             ComponentRef::Component(Box::new(Div::create())),
             Attributes::new(Vec::new()),

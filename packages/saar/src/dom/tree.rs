@@ -8,6 +8,8 @@ use std::collections::BTreeMap;
 static TREE: LazyLock<Mutex<Tree>> = LazyLock::new(|| Mutex::new(Tree::new()));
 
 
+// TODO: this implementation has horrible performance, make something better
+
 pub struct Tree {
     inner: BTreeMap<usize, Arc<Html>>,
     id: usize,
