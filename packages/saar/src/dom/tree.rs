@@ -5,6 +5,24 @@ use std::sync::{LazyLock, Mutex, Arc};
 use std::collections::BTreeMap;
 
 
+pub enum Inner {
+    Component(usize),
+    Block(Box<dyn Fn() -> String + Send + Sync>),
+}
+
+pub struct Node {
+    inner: Inner,
+}
+
+pub struct Tree {
+    nodes: Vec<Node>,
+}
+
+impl Tree {
+}
+
+
+/*
 static TREE: LazyLock<Mutex<Tree>> = LazyLock::new(|| Mutex::new(Tree::new()));
 
 
@@ -45,5 +63,6 @@ pub fn with<R>(f: impl Fn(&mut Tree) -> R) -> R {
 
     f(&mut lock)
 }
+*/
 
 

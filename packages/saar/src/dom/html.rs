@@ -4,6 +4,9 @@ use crate::dom::tree;
 use std::any::Any;
 use std::sync::Arc;
 
+// TODO: we should maybe move this and the component module into a seperate parent module called
+// html as this has nothing to do with the virtual dom but is rather just a html representation
+
 
 pub struct Props {
     props: Vec<Arc<Html>>,
@@ -11,10 +14,6 @@ pub struct Props {
 
 impl Props {
     pub fn new(props: Vec<Arc<Html>>) -> Props {
-        for prop in &props {
-            tree::with(|tree| tree.insert(prop.id, prop.clone()));
-        }
-
         Props {
             props,
         }
@@ -50,7 +49,6 @@ pub struct Html {
     attributes: Attributes,
     callback: Vec<(String, fn() -> Box<dyn Any>)>,
     props: Props,
-    id: usize,
 }
 
 impl Html {
@@ -60,17 +58,15 @@ impl Html {
         callback: Vec<(String, fn() -> Box<dyn Any>)>,
         props: Props,
     ) -> Html {
-        let id = tree::with(|tree| tree.alloc_id());
-
         Html {
             component,
             attributes,
             callback,
             props,
-            id,
         }
     }
 
+    // TODO: move the render function into the virtual dom
     pub fn render(&self) -> String {
         // TODO: here we will have to add the event listener
 
