@@ -1,24 +1,62 @@
-use crate::dom::html::Html;
 use crate::error::Error;
+use crate::html::Html;
 
-use std::sync::{LazyLock, Mutex, Arc};
-use std::collections::BTreeMap;
+use crate::dom::component::Component;
+
+use std::sync::{LazyLock, Mutex};
+
+
+// TODO: we can move the state into a seperate module
+
+static STATE: LazyLock<Mutex<Vec<Box<dyn Component + Send>>>> = LazyLock::new(|| Mutex::new(Vec::new()));
+
+struct State {
+}
 
 
 pub enum Inner {
     Component(usize),
-    Block(Box<dyn Fn() -> String + Send + Sync>),
+    Block(fn() -> String),
+}
+
+impl Inner {
+}
+
+pub struct Attribute {
+    key: String,
+    value: fn() -> String,
 }
 
 pub struct Node {
     inner: Inner,
+    attributes: Vec<Attribute>,
+    props: Vec<Node>,
+}
+
+impl Node {
+    pub fn new(html: Html) -> (Node, Vec<Box<dyn Component>>) {
+        Node {
+            inner: html.component
+        }
+    }
+
+    pub fn render(&self) {
+    }
 }
 
 pub struct Tree {
-    nodes: Vec<Node>,
+    node: Node,
+    state: Vec<Box<dyn Component>>,
 }
 
 impl Tree {
+    pub fn new<T: Component>(component: T) -> Tree {
+        let html = component.view();
+
+        Tree {
+            node: Node::new(html),
+        }
+    }
 }
 
 

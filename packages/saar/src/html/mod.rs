@@ -1,11 +1,25 @@
-use crate::dom::component::{ComponentRef, Context};
-use crate::dom::tree;
+use crate::dom::component::{Component, Context};
 
 use std::any::Any;
 use std::sync::Arc;
 
 // TODO: we should maybe move this and the component module into a seperate parent module called
 // html as this has nothing to do with the virtual dom but is rather just a html representation
+
+
+pub enum ComponentRef {
+    Component(Box<dyn Component + Send + Sync>),
+    Block(fn(&mut Context) -> String),
+}
+
+impl ComponentRef {
+    pub fn render(&self, context: &mut Context) -> String {
+        match self {
+            ComponentRef::Component(component) => component.view().render(),
+            ComponentRef::Block(block) => block(context),
+        }
+    }
+}
 
 
 pub struct Props {
@@ -45,10 +59,10 @@ impl Attributes {
 }
 
 pub struct Html {
-    component: ComponentRef,
-    attributes: Attributes,
-    callback: Vec<(String, fn() -> Box<dyn Any>)>,
-    props: Props,
+    pub(crate) component: ComponentRef,
+    pub(crate) attributes: Attributes,
+    pub(crate) callback: Vec<(String, fn() -> Box<dyn Any>)>,
+    pub(crate) props: Props,
 }
 
 impl Html {

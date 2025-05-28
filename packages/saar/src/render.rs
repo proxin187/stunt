@@ -1,6 +1,6 @@
 use crate::dom::component::{Component, Context};
-use crate::dom::html::{Props, Attributes};
-use crate::dom::tree::{self, Tree};
+use crate::html::{Props, Attributes};
+use crate::dom::tree::Tree;
 use crate::scheduler;
 
 use web_sys::HtmlElement;
@@ -12,9 +12,6 @@ pub struct Renderer<T: Component> {
     component: T,
     body: HtmlElement,
 }
-
-// TODO: inside here we will have to hold the renderer and loop until we find an event we need to
-// do, this event we will get from the scheduler
 
 impl<T: Component> Renderer<T> {
     pub fn new() -> Renderer<T> {
@@ -28,8 +25,6 @@ impl<T: Component> Renderer<T> {
     }
 
     fn render(&mut self) {
-        tree::with(|tree| *tree = Tree::new());
-
         let props = Props::new(Vec::new());
         let attributes = Attributes::new(Vec::new());
 
@@ -44,6 +39,8 @@ impl<T: Component> Renderer<T> {
         // TODO: render system where it only updates what hasnt already been updated
 
         // TODO: we can trigger a render at the start by generating a callback for the base element
+
+        let tree = Tree::new(self.component);
 
         loop {
             match scheduler::with(|scheduler| scheduler.recv()) {
