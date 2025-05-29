@@ -1,4 +1,4 @@
-use crate::html::{Html, Props, Attributes, ComponentRef};
+use crate::html::{Html, ComponentRef};
 
 use std::any::Any;
 
@@ -7,6 +7,8 @@ pub trait Component {
     fn create() -> Self where Self: Sized;
 
     fn callback(&mut self, callback: Box<dyn Any>);
+
+    fn extract(&self, extract: Box<dyn Any>) -> String;
 
     fn view(&self) -> Html;
 }
@@ -18,30 +20,15 @@ impl Component for Base {
 
     fn callback(&mut self, _callback: Box<dyn Any>) {}
 
+    fn extract(&self, _extract: Box<dyn Any>) -> String { String::default() }
+
     fn view(&self) -> Html {
         Html::new(
-            ComponentRef::Block(|ctx| { format!("{}", ctx.props.render()) }),
-            Attributes::new(Vec::new()),
+            ComponentRef::Block(|ctx| { ctx.props.render() }),
             Vec::new(),
-            Props::new(Vec::new()),
+            Vec::new(),
+            Vec::new(),
         )
-    }
-}
-
-
-// TODO: we need to add so that context also has a reference to self
-
-pub struct Context<'a> {
-    pub props: &'a Props,
-    pub attributes: &'a Attributes,
-}
-
-impl<'a> Context<'a> {
-    pub fn new(props: &'a Props, attributes: &'a Attributes) -> Context<'a> {
-        Context {
-            props,
-            attributes,
-        }
     }
 }
 

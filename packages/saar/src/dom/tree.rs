@@ -1,42 +1,40 @@
-use crate::error::Error;
-use crate::html::Html;
+use crate::html::{Html, Attribute, ComponentRef};
 
 use crate::dom::component::Component;
+use crate::dom::state;
 
-use std::sync::{LazyLock, Mutex};
-
-
-// TODO: we can move the state into a seperate module
-
-static STATE: LazyLock<Mutex<Vec<Box<dyn Component + Send>>>> = LazyLock::new(|| Mutex::new(Vec::new()));
-
-struct State {
-}
+use std::any::Any;
 
 
 pub enum Inner {
     Component(usize),
-    Block(fn() -> String),
+    Block(fn(Context) -> String),
 }
 
 impl Inner {
+    pub fn new(component: ComponentRef) -> Inner {
+        match component {
+            ComponentRef::Component(component) => Inner::Component(state::with(|state| state.push(component))),
+            ComponentRef::Block(f) => Inner::Block(f),
+        }
+    }
+
+    pub fn render(&self, context: Context) {
+        match self {
+            Inner::Component(component) => state::with(|state| ),
+            Inner::Block(f) => f(context),
+        }
+    }
 }
 
-pub struct Attribute {
-    key: String,
-    value: fn() -> String,
+pub struct Attributes {
+    inner: Vec<Attribute>,
 }
 
-pub struct Node {
-    inner: Inner,
-    attributes: Vec<Attribute>,
-    props: Vec<Node>,
-}
-
-impl Node {
-    pub fn new(html: Html) -> (Node, Vec<Box<dyn Component>>) {
-        Node {
-            inner: html.component
+impl Attributes {
+    pub fn new(inner: Vec<Attribute>) -> Attributes {
+        Attributes {
+            inner,
         }
     }
 
@@ -44,63 +42,82 @@ impl Node {
     }
 }
 
+pub struct Props {
+    inner: Vec<Node>,
+}
+
+impl Props {
+    pub fn new(inner: Vec<Node>) -> Props {
+        Props {
+            inner,
+        }
+    }
+
+    pub fn render(&self) {
+    }
+}
+
+pub struct Node {
+    inner: Inner,
+    attributes: Attributes,
+    props: Props,
+}
+
+impl Node {
+    pub fn new(html: Html) -> Node {
+        let props = html.props.into_iter()
+            .map(|html| Node::new(html))
+            .collect::<Vec<Node>>();
+
+        Node {
+            inner: Inner::new(html.component),
+            attributes: Attributes::new(html.attributes),
+            props: Props::new(props),
+        }
+    }
+
+    pub fn render(&self) -> String {
+        // TODO: we need to somehow keep track of which component we are inside of
+        // maybe we can have a seperate tree for each component?
+        //
+        // maybe we need some sort of a scope mechanism
+
+        self.inner.render(self.attributes, self.props)
+    }
+}
+
+pub struct Context<'a> {
+    pub component: &'a Box<dyn Component>,
+    pub props: &'a Props,
+    pub attributes: &'a Attributes,
+}
+
+impl<'a> Context<'a> {
+    pub fn new(component: &'a Box<dyn Component>, props: &'a Props, attributes: &'a Attributes) -> Context<'a> {
+        Context {
+            component,
+            props,
+            attributes,
+        }
+    }
+}
+
 pub struct Tree {
     node: Node,
-    state: Vec<Box<dyn Component>>,
 }
 
 impl Tree {
-    pub fn new<T: Component>(component: T) -> Tree {
+    pub fn new<T: Component>(component: &T) -> Tree {
         let html = component.view();
 
         Tree {
             node: Node::new(html),
         }
     }
-}
 
-
-/*
-static TREE: LazyLock<Mutex<Tree>> = LazyLock::new(|| Mutex::new(Tree::new()));
-
-
-// TODO: this implementation has horrible performance, make something better
-
-pub struct Tree {
-    inner: BTreeMap<usize, Arc<Html>>,
-    id: usize,
-}
-
-impl Tree {
-    pub fn new() -> Tree {
-        Tree {
-            inner: BTreeMap::new(),
-            id: 0,
-        }
-    }
-
-    pub fn insert(&mut self, id: usize, inner: Arc<Html>) {
-        self.inner.insert(id, inner);
-    }
-
-    pub fn get(&self, id: usize) -> Result<Arc<Html>, Error> {
-        self.inner.get(&id)
-            .ok_or(Error::InvalidId)
-            .map(|html| html.clone())
-    }
-
-    pub fn alloc_id(&mut self) -> usize {
-        self.id += 1;
-
-        self.id
+    pub fn render(&self) -> String {
+        self.node.render()
     }
 }
-
-pub fn with<R>(f: impl Fn(&mut Tree) -> R) -> R {
-    let mut lock = TREE.lock().expect("tree failed");
-
-    f(&mut lock)
-}
-*/
 
 

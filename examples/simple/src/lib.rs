@@ -14,6 +14,10 @@ pub enum Message {
     Add,
 }
 
+pub enum Extract {
+    Count,
+}
+
 pub struct App {
     count: usize,
 }
@@ -34,7 +38,10 @@ impl Component for App {
         }
     }
 
-    fn view(&self, ctx: Context) -> Html {
+    fn extract(&self, extract: Box<dyn Any>) -> String {
+    }
+
+    fn view(&self) -> Html {
         let count = self.count;
 
         // TODO: we cant create a new component everytime we render, we will have to store the
