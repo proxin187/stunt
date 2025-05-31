@@ -23,10 +23,10 @@ impl<T: Component> Renderer<T> {
         }
     }
 
-    pub fn init(mut self) -> Result<(), JsValue> {
+    pub fn init(self) -> Result<(), JsValue> {
         // TODO: we can trigger a render at the start by generating a callback for the base element
 
-        let tree = Tree::new(&self.component);
+        let tree = Tree::new(self.component.view());
 
         loop {
             match scheduler::with(|scheduler| scheduler.recv()) {

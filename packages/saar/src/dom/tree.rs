@@ -1,9 +1,7 @@
 use crate::html::{Html, Attribute, ComponentRef};
 
 use crate::dom::component::Component;
-use crate::dom::state;
-
-use std::any::Any;
+use crate::dom::state::{self, State};
 
 
 pub enum Inner {
@@ -14,14 +12,20 @@ pub enum Inner {
 impl Inner {
     pub fn new(component: ComponentRef) -> Inner {
         match component {
-            ComponentRef::Component(component) => Inner::Component(state::with(|state| state.push(component))),
+            ComponentRef::Component(component) => Inner::Component(state::with(|state| {
+                let view = component.view();
+
+                state.push(State::new(component, Tree::new(view)));
+
+                state.len() - 1
+            })),
             ComponentRef::Block(f) => Inner::Block(f),
         }
     }
 
-    pub fn render(&self, context: Context) {
+    pub fn render(&self, context: Context) -> String {
         match self {
-            Inner::Component(component) => state::with(|state| ),
+            Inner::Component(component) => state::with(|state| state[*component].render()),
             Inner::Block(f) => f(context),
         }
     }
@@ -64,14 +68,14 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(html: Html) -> Node {
-        let props = html.props.into_iter()
+    pub fn new(view: Html) -> Node {
+        let props = view.props.into_iter()
             .map(|html| Node::new(html))
             .collect::<Vec<Node>>();
 
         Node {
-            inner: Inner::new(html.component),
-            attributes: Attributes::new(html.attributes),
+            inner: Inner::new(view.component),
+            attributes: Attributes::new(view.attributes),
             props: Props::new(props),
         }
     }
@@ -81,8 +85,26 @@ impl Node {
         // maybe we can have a seperate tree for each component?
         //
         // maybe we need some sort of a scope mechanism
+        //
+        // nevermind, we already have a scope mechanism, the Tree structure is the scope
 
         self.inner.render(self.attributes, self.props)
+    }
+}
+
+pub struct Tree {
+    node: Node,
+}
+
+impl Tree {
+    pub fn new(view: Html) -> Tree {
+        Tree {
+            node: Node::new(view),
+        }
+    }
+
+    pub fn render(&self) -> String {
+        self.node.render()
     }
 }
 
@@ -99,24 +121,6 @@ impl<'a> Context<'a> {
             props,
             attributes,
         }
-    }
-}
-
-pub struct Tree {
-    node: Node,
-}
-
-impl Tree {
-    pub fn new<T: Component>(component: &T) -> Tree {
-        let html = component.view();
-
-        Tree {
-            node: Node::new(html),
-        }
-    }
-
-    pub fn render(&self) -> String {
-        self.node.render()
     }
 }
 

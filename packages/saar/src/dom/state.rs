@@ -1,29 +1,30 @@
 use crate::dom::component::Component;
+use crate::dom::tree::Tree;
 
 use std::sync::{LazyLock, Mutex};
 
 
-struct State {
-    pub state: Vec<Box<dyn Component>>,
+pub struct State {
+    component: Box<dyn Component>,
+    tree: Tree,
 }
 
 impl State {
-    pub fn new() -> State {
+    pub fn new(component: Box<dyn Component>, tree: Tree) -> State {
         State {
-            state: Vec::new(),
+            component,
+            tree,
         }
     }
 
-    pub fn push(&mut self, component: Box<dyn Component>) -> usize {
-        self.state.push(component);
-
-        self.state.len() - 1
+    pub fn render(&self) -> String {
+        self.tree.render()
     }
 }
 
-pub fn with<R>(f: impl FnOnce(&mut State) -> R) -> R {
+pub fn with<R>(f: impl FnOnce(&mut Vec<State>) -> R) -> R {
     thread_local! {
-        static STATE: LazyLock<Mutex<State>> = LazyLock::new(|| Mutex::new(State::new()));
+        static STATE: LazyLock<Mutex<Vec<State>>> = LazyLock::new(|| Mutex::new(Vec::new()));
     }
 
     STATE.with(|scheduler| f(&mut scheduler.lock().expect("failed to lock")))
