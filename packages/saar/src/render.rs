@@ -1,5 +1,6 @@
 use crate::dom::component::Component;
 use crate::dom::tree::Tree;
+use crate::dom::state::{self, State};
 use crate::scheduler;
 
 use web_sys::HtmlElement;
@@ -28,6 +29,8 @@ impl<T: Component> Renderer<T> {
 
         let tree = Tree::new(self.component.view());
 
+        state::with(|state| state.push(State::new(Box::new(self.component), tree)));
+
         loop {
             match scheduler::with(|scheduler| scheduler.recv()) {
                 Ok(callback) => {
@@ -36,7 +39,7 @@ impl<T: Component> Renderer<T> {
                     //
                     // maybe we can only support callbacks for now
 
-                    let raw = tree.render();
+                    let raw = state::with(|state| state[0].render());
 
                     web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 
