@@ -3,6 +3,9 @@ use crate::html::{Html, Attribute, ComponentRef};
 use crate::dom::component::Component;
 use crate::dom::state::{self, State};
 
+use std::sync::Arc;
+use std::any::Any;
+
 
 pub enum Inner {
     Component(usize),
@@ -15,7 +18,7 @@ impl Inner {
             ComponentRef::Component(component) => Inner::Component(state::with(|state| {
                 let view = component.view();
 
-                state.push(State::new(component, Tree::new(view)));
+                state.push(State::new(component, Tree::new(view, state.len())));
 
                 state.len() - 1
             })),
@@ -42,7 +45,10 @@ impl Attributes {
         }
     }
 
-    pub fn render(&self) {
+    pub fn render(&self) -> String {
+        self.inner.iter()
+            .map(|attribute| attribute.render())
+            .collect::<String>()
     }
 }
 
@@ -57,7 +63,10 @@ impl Props {
         }
     }
 
-    pub fn render(&self) {
+    pub fn render(&self) -> String {
+        self.inner.iter()
+            .map(|node| node.render())
+            .collect::<String>()
     }
 }
 
@@ -65,30 +74,34 @@ pub struct Node {
     inner: Inner,
     attributes: Attributes,
     props: Props,
+    scope: usize,
 }
 
 impl Node {
-    pub fn new(view: Html) -> Node {
+    pub fn new(view: Html, scope: usize) -> Node {
         let props = view.props.into_iter()
-            .map(|html| Node::new(html))
+            .map(|html| Node::new(html, scope))
             .collect::<Vec<Node>>();
+
+        // TODO: here we should hook up the callbacks
 
         Node {
             inner: Inner::new(view.component),
             attributes: Attributes::new(view.attributes),
             props: Props::new(props),
+            scope,
         }
     }
 
     pub fn render(&self) -> String {
-        // TODO: we need to somehow keep track of which component we are inside of
-        // maybe we can have a seperate tree for each component?
-        //
-        // maybe we need some sort of a scope mechanism
-        //
-        // nevermind, we already have a scope mechanism, the Tree structure is the scope
+        web_sys::console::log_1(&format!("scope: {:?}", self.scope).into());
 
-        self.inner.render(self.attributes, self.props)
+        // TODO: the issue is here, i would guess this is because we are trying to access it nested
+        let component = state::with(|state| state[self.scope].component.clone());
+
+        web_sys::console::log_1(&format!("twice scope: {:?}", self.scope).into());
+
+        self.inner.render(Context::new(component, &self.props, &self.attributes))
     }
 }
 
@@ -97,9 +110,9 @@ pub struct Tree {
 }
 
 impl Tree {
-    pub fn new(view: Html) -> Tree {
+    pub fn new(view: Html, scope: usize) -> Tree {
         Tree {
-            node: Node::new(view),
+            node: Node::new(view, scope),
         }
     }
 
@@ -109,18 +122,22 @@ impl Tree {
 }
 
 pub struct Context<'a> {
-    pub component: &'a Box<dyn Component>,
+    component: Arc<dyn Component>,
     pub props: &'a Props,
     pub attributes: &'a Attributes,
 }
 
 impl<'a> Context<'a> {
-    pub fn new(component: &'a Box<dyn Component>, props: &'a Props, attributes: &'a Attributes) -> Context<'a> {
+    pub fn new(component: Arc<dyn Component>, props: &'a Props, attributes: &'a Attributes) -> Context<'a> {
         Context {
             component,
             props,
             attributes,
         }
+    }
+
+    pub fn extract<T: Any>(&self, extract: T) -> String {
+        self.component.extract(Box::new(extract))
     }
 }
 

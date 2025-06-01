@@ -1,5 +1,5 @@
-use saar::dom::component::{Component, ComponentRef, Context};
-use saar::dom::html::{Html, Props, Attributes};
+use saar::html::{Html, ComponentRef};
+use saar::dom::component::Component;
 
 use std::any::Any;
 
@@ -13,15 +13,14 @@ macro_rules! create_component {
 
             fn callback(&mut self, _callback: Box<dyn Any>) {}
 
-            fn view(&self, ctx: Context) -> Html {
-                let inner = ctx.props.render();
-                let attr = ctx.attributes.render();
+            fn extract(&self, _extract: Box<dyn Any>) -> String { String::new() }
 
+            fn view(&self) -> Html {
                 Html::new(
-                    ComponentRef::Block(Box::new(move || { format!("<{} {}>{}</{}>", $tag, attr, inner, $tag) })),
-                    Attributes::new(Vec::new()),
+                    ComponentRef::Block(|ctx| { format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(), $tag) }),
                     Vec::new(),
-                    Props::new(Vec::new()),
+                    Vec::new(),
+                    Vec::new(),
                 )
             }
         }

@@ -1,11 +1,12 @@
 use crate::dom::component::Component;
 use crate::dom::tree::Context;
 
+use std::sync::Arc;
 use std::any::Any;
 
 
 pub enum ComponentRef {
-    Component(Box<dyn Component + Send + Sync>),
+    Component(Arc<dyn Component + Send + Sync>),
     Block(fn(Context) -> String),
 }
 
@@ -20,6 +21,10 @@ impl Attribute {
             key,
             value,
         }
+    }
+
+    pub fn render(&self) -> String {
+        format!("{}=\"{}\"", self.key, (self.value)())
     }
 }
 

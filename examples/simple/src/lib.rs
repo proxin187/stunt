@@ -1,5 +1,5 @@
-use saar::dom::component::{Component, ComponentRef, Context};
-use saar::dom::html::{Html, Props, Attributes};
+use saar::html::{Html, Attribute, ComponentRef};
+use saar::dom::component::Component;
 use saar::render::Renderer;
 
 use saar_components::*;
@@ -39,59 +39,45 @@ impl Component for App {
     }
 
     fn extract(&self, extract: Box<dyn Any>) -> String {
+        match extract.downcast_ref::<Extract>() {
+            Some(Extract::Count) => format!("{}", self.count),
+            None => unreachable!(),
+        }
     }
 
     fn view(&self) -> Html {
-        let count = self.count;
-
-        // TODO: we cant create a new component everytime we render, we will have to store the
-        // state somehow
-        //
-        // TODO: we can have so that view is only called once and cached
-        //
-        // we can fix the issue of code before return by just having the self passed through the
-        // context
-
         Html::new(
-            ComponentRef::Component(Box::new(Div::create())),
-            Attributes::new(Vec::new()),
+            ComponentRef::Component(Arc::new(Div::create())),
             Vec::new(),
-            Props::new(vec![
-                Arc::new(
-                    Html::new(
-                        ComponentRef::Component(Box::new(H1::create())),
-                        Attributes::new(vec![(String::from("style"), || { String::from("background-color: yellow;") })]),
-                        Vec::new(),
-                        Props::new(vec![
-                            Arc::new(
-                                Html::new(
-                                    ComponentRef::Block(Box::new(move || format!("Welcome to saar web framework demo: {}", count))),
-                                    Attributes::new(Vec::new()),
-                                    Vec::new(),
-                                    Props::new(Vec::new()),
-                                )
-                            ),
-                        ]),
-                    )
+            Vec::new(),
+            vec![
+                Html::new(
+                    ComponentRef::Component(Arc::new(H1::create())),
+                    vec![Attribute::new(String::from("style"), || { String::from("background-color: yellow;") })],
+                    Vec::new(),
+                    vec![
+                        Html::new(
+                            ComponentRef::Block(|ctx| { format!("Welcome to saar web framework demo: {}", ctx.extract(Extract::Count)) }),
+                            Vec::new(),
+                            Vec::new(),
+                            Vec::new(),
+                        ),
+                    ],
                 ),
-                Arc::new(
-                    Html::new(
-                        ComponentRef::Component(Box::new(Button::create())),
-                        Attributes::new(Vec::new()),
-                        Vec::new(),
-                        Props::new(vec![
-                            Arc::new(
-                                Html::new(
-                                    ComponentRef::Block(Box::new(move || String::from("increment"))),
-                                    Attributes::new(Vec::new()),
-                                    Vec::new(),
-                                    Props::new(Vec::new()),
-                                )
-                            ),
-                        ]),
-                    )
+                Html::new(
+                    ComponentRef::Component(Arc::new(Button::create())),
+                    Vec::new(),
+                    Vec::new(),
+                    vec![
+                        Html::new(
+                            ComponentRef::Block(|_| { String::from("increment") }),
+                            Vec::new(),
+                            Vec::new(),
+                            Vec::new(),
+                        ),
+                    ],
                 ),
-            ]),
+            ],
         )
     }
 }

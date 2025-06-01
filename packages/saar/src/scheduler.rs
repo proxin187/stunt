@@ -7,14 +7,14 @@ use std::any::Any;
 
 pub struct Callback {
     inner: Box<dyn Any>,
-    id: usize,
+    scope: usize,
 }
 
 impl Callback {
-    pub fn new(inner: Box<dyn Any>, id: usize) -> Callback {
+    pub fn new(inner: Box<dyn Any>, scope: usize) -> Callback {
         Callback {
             inner,
-            id,
+            scope,
         }
     }
 }
