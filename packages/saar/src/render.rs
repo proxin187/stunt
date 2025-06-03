@@ -1,6 +1,5 @@
 use crate::dom::component::Component;
-use crate::dom::tree::Tree;
-use crate::dom::state::{self, State};
+use crate::dom::state;
 use crate::scheduler;
 
 use web_sys::HtmlElement;
@@ -11,12 +10,12 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 
-pub struct Renderer<T: Component + 'static> {
+pub struct Renderer<T: Component + Send + Sync + 'static> {
     body: HtmlElement,
     _marker: PhantomData<T>,
 }
 
-impl<T: Component + 'static> Renderer<T> {
+impl<T: Component + Send + Sync + 'static> Renderer<T> {
     pub fn new() -> Renderer<T> {
         let window = web_sys::window().expect("no global window exists");
         let document = window.document().expect("should have a document on window");
@@ -31,20 +30,24 @@ impl<T: Component + 'static> Renderer<T> {
     fn render(&self) {
         web_sys::console::log_1(&format!("trying to render").into());
 
-        let raw = state::with(|state| state[0].render());
+        let raw = state::get(0).render();
 
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 
         self.body.set_inner_html(&raw);
     }
 
-    // the issue is not here
     fn create(&self) {
         let component = T::create();
 
-        let tree = Tree::new(component.view(), 0);
+        let view = component.view();
 
-        state::with(|state| state.push(State::new(Arc::new(component), tree)));
+        web_sys::console::log_1(&format!("trying to push").into());
+
+        // TODO: now the issue is here
+        state::push(Arc::new(component), view);
+
+        web_sys::console::log_1(&format!("push done").into());
     }
 
     pub fn init(self) -> Result<(), JsValue> {

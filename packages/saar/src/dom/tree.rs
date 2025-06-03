@@ -1,7 +1,7 @@
 use crate::html::{Html, Attribute, ComponentRef};
 
 use crate::dom::component::Component;
-use crate::dom::state::{self, State};
+use crate::dom::state;
 
 use std::sync::Arc;
 use std::any::Any;
@@ -15,20 +15,18 @@ pub enum Inner {
 impl Inner {
     pub fn new(component: ComponentRef) -> Inner {
         match component {
-            ComponentRef::Component(component) => Inner::Component(state::with(|state| {
+            ComponentRef::Component(component) => {
                 let view = component.view();
 
-                state.push(State::new(component, Tree::new(view, state.len())));
-
-                state.len() - 1
-            })),
+                Inner::Component(state::push(component, view))
+            },
             ComponentRef::Block(f) => Inner::Block(f),
         }
     }
 
     pub fn render(&self, context: Context) -> String {
         match self {
-            Inner::Component(component) => state::with(|state| state[*component].render()),
+            Inner::Component(component) => state::get(*component).render(),
             Inner::Block(f) => f(context),
         }
     }
@@ -97,7 +95,7 @@ impl Node {
         web_sys::console::log_1(&format!("scope: {:?}", self.scope).into());
 
         // TODO: the issue is here, i would guess this is because we are trying to access it nested
-        let component = state::with(|state| state[self.scope].component.clone());
+        let component = state::get(self.scope).component.clone();
 
         web_sys::console::log_1(&format!("twice scope: {:?}", self.scope).into());
 

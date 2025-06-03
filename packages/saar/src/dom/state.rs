@@ -1,16 +1,20 @@
 use crate::dom::component::Component;
 use crate::dom::tree::Tree;
+use crate::html::Html;
 
 use std::sync::{Arc, LazyLock, Mutex};
 
+static STATE: LazyLock<Mutex<Vec<State>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
+
+#[derive(Clone)]
 pub struct State {
-    pub component: Arc<dyn Component>,
-    pub tree: Tree,
+    pub component: Arc<dyn Component + Send + Sync>,
+    pub tree: Arc<Tree>,
 }
 
 impl State {
-    pub fn new(component: Arc<dyn Component>, tree: Tree) -> State {
+    pub fn new(component: Arc<dyn Component + Send + Sync>, tree: Arc<Tree>) -> State {
         State {
             component,
             tree,
@@ -22,17 +26,23 @@ impl State {
     }
 }
 
-// TODO: the issue is when we nest this function, aka call itself within the clousure that is
-// passed
-//
-// this might be related to thread_local or something, it might be a fix to just define it as a
-// normal static instead
-pub fn with<R>(f: impl FnOnce(&mut Vec<State>) -> R) -> R {
-    thread_local! {
-        static STATE: LazyLock<Mutex<Vec<State>>> = LazyLock::new(|| Mutex::new(Vec::new()));
-    }
+pub fn get(index: usize) -> State {
+    STATE.lock().expect("failed to lock")[index].clone()
+}
 
-    STATE.with(|state| f(&mut state.lock().expect("failed to lock")))
+pub fn push(component: Arc<dyn Component + Send + Sync>, view: Html) -> usize {
+    // TODO: there is a literal bug with mutexes on wasm, rust wasm literally does not support
+    // mutexes and there is no way to fix the error
+    //
+    // TODO: we will have to make our own mutex implementation i guess lol
+
+    let mut state = STATE.lock().expect("failed to lock");
+
+    let len = state.len();
+
+    state.push(State::new(component, Arc::new(Tree::new(view, len))));
+
+    state.len() - 1
 }
 
 
