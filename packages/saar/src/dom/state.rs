@@ -4,7 +4,7 @@ use crate::html::Html;
 
 use std::sync::{Arc, LazyLock, Mutex};
 
-static STATE: LazyLock<Mutex<Vec<State>>> = LazyLock::new(|| Mutex::new(Vec::new()));
+static STATE: LazyLock<Arc<Mutex<Vec<State>>>> = LazyLock::new(|| Arc::new(Mutex::new(Vec::new())));
 
 
 #[derive(Clone)]
@@ -31,10 +31,8 @@ pub fn get(index: usize) -> State {
 }
 
 pub fn push(component: Arc<dyn Component + Send + Sync>, view: Html) -> usize {
-    // TODO: there is a literal bug with mutexes on wasm, rust wasm literally does not support
-    // mutexes and there is no way to fix the error
-    //
-    // TODO: we will have to make our own mutex implementation i guess lol
+    // TODO: we managed to enable the atomic flags, now the only thing left is that atomics dont
+    // work in the main thread, so we will have to somehow spawn the renderer in a seperate thread
 
     let mut state = STATE.lock().expect("failed to lock");
 
