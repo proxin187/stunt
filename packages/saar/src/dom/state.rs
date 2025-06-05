@@ -33,6 +33,12 @@ pub fn get(index: usize) -> State {
 pub fn push(component: Arc<dyn Component + Send + Sync>, view: Html) -> usize {
     // TODO: we managed to enable the atomic flags, now the only thing left is that atomics dont
     // work in the main thread, so we will have to somehow spawn the renderer in a seperate thread
+    //
+    // this is an example of how to create a multi threaded pool in rust
+    // https://github.com/rustwasm/wasm-bindgen/blob/main/examples/raytrace-parallel/src/pool.rs
+    //
+    // or maybe we can just use this? it should make it alot easier
+    // https://github.com/chemicstry/wasm_thread
 
     let mut state = STATE.lock().expect("failed to lock");
 
