@@ -2,9 +2,11 @@ use crate::dom::component::Component;
 use crate::dom::tree::Tree;
 use crate::html::Html;
 
-use std::sync::{Arc, LazyLock, Mutex};
+use std::sync::{Arc, LazyLock};
 
-static STATE: LazyLock<Arc<Mutex<Vec<State>>>> = LazyLock::new(|| Arc::new(Mutex::new(Vec::new())));
+use spin::Mutex;
+
+static STATES: LazyLock<Arc<Mutex<Vec<State>>>> = LazyLock::new(|| Arc::new(Mutex::new(Vec::new())));
 
 
 #[derive(Clone)]
@@ -27,26 +29,19 @@ impl State {
 }
 
 pub fn get(index: usize) -> State {
-    STATE.lock().expect("failed to lock")[index].clone()
+    STATES.lock()[index].clone()
 }
 
 pub fn push(component: Arc<dyn Component + Send + Sync>, view: Html) -> usize {
-    // TODO: we managed to enable the atomic flags, now the only thing left is that atomics dont
-    // work in the main thread, so we will have to somehow spawn the renderer in a seperate thread
-    //
-    // this is an example of how to create a multi threaded pool in rust
-    // https://github.com/rustwasm/wasm-bindgen/blob/main/examples/raytrace-parallel/src/pool.rs
-    //
-    // or maybe we can just use this? it should make it alot easier
-    // https://github.com/chemicstry/wasm_thread
+    let len = STATES.lock().len();
 
-    let mut state = STATE.lock().expect("failed to lock");
+    let new = State::new(component, Arc::new(Tree::new(view, len)));
 
-    let len = state.len();
+    let mut states = STATES.lock();
 
-    state.push(State::new(component, Arc::new(Tree::new(view, len))));
+    states.push(new);
 
-    state.len() - 1
+    states.len() - 1
 }
 
 

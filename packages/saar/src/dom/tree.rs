@@ -26,6 +26,18 @@ impl Inner {
 
     pub fn render(&self, context: Context) -> String {
         match self {
+            Inner::Component(_) => {
+                web_sys::console::log_1(&format!("render component").into());
+            },
+            Inner::Block(_) => {
+                // TODO: we seem to get here, thats weird because we should actually get to a new
+                // component
+
+                web_sys::console::log_1(&format!("render block").into());
+            },
+        }
+
+        match self {
             Inner::Component(component) => state::get(*component).render(),
             Inner::Block(f) => f(context),
         }
@@ -94,12 +106,13 @@ impl Node {
     pub fn render(&self) -> String {
         web_sys::console::log_1(&format!("scope: {:?}", self.scope).into());
 
-        // TODO: the issue is here, i would guess this is because we are trying to access it nested
         let component = state::get(self.scope).component.clone();
 
-        web_sys::console::log_1(&format!("twice scope: {:?}", self.scope).into());
+        let raw = self.inner.render(Context::new(component, &self.props, &self.attributes));
 
-        self.inner.render(Context::new(component, &self.props, &self.attributes))
+        web_sys::console::log_1(&format!("node render: {:?}", raw).into());
+
+        raw
     }
 }
 

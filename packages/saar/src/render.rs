@@ -35,6 +35,8 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 
         self.body.set_inner_html(&raw);
+
+        web_sys::console::log_1(&format!("render done").into());
     }
 
     fn create(&self) {
@@ -42,12 +44,7 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
         let view = component.view();
 
-        web_sys::console::log_1(&format!("trying to push").into());
-
-        // TODO: now the issue is here
         state::push(Arc::new(component), view);
-
-        web_sys::console::log_1(&format!("push done").into());
     }
 
     pub fn init(self) -> Result<(), JsValue> {
@@ -56,19 +53,14 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
         self.render();
 
         loop {
-            match scheduler::with(|scheduler| scheduler.recv()) {
-                Ok(callback) => {
-                    // TODO: we have to have some way to represent the job, eg. say whether its a
-                    // callback or whatever it is
-                    //
-                    // maybe we can only support callbacks for now
+            let callback = scheduler::recv();
 
-                    self.render();
-                },
-                Err(err) => {
-                    web_sys::console::log_1(&format!("scheduler error: {:?}", err).into());
-                },
-            }
+            // TODO: we have to have some way to represent the job, eg. say whether its a
+            // callback or whatever it is
+            //
+            // maybe we can only support callbacks for now
+
+            self.render();
         }
     }
 }

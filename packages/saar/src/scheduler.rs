@@ -1,17 +1,20 @@
-use crate::error::Error;
-
-use std::sync::{Mutex, Condvar};
 use std::collections::VecDeque;
 use std::any::Any;
 
+use std::sync::{LazyLock, Arc};
+
+use spin::Mutex;
+
+static SCHEDULER: LazyLock<Arc<Scheduler>> = LazyLock::new(|| Arc::new(Scheduler::new()));
+
 
 pub struct Callback {
-    inner: Box<dyn Any>,
+    inner: Box<dyn Any + Send + Sync>,
     scope: usize,
 }
 
 impl Callback {
-    pub fn new(inner: Box<dyn Any>, scope: usize) -> Callback {
+    pub fn new(inner: Box<dyn Any + Send + Sync>, scope: usize) -> Callback {
         Callback {
             inner,
             scope,
@@ -21,44 +24,36 @@ impl Callback {
 
 pub struct Scheduler {
     queue: Mutex<VecDeque<Callback>>,
-    cond: Condvar,
 }
 
 impl Scheduler {
-    pub fn new() -> Scheduler {
+    fn new() -> Scheduler {
         Scheduler {
             queue: Mutex::new(VecDeque::new()),
-            cond: Condvar::new(),
         }
     }
 
-    pub fn send(&self, callback: Callback) -> Result<(), Box<dyn std::error::Error>> {
-        let mut lock = self.queue.lock().map_err(|_| Error::LockFailed)?;
-
-        lock.push_back(callback);
-
-        Ok(())
+    fn send(&self, callback: Callback) {
+        self.queue.lock().push_back(callback);
     }
 
-    pub fn recv(&self) -> Result<Callback, Box<dyn std::error::Error>> {
-        let mut lock = self.queue.lock().map_err(|_| Error::LockFailed)?;
-
+    fn recv(&self) -> Callback {
         loop {
-            if let Some(callback) = lock.pop_front() {
-                return Ok(callback);
-            } else {
-                lock = self.cond.wait(lock).map_err(|_| Error::LockFailed)?;
+            if let Some(callback) = self.queue.lock().pop_front() {
+                return callback;
             }
         }
     }
 }
 
-pub fn with<R>(f: impl FnOnce(&Scheduler) -> R) -> R {
-    thread_local! {
-        static SCHEDULER: Scheduler = Scheduler::new();
-    }
+#[inline]
+pub fn send(callback: Callback) {
+    SCHEDULER.send(callback)
+}
 
-    SCHEDULER.with(|scheduler| f(scheduler))
+#[inline]
+pub fn recv() -> Callback {
+    SCHEDULER.recv()
 }
 
 
