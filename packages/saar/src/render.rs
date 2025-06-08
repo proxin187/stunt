@@ -28,9 +28,7 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
     #[inline]
     fn render(&self) {
-        web_sys::console::log_1(&format!("trying to render").into());
-
-        let raw = state::get(0).render();
+        let raw = state::root().render();
 
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 
