@@ -1,14 +1,14 @@
 use crate::html::{Html, Attribute, ComponentRef};
 
+use crate::dom::state::{self, Identity};
 use crate::dom::component::Component;
-use crate::dom::state;
 
 use std::sync::Arc;
 use std::any::Any;
 
 
 pub enum Inner {
-    Component(usize),
+    Component(Identity),
     Block(fn(Context) -> String),
 }
 
@@ -26,20 +26,25 @@ impl Inner {
 
     pub fn render(&self, context: Context) -> String {
         match self {
-            Inner::Component(_) => {
-                web_sys::console::log_1(&format!("render component").into());
-            },
-            Inner::Block(_) => {
-                // TODO: we seem to get here, thats weird because we should actually get to a new
-                // component
+            Inner::Component(component) => {
+                web_sys::console::log_1(&format!("component").into());
 
-                web_sys::console::log_1(&format!("render block").into());
-            },
-        }
+                // TODO: the issue is here, this is because we dont pass in the context
+                // the component needs to have the state from the root of the tree
+                //
+                // TODO: i think we can solve it by just passing in the context to the render
+                // function
+                //
+                // TODO: here we will have to replace with a new context
 
-        match self {
-            Inner::Component(component) => state::get(*component).render(),
-            Inner::Block(f) => f(context),
+                // this will get a new tree, meaning that we should not pass in our
+                state::get(*component).render()
+            },
+            Inner::Block(f) => {
+                web_sys::console::log_1(&format!("block").into());
+
+                f(context)
+            },
         }
     }
 }
@@ -84,13 +89,13 @@ pub struct Node {
     inner: Inner,
     attributes: Attributes,
     props: Props,
-    scope: usize,
+    identity: Identity,
 }
 
 impl Node {
-    pub fn new(view: Html, scope: usize) -> Node {
+    pub fn new(view: Html, identity: Identity) -> Node {
         let props = view.props.into_iter()
-            .map(|html| Node::new(html, scope))
+            .map(|html| Node::new(html, identity))
             .collect::<Vec<Node>>();
 
         // TODO: here we should hook up the callbacks
@@ -99,16 +104,27 @@ impl Node {
             inner: Inner::new(view.component),
             attributes: Attributes::new(view.attributes),
             props: Props::new(props),
-            scope,
+            identity,
         }
     }
 
     pub fn render(&self) -> String {
-        web_sys::console::log_1(&format!("scope: {:?}", self.scope).into());
+        web_sys::console::log_1(&format!("identity: {:?}", self.identity).into());
 
-        let component = state::get(self.scope).component.clone();
+        // TODO: figure out what we should do here :(, wtf am i doing, im such a retard, this is
+        // literally so retarded, holy shit, im so fucking disapointed, i should kms.
 
-        let raw = self.inner.render(Context::new(component, &self.props, &self.attributes));
+        let state = state::get(self.identity);
+
+        web_sys::console::log_1(&format!("name: {:?}", state.component.name()).into());
+
+        web_sys::console::log_1(&format!("name: {:?}", self.props.render()).into());
+
+        // TODO: we will have to visually represent this entire thing to properly understand it, at
+        // this point its so cluster fucked that there is no way in hell i will ever understand it
+        // just inside my head, ill have to have something visual
+
+        let raw = self.inner.render(Context::new(state.component, &self.props, &self.attributes));
 
         web_sys::console::log_1(&format!("node render: {:?}", raw).into());
 
@@ -121,9 +137,9 @@ pub struct Tree {
 }
 
 impl Tree {
-    pub fn new(view: Html, scope: usize) -> Tree {
+    pub fn new(view: Html, identity: Identity) -> Tree {
         Tree {
-            node: Node::new(view, scope),
+            node: Node::new(view, identity),
         }
     }
 

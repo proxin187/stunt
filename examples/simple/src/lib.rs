@@ -52,6 +52,13 @@ impl Component for App {
             Vec::new(),
             vec![
                 Html::new(
+                    ComponentRef::Block(|ctx| { format!("test test") }),
+                    Vec::new(),
+                    Vec::new(),
+                    Vec::new(),
+                ),
+                /*
+                Html::new(
                     ComponentRef::Component(Arc::new(H1::create())),
                     vec![Attribute::new(String::from("style"), || { String::from("background-color: yellow;") })],
                     Vec::new(),
@@ -77,9 +84,12 @@ impl Component for App {
                         ),
                     ],
                 ),
+                */
             ],
         )
     }
+
+    fn name(&self) -> String { String::from("app") }
 }
 
 #[wasm_bindgen(start)]

@@ -1,13 +1,37 @@
+use crate::dom::tree::{Tree, Context};
 use crate::dom::component::Component;
-use crate::dom::tree::Tree;
 use crate::html::Html;
 
 use std::sync::{Arc, LazyLock};
+use std::collections::HashMap;
 
 use spin::Mutex;
 
-static STATES: LazyLock<Arc<Mutex<Vec<State>>>> = LazyLock::new(|| Arc::new(Mutex::new(Vec::new())));
+static STATES: LazyLock<Arc<Mutex<HashMap<Identity, State>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
+static IDENTITY: LazyLock<Arc<Mutex<Identity>>> = LazyLock::new(|| Arc::new(Mutex::new(Identity::new())));
+
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct Identity {
+    id: usize,
+}
+
+impl Identity {
+    pub fn new() -> Identity {
+        Identity {
+            id: 0,
+        }
+    }
+
+    pub fn alloc(&mut self) -> Identity {
+        self.id += 1;
+
+        Identity {
+            id: self.id - 1,
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct State {
@@ -28,32 +52,18 @@ impl State {
     }
 }
 
-pub fn root() -> State {
-    let states = STATES.lock();
-
-    states[states.len() - 1].clone()
+pub fn get(identity: Identity) -> State {
+    STATES.lock()[&identity].clone()
 }
 
-pub fn get(index: usize) -> State {
-    STATES.lock()[index].clone()
-}
+pub fn push(component: Arc<dyn Component + Send + Sync>, view: Html) -> Identity {
+    let identity = IDENTITY.lock().alloc();
 
-pub fn push(component: Arc<dyn Component + Send + Sync>, view: Html) -> usize {
-    let len = STATES.lock().len();
+    let new = State::new(component, Arc::new(Tree::new(view, identity)));
 
-    // TODO: the len that we set here is actually wrong, this is because the len will be updated by
-    // all the inner elements before we actually push this one
-    //
-    // maybe we can have tree return the index?
-    let new = State::new(component, Arc::new(Tree::new(view, len)));
+    STATES.lock().insert(identity, new);
 
-    let mut states = STATES.lock();
-
-    states.push(new);
-
-    web_sys::console::log_1(&format!("len: {:?}", states.len() - 1).into());
-
-    states.len() - 1
+    identity
 }
 
 

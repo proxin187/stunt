@@ -11,6 +11,8 @@ pub trait Component {
     fn extract(&self, extract: Box<dyn Any>) -> String;
 
     fn view(&self) -> Html;
+
+    fn name(&self) -> String;
 }
 
 pub struct Base;
@@ -30,6 +32,8 @@ impl Component for Base {
             Vec::new(),
         )
     }
+
+    fn name(&self) -> String { String::from("base") }
 }
 
 

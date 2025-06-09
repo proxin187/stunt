@@ -1,5 +1,5 @@
 use crate::dom::component::Component;
-use crate::dom::state;
+use crate::dom::state::{self, Identity};
 use crate::scheduler;
 
 use web_sys::HtmlElement;
@@ -27,8 +27,8 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
     }
 
     #[inline]
-    fn render(&self) {
-        let raw = state::root().render();
+    fn render(&self, root: Identity) {
+        let raw = state::get(root).render();
 
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 
@@ -37,19 +37,20 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
         web_sys::console::log_1(&format!("render done").into());
     }
 
-    fn create(&self) {
+    fn create(&self) -> Identity {
         let component = T::create();
 
         let view = component.view();
 
-        state::push(Arc::new(component), view);
+        state::push(Arc::new(component), view)
     }
 
     pub fn init(self) -> Result<(), JsValue> {
-        self.create();
+        let root = self.create();
 
-        self.render();
+        self.render(root);
 
+        /*
         loop {
             let callback = scheduler::recv();
 
@@ -58,8 +59,11 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
             //
             // maybe we can only support callbacks for now
 
-            self.render();
+            self.render(root);
         }
+        */
+
+        Ok(())
     }
 }
 
