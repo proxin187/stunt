@@ -49,14 +49,15 @@ impl Inner {
     }
 }
 
+#[derive(Clone)]
 pub struct Attributes {
-    inner: Vec<Attribute>,
+    inner: Arc<Vec<Attribute>>,
 }
 
 impl Attributes {
     pub fn new(inner: Vec<Attribute>) -> Attributes {
         Attributes {
-            inner,
+            inner: Arc::new(inner),
         }
     }
 
@@ -67,20 +68,21 @@ impl Attributes {
     }
 }
 
+#[derive(Clone)]
 pub struct Props {
-    inner: Vec<Node>,
+    inner: Arc<Vec<Node>>,
 }
 
 impl Props {
     pub fn new(inner: Vec<Node>) -> Props {
         Props {
-            inner,
+            inner: Arc::new(inner),
         }
     }
 
-    pub fn render(&self) -> String {
+    pub fn render(&self, context: Context) -> String {
         self.inner.iter()
-            .map(|node| node.render())
+            .map(|node| node.render(context.clone()))
             .collect::<String>()
     }
 }
@@ -108,54 +110,42 @@ impl Node {
         }
     }
 
-    pub fn render(&self) -> String {
-        web_sys::console::log_1(&format!("identity: {:?}", self.identity).into());
-
-        // TODO: figure out what we should do here :(, wtf am i doing, im such a retard, this is
-        // literally so retarded, holy shit, im so fucking disapointed, i should kms.
-
-        let state = state::get(self.identity);
-
-        web_sys::console::log_1(&format!("name: {:?}", state.component.name()).into());
-
-        web_sys::console::log_1(&format!("name: {:?}", self.props.render()).into());
-
-        // TODO: we will have to visually represent this entire thing to properly understand it, at
-        // this point its so cluster fucked that there is no way in hell i will ever understand it
-        // just inside my head, ill have to have something visual
-
-        let raw = self.inner.render(Context::new(state.component, &self.props, &self.attributes));
-
-        web_sys::console::log_1(&format!("node render: {:?}", raw).into());
-
-        raw
+    pub fn render(&self, context: Context) -> String {
+        self.inner.render(context)
     }
 }
 
 pub struct Tree {
     node: Node,
+    identity: Identity,
 }
 
 impl Tree {
     pub fn new(view: Html, identity: Identity) -> Tree {
         Tree {
             node: Node::new(view, identity),
+            identity,
         }
     }
 
     pub fn render(&self) -> String {
-        self.node.render()
+        let state = state::get(self.identity);
+
+        web_sys::console::log_1(&format!("name: {:?}", state.component.name()).into());
+
+        self.node.render(Context::new(state.component, self.node.props.clone(), self.node.attributes.clone()))
     }
 }
 
-pub struct Context<'a> {
+#[derive(Clone)]
+pub struct Context {
     component: Arc<dyn Component>,
-    pub props: &'a Props,
-    pub attributes: &'a Attributes,
+    pub props: Props,
+    pub attributes: Attributes,
 }
 
-impl<'a> Context<'a> {
-    pub fn new(component: Arc<dyn Component>, props: &'a Props, attributes: &'a Attributes) -> Context<'a> {
+impl Context {
+    pub fn new(component: Arc<dyn Component>, props: Props, attributes: Attributes) -> Context {
         Context {
             component,
             props,
