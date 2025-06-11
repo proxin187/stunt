@@ -24,7 +24,10 @@ impl Inner {
         }
     }
 
-    pub fn render(&self, context: Context) -> String {
+    // the outer context is the context of the tree root component
+    // the inner context is the context that is inside the component, eg. its props and etc
+
+    pub fn render(&self, inner: Context, outer: Context) -> String {
         match self {
             Inner::Component(component) => {
                 web_sys::console::log_1(&format!("component").into());
@@ -43,7 +46,7 @@ impl Inner {
             Inner::Block(f) => {
                 web_sys::console::log_1(&format!("block").into());
 
-                f(context)
+                f(outer)
             },
         }
     }
@@ -101,6 +104,9 @@ impl Node {
             .collect::<Vec<Node>>();
 
         // TODO: here we should hook up the callbacks
+        //
+        // TODO: the context for rendering the props and the context for the blocks are completely
+        // different
 
         Node {
             inner: Inner::new(view.component),
