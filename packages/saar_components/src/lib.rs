@@ -22,7 +22,7 @@ macro_rules! create_component {
 
             fn view(&self) -> Html {
                 Html::new(
-                    ComponentRef::Block(|ctx| { format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(), $tag) }),
+                    ComponentRef::Block(|ctx| { format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(ctx.clone()), $tag) }),
                     Vec::new(),
                     Vec::new(),
                     Vec::new(),

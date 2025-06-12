@@ -27,7 +27,7 @@ impl Inner {
     // the outer context is the context of the tree root component
     // the inner context is the context that is inside the component, eg. its props and etc
 
-    pub fn render(&self, inner: Context, outer: Context) -> String {
+    pub fn render(&self, props: Props, attributes: Attributes, context: Context) -> String {
         match self {
             Inner::Component(component) => {
                 web_sys::console::log_1(&format!("component").into());
@@ -41,12 +41,12 @@ impl Inner {
                 // TODO: here we will have to replace with a new context
 
                 // this will get a new tree, meaning that we should not pass in our
-                state::get(*component).render()
+                state::get(*component).render(props, attributes)
             },
             Inner::Block(f) => {
                 web_sys::console::log_1(&format!("block").into());
 
-                f(outer)
+                f(context)
             },
         }
     }
@@ -94,7 +94,6 @@ pub struct Node {
     inner: Inner,
     attributes: Attributes,
     props: Props,
-    identity: Identity,
 }
 
 impl Node {
@@ -107,17 +106,19 @@ impl Node {
         //
         // TODO: the context for rendering the props and the context for the blocks are completely
         // different
+        //
+        // we need one context for iterating down the tree
+        // and another context for the blocks
 
         Node {
             inner: Inner::new(view.component),
             attributes: Attributes::new(view.attributes),
             props: Props::new(props),
-            identity,
         }
     }
 
     pub fn render(&self, context: Context) -> String {
-        self.inner.render(context)
+        self.inner.render(self.props.clone(), self.attributes.clone(), context)
     }
 }
 
@@ -134,12 +135,12 @@ impl Tree {
         }
     }
 
-    pub fn render(&self) -> String {
+    pub fn render(&self, props: Props, attributes: Attributes) -> String {
         let state = state::get(self.identity);
 
         web_sys::console::log_1(&format!("name: {:?}", state.component.name()).into());
 
-        self.node.render(Context::new(state.component, self.node.props.clone(), self.node.attributes.clone()))
+        self.node.render(Context::new(state.component, props, attributes))
     }
 }
 

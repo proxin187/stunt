@@ -26,7 +26,7 @@ impl Component for Base {
 
     fn view(&self) -> Html {
         Html::new(
-            ComponentRef::Block(|ctx| { ctx.props.render() }),
+            ComponentRef::Block(|ctx| { ctx.props.render(ctx.clone()) }),
             Vec::new(),
             Vec::new(),
             Vec::new(),

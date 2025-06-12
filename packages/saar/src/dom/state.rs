@@ -1,4 +1,4 @@
-use crate::dom::tree::{Tree, Context};
+use crate::dom::tree::{Tree, Context, Props, Attributes};
 use crate::dom::component::Component;
 use crate::html::Html;
 
@@ -47,8 +47,8 @@ impl State {
         }
     }
 
-    pub fn render(&self) -> String {
-        self.tree.render()
+    pub fn render(&self, props: Props, attributes: Attributes) -> String {
+        self.tree.render(props, attributes)
     }
 }
 

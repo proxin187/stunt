@@ -1,5 +1,6 @@
 use crate::dom::component::Component;
 use crate::dom::state::{self, Identity};
+use crate::dom::tree::{Props, Attributes};
 use crate::scheduler;
 
 use web_sys::HtmlElement;
@@ -28,7 +29,7 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
     #[inline]
     fn render(&self, root: Identity) {
-        let raw = state::get(root).render();
+        let raw = state::get(root).render(Props::new(Vec::new()), Attributes::new(Vec::new()));
 
         web_sys::console::log_1(&format!("raw: {:?}", raw).into());
 
