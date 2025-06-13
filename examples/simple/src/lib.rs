@@ -1,5 +1,6 @@
 use saar::html::{Html, Attribute, ComponentRef};
 use saar::dom::component::Component;
+use saar::dom::tree::Context;
 use saar::render::Renderer;
 
 use saar_components::*;
@@ -38,7 +39,10 @@ impl Component for App {
         }
     }
 
+    // TODO: this function is never called
     fn extract(&self, extract: Box<dyn Any>) -> String {
+        web_sys::console::log_1(&"extract".into());
+
         match extract.downcast_ref::<Extract>() {
             Some(Extract::Count) => format!("{}", self.count),
             None => unreachable!(),
@@ -51,13 +55,6 @@ impl Component for App {
             Vec::new(),
             Vec::new(),
             vec![
-                Html::new(
-                    ComponentRef::Block(|ctx| { format!("test test") }),
-                    Vec::new(),
-                    Vec::new(),
-                    Vec::new(),
-                ),
-                /*
                 Html::new(
                     ComponentRef::Component(Arc::new(H1::create())),
                     vec![Attribute::new(String::from("style"), || { String::from("background-color: yellow;") })],
@@ -84,12 +81,9 @@ impl Component for App {
                         ),
                     ],
                 ),
-                */
             ],
         )
     }
-
-    fn name(&self) -> String { String::from("app") }
 }
 
 #[wasm_bindgen(start)]

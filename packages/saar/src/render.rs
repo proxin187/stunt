@@ -29,13 +29,11 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
     #[inline]
     fn render(&self, root: Identity) {
-        let raw = state::get(root).render(Props::new(Vec::new()), Attributes::new(Vec::new()));
+        let render = state::get(root).render(Props::new(Vec::new()), Attributes::new(Vec::new()));
 
-        web_sys::console::log_1(&format!("raw: {:?}", raw).into());
+        web_sys::console::log_1(&format!("render: {:?}", render).into());
 
-        self.body.set_inner_html(&raw);
-
-        web_sys::console::log_1(&format!("render done").into());
+        self.body.set_inner_html(&render);
     }
 
     fn create(&self) -> Identity {

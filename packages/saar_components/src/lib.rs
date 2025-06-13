@@ -13,12 +13,12 @@ macro_rules! create_component {
 
             fn callback(&mut self, _callback: Box<dyn Any>) {}
 
-            fn extract(&self, _extract: Box<dyn Any>) -> String { String::new() }
+            fn extract(&self, _extract: Box<dyn Any>) -> String { $tag.to_string() }
 
-            // TODO: we will have to pass the context down the entirety of the tree
-            // but there is a different context for each tree
+            // TODO: we pass the wrong context to the props render
             //
-            // what we tried earlier might actually work
+            // the issue is obviously that we pass the context of the h1 to its own props, which is
+            // obviously wrong.
 
             fn view(&self) -> Html {
                 Html::new(
@@ -28,8 +28,6 @@ macro_rules! create_component {
                     Vec::new(),
                 )
             }
-
-            fn name(&self) -> String { $tag.to_string() }
         }
     }
 }

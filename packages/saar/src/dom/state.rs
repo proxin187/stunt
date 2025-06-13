@@ -12,6 +12,8 @@ static STATES: LazyLock<Arc<Mutex<HashMap<Identity, State>>>> = LazyLock::new(||
 static IDENTITY: LazyLock<Arc<Mutex<Identity>>> = LazyLock::new(|| Arc::new(Mutex::new(Identity::new())));
 
 
+// TODO: we can maybe have that the identity is set compile time
+
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct Identity {
     id: usize,
