@@ -1,5 +1,6 @@
 use saar::html::{Html, ComponentRef};
 use saar::dom::component::Component;
+use saar::dom::tree::Context;
 
 use std::any::Any;
 
@@ -20,9 +21,9 @@ macro_rules! create_component {
             // the issue is obviously that we pass the context of the h1 to its own props, which is
             // obviously wrong.
 
-            fn view(&self) -> Html {
+            fn view(&self, ctx: Context) -> Html {
                 Html::new(
-                    ComponentRef::Block(|ctx| { format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(ctx.clone()), $tag) }),
+                    ComponentRef::Block(|| { format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(ctx.clone()), $tag) }),
                     Vec::new(),
                     Vec::new(),
                     Vec::new(),

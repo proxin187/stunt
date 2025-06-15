@@ -9,7 +9,7 @@ use std::any::Any;
 
 pub enum Inner {
     Component(Identity),
-    Block(fn(Context) -> String),
+    Block(Box<dyn Fn() -> String>),
 }
 
 impl Inner {
@@ -53,16 +53,11 @@ impl Attributes {
 
 #[derive(Clone)]
 pub struct Props {
-    inner: Arc<Vec<String>>,
+    inner: Arc<Vec<Node>>,
 }
 
-// TODO: figure out how to do the props thing
 impl Props {
-    pub fn new(nodes: Vec<Node>, context: Context) -> Props {
-        let inner = nodes.iter()
-            .map(|node| node.render(context.clone()))
-            .collect::<Vec<String>>();
-
+    pub fn new(inner: Vec<Node>) -> Props {
         Props {
             inner: Arc::new(inner),
         }
@@ -70,7 +65,7 @@ impl Props {
 
     pub fn render(&self) -> String {
         self.inner.iter()
-            .cloned()
+            .map(|node| node.render())
             .collect::<String>()
     }
 }
@@ -92,14 +87,16 @@ impl Node {
         Node {
             inner: Inner::new(view.component),
             attributes: Attributes::new(view.attributes),
-            props: Props::new(props, ),
+            props: Props::new(props),
         }
     }
 
-    pub fn render(&self, context: Context) -> String {
-        self.inner.render(self.props.clone(), self.attributes.clone(), context)
+    pub fn render(&self) -> String {
+        self.inner.render(self.props.clone(), self.attributes.clone())
     }
 }
+
+// TODO: the tree structure will now be rebuilt every render
 
 pub struct Tree {
     node: Node,
@@ -120,26 +117,4 @@ impl Tree {
         self.node.render(Context::new(state.component, props, attributes))
     }
 }
-
-#[derive(Clone)]
-pub struct Context {
-    component: Arc<dyn Component>,
-    pub props: Props,
-    pub attributes: Attributes,
-}
-
-impl Context {
-    pub fn new(component: Arc<dyn Component>, props: Props, attributes: Attributes) -> Context {
-        Context {
-            component,
-            props,
-            attributes,
-        }
-    }
-
-    pub fn extract<T: Any>(&self, extract: T) -> String {
-        self.component.extract(Box::new(extract))
-    }
-}
-
 

@@ -1,5 +1,5 @@
 use crate::dom::component::Component;
-use crate::dom::tree::Context;
+use crate::dom::state::Identity;
 
 use std::sync::Arc;
 use std::any::Any;
@@ -7,7 +7,7 @@ use std::any::Any;
 
 pub enum ComponentRef {
     Component(Arc<dyn Component + Send + Sync>),
-    Block(fn(Context) -> String),
+    Block(Box<dyn Fn() -> String>),
 }
 
 pub struct Attribute {
@@ -29,6 +29,7 @@ impl Attribute {
 }
 
 pub struct Html {
+    pub(crate) identity: Identity,
     pub(crate) component: ComponentRef,
     pub(crate) attributes: Vec<Attribute>,
     pub(crate) callback: Vec<(String, fn() -> Box<dyn Any>)>,
@@ -37,12 +38,14 @@ pub struct Html {
 
 impl Html {
     pub fn new(
+        identity: Identity,
         component: ComponentRef,
         attributes: Vec<Attribute>,
         callback: Vec<(String, fn() -> Box<dyn Any>)>,
         props: Vec<Html>,
     ) -> Html {
         Html {
+            identity,
             component,
             attributes,
             callback,
