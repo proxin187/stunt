@@ -1,71 +1,48 @@
-use crate::dom::tree::{Tree, Context, Props, Attributes};
 use crate::dom::component::Component;
-use crate::html::Html;
 
 use std::sync::{Arc, LazyLock};
 use std::collections::HashMap;
 
 use spin::Mutex;
 
-static STATES: LazyLock<Arc<Mutex<HashMap<Identity, State>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
+static STATES: LazyLock<Arc<Mutex<HashMap<Identity, Arc<dyn Component + Send + Sync>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
-static IDENTITY: LazyLock<Arc<Mutex<Identity>>> = LazyLock::new(|| Arc::new(Mutex::new(Identity::new())));
+// static IDENTITY: LazyLock<Arc<Mutex<Identity>>> = LazyLock::new(|| Arc::new(Mutex::new(Identity::new())));
 
 
 // TODO: we can maybe have that the identity is set compile time
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone,  Hash, PartialEq, Eq)]
 pub struct Identity {
-    id: usize,
+    id: Vec<usize>,
 }
 
 impl Identity {
-    pub fn new() -> Identity {
+    pub fn new(id: usize) -> Identity {
         Identity {
-            id: 0,
+            id: vec![id],
         }
     }
 
-    pub fn alloc(&mut self) -> Identity {
-        self.id += 1;
-
+    pub fn intersect(self, other: Identity) -> Identity {
         Identity {
-            id: self.id - 1,
+            id: [self.id, other.id].concat(),
         }
     }
 }
 
-#[derive(Clone)]
-pub struct State {
-    pub component: Arc<dyn Component + Send + Sync>,
-    pub tree: Arc<Tree>,
-}
-
-impl State {
-    pub fn new(component: Arc<dyn Component + Send + Sync>, tree: Arc<Tree>) -> State {
-        State {
-            component,
-            tree,
-        }
-    }
-
-    pub fn render(&self, props: Props, attributes: Attributes) -> String {
-        self.tree.render(props, attributes)
-    }
-}
-
-pub fn get(identity: Identity) -> State {
+#[inline]
+pub fn get(identity: Identity) -> Arc<dyn Component + Send + Sync> {
     STATES.lock()[&identity].clone()
 }
 
-pub fn push(component: Arc<dyn Component + Send + Sync>, view: Html) -> Identity {
-    let identity = IDENTITY.lock().alloc();
+#[inline]
+pub fn insert_if_none(identity: Identity, component: Box<dyn Fn() -> Arc<dyn Component + Send + Sync>>) {
+    let mut states = STATES.lock();
 
-    let new = State::new(component, Arc::new(Tree::new(view, identity)));
-
-    STATES.lock().insert(identity, new);
-
-    identity
+    if states.get(&identity).is_none() {
+        states.insert(identity, (component)());
+    }
 }
 
 

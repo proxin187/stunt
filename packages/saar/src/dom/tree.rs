@@ -13,21 +13,21 @@ pub enum Inner {
 }
 
 impl Inner {
-    pub fn new(component: ComponentRef) -> Inner {
+    pub fn new(identity: Identity, component: ComponentRef) -> Inner {
         match component {
             ComponentRef::Component(component) => {
-                let view = component.view();
+                state::insert_if_none(identity.clone(), component);
 
-                Inner::Component(state::push(component, view))
+                Inner::Component(identity)
             },
             ComponentRef::Block(f) => Inner::Block(f),
         }
     }
 
-    pub fn render(&self, props: Props, attributes: Attributes, context: Context) -> String {
+    pub fn render(&self, props: Props, attributes: Attributes) -> String {
         match self {
             Inner::Component(component) => state::get(*component).render(props, attributes),
-            Inner::Block(f) => f(context),
+            Inner::Block(f) => f(),
         }
     }
 }

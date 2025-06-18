@@ -1,6 +1,8 @@
-use saar::html::{Html, Attribute, ComponentRef};
 use saar::dom::component::Component;
+use saar::dom::state::Identity;
 use saar::dom::tree::Context;
+
+use saar::html::{Html, Attribute, ComponentRef};
 use saar::render::Renderer;
 
 use saar_components::*;
@@ -39,29 +41,24 @@ impl Component for App {
         }
     }
 
-    // TODO: this function is never called
-    fn extract(&self, extract: Box<dyn Any>) -> String {
-        web_sys::console::log_1(&"extract".into());
+    fn view(&self, ctx: Context) -> Html {
+        let count = self.count.to_string();
 
-        match extract.downcast_ref::<Extract>() {
-            Some(Extract::Count) => format!("{}", self.count),
-            None => unreachable!(),
-        }
-    }
-
-    fn view(&self) -> Html {
         Html::new(
+            Identity::new(4),
             ComponentRef::Component(Arc::new(Div::create())),
             Vec::new(),
             Vec::new(),
             vec![
                 Html::new(
+                    Identity::new(5),
                     ComponentRef::Component(Arc::new(H1::create())),
                     vec![Attribute::new(String::from("style"), || { String::from("background-color: yellow;") })],
                     Vec::new(),
                     vec![
                         Html::new(
-                            ComponentRef::Block(|ctx| { format!("Welcome to saar web framework demo: {}", ctx.extract(Extract::Count)) }),
+                            Identity::new(6),
+                            ComponentRef::Block(|| { format!("Welcome to saar web framework demo: {}", count) }),
                             Vec::new(),
                             Vec::new(),
                             Vec::new(),
@@ -69,12 +66,14 @@ impl Component for App {
                     ],
                 ),
                 Html::new(
+                    Identity::new(7),
                     ComponentRef::Component(Arc::new(Button::create())),
                     Vec::new(),
                     Vec::new(),
                     vec![
                         Html::new(
-                            ComponentRef::Block(|_| { String::from("increment") }),
+                            Identity::new(9),
+                            ComponentRef::Block(|| { String::from("increment") }),
                             Vec::new(),
                             Vec::new(),
                             Vec::new(),

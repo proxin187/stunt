@@ -6,7 +6,7 @@ use std::any::Any;
 
 
 pub enum ComponentRef {
-    Component(Arc<dyn Component + Send + Sync>),
+    Component(Box<dyn Fn() -> Arc<dyn Component + Send + Sync>>),
     Block(Box<dyn Fn() -> String>),
 }
 

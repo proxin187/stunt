@@ -31,6 +31,8 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
     fn render(&self, root: Identity) {
         let render = state::get(root).render(Props::new(Vec::new()), Attributes::new(Vec::new()));
 
+        // TODO: we will have to get the view here instead
+
         web_sys::console::log_1(&format!("render: {:?}", render).into());
 
         self.body.set_inner_html(&render);
