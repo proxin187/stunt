@@ -7,10 +7,6 @@ use spin::Mutex;
 
 static STATES: LazyLock<Arc<Mutex<HashMap<Identity, Arc<dyn Component + Send + Sync>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
-// static IDENTITY: LazyLock<Arc<Mutex<Identity>>> = LazyLock::new(|| Arc::new(Mutex::new(Identity::new())));
-
-
-// TODO: we can maybe have that the identity is set compile time
 
 #[derive(Debug, Clone,  Hash, PartialEq, Eq)]
 pub struct Identity {
@@ -32,16 +28,21 @@ impl Identity {
 }
 
 #[inline]
-pub fn get(identity: Identity) -> Arc<dyn Component + Send + Sync> {
-    STATES.lock()[&identity].clone()
+pub fn get(identity: &Identity) -> Arc<dyn Component + Send + Sync> {
+    STATES.lock()[identity].clone()
 }
 
 #[inline]
-pub fn insert_if_none(identity: Identity, component: Box<dyn Fn() -> Arc<dyn Component + Send + Sync>>) {
+pub fn get_or_insert(identity: Identity, f: Box<dyn Fn() -> Arc<dyn Component + Send + Sync>>) -> Arc<dyn Component + Send + Sync> {
     let mut states = STATES.lock();
 
-    if states.get(&identity).is_none() {
-        states.insert(identity, (component)());
+    match states.get(&identity) {
+        Some(component) => component.clone(),
+        None => {
+            states.insert(identity.clone(), (f)());
+
+            states[&identity].clone()
+        },
     }
 }
 

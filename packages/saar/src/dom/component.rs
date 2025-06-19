@@ -1,8 +1,7 @@
-use crate::dom::tree::{Attributes, Props};
+use crate::dom::tree::{Node, Attribute};
 use crate::dom::state::Identity;
 use crate::html::Html;
 
-use std::sync::Arc;
 use std::any::Any;
 
 
@@ -14,18 +13,15 @@ pub trait Component {
     fn view(&self, ctx: Context) -> Html;
 }
 
-#[derive(Clone)]
 pub struct Context {
-    component: Arc<dyn Component>,
-    pub props: Props,
-    pub attributes: Attributes,
+    pub props: Vec<Node>,
+    pub attributes: Vec<Attribute>,
     pub identity: Identity,
 }
 
 impl Context {
-    pub fn new(component: Arc<dyn Component>, props: Props, attributes: Attributes, identity: Identity) -> Context {
+    pub fn new(props: Vec<Node>, attributes: Vec<Attribute>, identity: Identity) -> Context {
         Context {
-            component,
             props,
             attributes,
             identity,

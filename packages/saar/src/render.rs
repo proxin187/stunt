@@ -1,4 +1,4 @@
-use crate::dom::component::Component;
+use crate::dom::component::{Component, Context};
 use crate::dom::state::{self, Identity};
 use crate::dom::tree::{Props, Attributes};
 use crate::scheduler;
@@ -28,8 +28,10 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
     }
 
     #[inline]
-    fn render(&self, root: Identity) {
-        let render = state::get(root).render(Props::new(Vec::new()), Attributes::new(Vec::new()));
+    fn render(&self, identity: Identity) {
+        let root = state::get(&identity);
+
+        let render = root.view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
 
         // TODO: we will have to get the view here instead
 
@@ -38,18 +40,10 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
         self.body.set_inner_html(&render);
     }
 
-    fn create(&self) -> Identity {
-        let component = T::create();
-
-        let view = component.view();
-
-        state::push(Arc::new(component), view)
-    }
-
     pub fn init(self) -> Result<(), JsValue> {
-        let root = self.create();
+        state::get_or_insert(Identity::new(0), Box::new(|| Arc::new(T::create())));
 
-        self.render(root);
+        self.render(Identity::new(0));
 
         /*
         loop {
