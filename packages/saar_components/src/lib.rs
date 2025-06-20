@@ -1,7 +1,6 @@
-use saar::html::{Html, ComponentRef};
-use saar::dom::component::Component;
+use saar::dom::component::{Component, Context};
+use saar::dom::tree::{Node, ComponentRef};
 use saar::dom::state::Identity;
-use saar::dom::tree::Context;
 
 use std::any::Any;
 
@@ -15,11 +14,10 @@ macro_rules! create_component {
 
             fn callback(&mut self, _callback: Box<dyn Any>) {}
 
-            fn view(&self, ctx: Context) -> Html {
-                Html::new(
+            fn view(&self, ctx: Context) -> Node {
+                Node::new(
                     $id,
-                    ComponentRef::Block(|| { format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(ctx.clone()), $tag) }),
-                    Vec::new(),
+                    ComponentRef::Block(Box::new(|| { format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(), $tag) })),
                     Vec::new(),
                     Vec::new(),
                 )

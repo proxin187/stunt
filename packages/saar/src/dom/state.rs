@@ -33,7 +33,7 @@ pub fn get(identity: &Identity) -> Arc<dyn Component + Send + Sync> {
 }
 
 #[inline]
-pub fn get_or_insert(identity: Identity, f: Box<dyn Fn() -> Arc<dyn Component + Send + Sync>>) -> Arc<dyn Component + Send + Sync> {
+pub fn get_or_insert(identity: &Identity, f: &Box<dyn Fn() -> Arc<dyn Component + Send + Sync>>) -> Arc<dyn Component + Send + Sync> {
     let mut states = STATES.lock();
 
     match states.get(&identity) {

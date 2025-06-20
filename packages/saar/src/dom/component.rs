@@ -1,6 +1,5 @@
-use crate::dom::tree::{Node, Attribute};
+use crate::dom::tree::{Node, Props, Attributes};
 use crate::dom::state::Identity;
-use crate::html::Html;
 
 use std::any::Any;
 
@@ -10,17 +9,17 @@ pub trait Component {
 
     fn callback(&mut self, callback: Box<dyn Any>);
 
-    fn view(&self, ctx: Context) -> Html;
+    fn view(&self, ctx: Context) -> Node;
 }
 
-pub struct Context {
-    pub props: Vec<Node>,
-    pub attributes: Vec<Attribute>,
-    pub identity: Identity,
+pub struct Context<'a> {
+    pub props: &'a Props,
+    pub attributes: &'a Attributes,
+    pub identity: &'a Identity,
 }
 
-impl Context {
-    pub fn new(props: Vec<Node>, attributes: Vec<Attribute>, identity: Identity) -> Context {
+impl<'a> Context<'a> {
+    pub fn new(props: &'a Props, attributes: &'a Attributes, identity: &'a Identity) -> Context<'a> {
         Context {
             props,
             attributes,

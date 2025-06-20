@@ -1,7 +1,6 @@
 use crate::dom::component::{Component, Context};
-use crate::dom::state::{self, Identity};
 use crate::dom::tree::{Props, Attributes};
-use crate::scheduler;
+use crate::dom::state::{self, Identity};
 
 use web_sys::HtmlElement;
 
@@ -31,9 +30,10 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
     fn render(&self, identity: Identity) {
         let root = state::get(&identity);
 
-        let render = root.view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
+        let props = Props::new(Vec::new());
+        let attributes = Attributes::new(Vec::new());
 
-        // TODO: we will have to get the view here instead
+        let render = root.view(Context::new(&props, &attributes, &identity)).render();
 
         web_sys::console::log_1(&format!("render: {:?}", render).into());
 
@@ -41,7 +41,9 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
     }
 
     pub fn init(self) -> Result<(), JsValue> {
-        state::get_or_insert(Identity::new(0), Box::new(|| Arc::new(T::create())));
+        let f = Box::new(|| Arc::new(T::create()));
+
+        state::get_or_insert(Identity::new(0), &f);
 
         self.render(Identity::new(0));
 

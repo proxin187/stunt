@@ -1,126 +1,8 @@
-use crate::html::{Html, Attribute, ComponentRef};
-
 use crate::dom::component::{Component, Context};
 use crate::dom::state::{self, Identity};
 
 use std::sync::Arc;
 use std::any::Any;
-
-
-/*
-pub enum Inner {
-    Component(Identity),
-    Block(Box<dyn Fn() -> String>),
-}
-
-impl Inner {
-    pub fn new(identity: Identity, component: ComponentRef) -> Inner {
-        match component {
-            ComponentRef::Component(component) => {
-                state::insert_if_none(identity.clone(), component);
-
-                Inner::Component(identity)
-            },
-            ComponentRef::Block(f) => Inner::Block(f),
-        }
-    }
-
-    pub fn render(&self, props: Props, attributes: Attributes) -> String {
-        match self {
-            Inner::Component(component) => state::get(*component).render(props, attributes),
-            Inner::Block(f) => f(),
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct Attributes {
-    inner: Arc<Vec<Attribute>>,
-}
-
-impl Attributes {
-    pub fn new(inner: Vec<Attribute>) -> Attributes {
-        Attributes {
-            inner: Arc::new(inner),
-        }
-    }
-
-    pub fn render(&self) -> String {
-        self.inner.iter()
-            .map(|attribute| attribute.render())
-            .collect::<String>()
-    }
-}
-
-#[derive(Clone)]
-pub struct Props {
-    inner: Arc<Vec<Node>>,
-}
-
-impl Props {
-    pub fn new(inner: Vec<Node>) -> Props {
-        Props {
-            inner: Arc::new(inner),
-        }
-    }
-
-    pub fn render(&self) -> String {
-        self.inner.iter()
-            .map(|node| node.render())
-            .collect::<String>()
-    }
-}
-
-pub struct Node {
-    inner: Inner,
-    attributes: Attributes,
-    props: Props,
-}
-
-impl Node {
-    pub fn new(view: Html, identity: Identity) -> Node {
-        let props = view.props.into_iter()
-            .map(|html| Node::new(html, identity))
-            .collect::<Vec<Node>>();
-
-        // TODO: here we should hook up the callbacks
-
-        Node {
-            inner: Inner::new(view.component),
-            attributes: Attributes::new(view.attributes),
-            props: Props::new(props),
-        }
-    }
-
-    pub fn render(&self) -> String {
-        self.inner.render(self.props.clone(), self.attributes.clone())
-    }
-}
-
-// TODO: the tree structure will now be rebuilt every render
-//
-// TODO: i dont think we need to build a tree anymore
-
-pub struct Tree {
-    node: Node,
-    identity: Identity,
-}
-
-impl Tree {
-    pub fn new(view: Html, identity: Identity) -> Tree {
-        Tree {
-            node: Node::new(view, identity),
-            identity,
-        }
-    }
-
-    pub fn render(&self, props: Props, attributes: Attributes) -> String {
-        let state = state::get(self.identity);
-
-        self.node.render(Context::new(state.component, props, attributes))
-    }
-}
-*/
 
 
 pub enum ComponentRef {
@@ -129,10 +11,10 @@ pub enum ComponentRef {
 }
 
 impl ComponentRef {
-    pub fn render(self, identity: Identity, context: Context) -> String {
+    pub fn render(&self, identity: &Identity, context: Context) -> String {
         match self {
             ComponentRef::Component(component) => {
-                state::get_or_insert(identity, component)
+                state::get_or_insert(&identity, component)
                     .view(context)
                     .render()
             },
@@ -141,53 +23,68 @@ impl ComponentRef {
     }
 }
 
-pub struct Attribute {
-    key: String,
-    value: fn() -> String,
+pub struct Props {
+    props: Vec<Node>,
 }
 
-impl Attribute {
-    pub fn new(key: String, value: fn() -> String) -> Attribute {
-        Attribute {
-            key,
-            value,
+impl Props {
+    pub fn new(props: Vec<Node>) -> Props {
+        Props {
+            props,
         }
     }
 
     pub fn render(&self) -> String {
-        format!("{}=\"{}\"", self.key, (self.value)())
+        props.iter()
+            .map(|prop| prop.render())
+            .collect::<String>()
+    }
+}
+
+pub struct Attributes {
+    attributes: Vec<(String, String)>,
+}
+
+impl Attributes {
+    pub fn new(attributes: Vec<(String, String)>) -> Attributes {
+        Attributes {
+            attributes,
+        }
+    }
+
+    pub fn render(&self) -> String {
+        self.attributes.iter()
+            .map(|(key, value)| format!("{}=\"{}\"", key, value))
+            .collect::<String>()
     }
 }
 
 pub struct Node {
     pub(crate) identity: Identity,
     pub(crate) component: ComponentRef,
-    pub(crate) attributes: Vec<Attribute>,
-    pub(crate) callback: Vec<(String, fn() -> Box<dyn Any>)>,
-    pub(crate) props: Vec<Html>,
+    pub(crate) attributes: Attributes,
+    pub(crate) props: Props,
 }
 
 impl Node {
     pub fn new(
         identity: Identity,
         component: ComponentRef,
-        attributes: Vec<Attribute>,
-        callback: Vec<(String, fn() -> Box<dyn Any>)>,
-        props: Vec<Html>,
+        attributes: Vec<(String, String)>,
+        props: Vec<Node>,
     ) -> Node {
         Node {
             identity,
             component,
-            attributes,
-            callback,
-            props,
+            attributes: Attributes::new(attributes),
+            props: Props::new(props),
         }
     }
 
-    pub fn render(self) -> String {
-        let context = Context::new(self.props, self.attributes, self.identity.clone());
+    pub fn render(&self) -> String {
+        let context = Context::new(&self.props, &self.attributes, &self.identity);
 
-        self.component.render(self.identity, context)
+        self.component.render(&self.identity, context)
     }
 }
 
