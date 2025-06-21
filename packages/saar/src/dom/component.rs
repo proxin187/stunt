@@ -12,14 +12,14 @@ pub trait Component {
     fn view(&self, ctx: Context) -> Node;
 }
 
-pub struct Context<'a> {
-    pub props: &'a Props,
-    pub attributes: &'a Attributes,
-    pub identity: &'a Identity,
+pub struct Context {
+    pub props: Props,
+    pub attributes: Attributes,
+    pub identity: Identity,
 }
 
-impl<'a> Context<'a> {
-    pub fn new(props: &'a Props, attributes: &'a Attributes, identity: &'a Identity) -> Context<'a> {
+impl Context {
+    pub fn new(props: Props, attributes: Attributes, identity: Identity) -> Context {
         Context {
             props,
             attributes,

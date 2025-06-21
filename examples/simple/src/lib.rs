@@ -1,8 +1,7 @@
-use saar::dom::component::Component;
+use saar::dom::component::{Component, Context};
+use saar::dom::tree::{Node, ComponentRef};
 use saar::dom::state::Identity;
-use saar::dom::tree::Context;
 
-use saar::html::{Html, Attribute, ComponentRef};
 use saar::render::Renderer;
 
 use saar_components::*;
@@ -41,40 +40,33 @@ impl Component for App {
         }
     }
 
-    fn view(&self, ctx: Context) -> Html {
-        let count = self.count.to_string();
-
-        Html::new(
-            Identity::new(4),
-            ComponentRef::Component(Arc::new(Div::create())),
-            Vec::new(),
+    fn view(&self, ctx: Context) -> Node {
+        Node::new(
+            ctx.identity.intersect(Identity::new(4)),
+            ComponentRef::Component(|| Arc::new(Div::create())),
             Vec::new(),
             vec![
-                Html::new(
-                    Identity::new(5),
-                    ComponentRef::Component(Arc::new(H1::create())),
-                    vec![Attribute::new(String::from("style"), || { String::from("background-color: yellow;") })],
-                    Vec::new(),
+                Node::new(
+                    ctx.identity.intersect(Identity::new(5)),
+                    ComponentRef::Component(|| Arc::new(H1::create())),
+                    vec![(String::from("style"), String::from("background-color: yellow;"))],
                     vec![
-                        Html::new(
-                            Identity::new(6),
-                            ComponentRef::Block(|| { format!("Welcome to saar web framework demo: {}", count) }),
-                            Vec::new(),
+                        Node::new(
+                            ctx.identity.intersect(Identity::new(6)),
+                            ComponentRef::Template(format!("Welcome to saar web framework demo: {}", self.count)),
                             Vec::new(),
                             Vec::new(),
                         ),
                     ],
                 ),
-                Html::new(
-                    Identity::new(7),
-                    ComponentRef::Component(Arc::new(Button::create())),
-                    Vec::new(),
+                Node::new(
+                    ctx.identity.intersect(Identity::new(7)),
+                    ComponentRef::Component(|| Arc::new(Button::create())),
                     Vec::new(),
                     vec![
-                        Html::new(
-                            Identity::new(9),
-                            ComponentRef::Block(|| { String::from("increment") }),
-                            Vec::new(),
+                        Node::new(
+                            ctx.identity.intersect(Identity::new(8)),
+                            ComponentRef::Template(String::from("increment")),
                             Vec::new(),
                             Vec::new(),
                         ),

@@ -16,8 +16,8 @@ macro_rules! create_component {
 
             fn view(&self, ctx: Context) -> Node {
                 Node::new(
-                    $id,
-                    ComponentRef::Block(Box::new(|| { format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(), $tag) })),
+                    ctx.identity.intersect($id),
+                    ComponentRef::Template(format!("<{} {}>{}</{}>", $tag, ctx.attributes.render(), ctx.props.render(), $tag)),
                     Vec::new(),
                     Vec::new(),
                 )
