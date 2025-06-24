@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use spin::Mutex;
 
-static STATES: LazyLock<Arc<Mutex<HashMap<Identity, Arc<dyn Component + Send + Sync>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
+static STATES: LazyLock<Arc<Mutex<HashMap<Identity, Arc<Mutex<dyn Component + Send + Sync>>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
 
 #[derive(Debug, Clone,  Hash, PartialEq, Eq)]
@@ -25,15 +25,24 @@ impl Identity {
             id: [self.id.clone(), other.id].concat(),
         }
     }
+
+    pub fn render(&self) -> String {
+        self.id.iter()
+            .map(|id| id.to_string())
+            .collect::<String>()
+    }
 }
 
 #[inline]
-pub fn get(identity: &Identity) -> Arc<dyn Component + Send + Sync> {
+pub fn get(identity: &Identity) -> Arc<Mutex<dyn Component + Send + Sync>> {
     STATES.lock()[identity].clone()
 }
 
 #[inline]
-pub fn get_or_insert(identity: &Identity, f: fn() -> Arc<dyn Component + Send + Sync>) -> Arc<dyn Component + Send + Sync> {
+pub fn get_or_insert(
+    identity: &Identity,
+    f: fn() -> Arc<Mutex<dyn Component + Send + Sync>>
+) -> Arc<Mutex<dyn Component + Send + Sync>> {
     let mut states = STATES.lock();
 
     match states.get(&identity) {

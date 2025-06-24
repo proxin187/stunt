@@ -16,10 +16,6 @@ pub enum Message {
     Add,
 }
 
-pub enum Extract {
-    Count,
-}
-
 pub struct App {
     count: usize,
 }
@@ -31,7 +27,9 @@ impl Component for App {
         }
     }
 
-    fn callback(&mut self, callback: Box<dyn Any>) {
+    fn callback(&mut self, callback: &Arc<dyn Any + Send + Sync>) {
+        web_sys::console::log_1(&format!("count: {}", self.count).into());
+
         match callback.downcast_ref::<Message>() {
             Some(Message::Add) => {
                 self.count += 1;
@@ -43,12 +41,14 @@ impl Component for App {
     fn view(&self, ctx: Context) -> Node {
         Node::new(
             ctx.identity.intersect(Identity::new(4)),
-            ComponentRef::Component(|| Arc::new(Div::create())),
+            ComponentRef::Component(|| Arc::new(saar::Mutex::new(Div::create()))),
+            Vec::new(),
             Vec::new(),
             vec![
                 Node::new(
                     ctx.identity.intersect(Identity::new(5)),
-                    ComponentRef::Component(|| Arc::new(H1::create())),
+                    ComponentRef::Component(|| Arc::new(saar::Mutex::new(H1::create()))),
+                    Vec::new(),
                     vec![(String::from("style"), String::from("background-color: yellow;"))],
                     vec![
                         Node::new(
@@ -56,17 +56,20 @@ impl Component for App {
                             ComponentRef::Template(format!("Welcome to saar web framework demo: {}", self.count)),
                             Vec::new(),
                             Vec::new(),
+                            Vec::new(),
                         ),
                     ],
                 ),
                 Node::new(
                     ctx.identity.intersect(Identity::new(7)),
-                    ComponentRef::Component(|| Arc::new(Button::create())),
+                    ComponentRef::Component(|| Arc::new(saar::Mutex::new(Button::create()))),
+                    vec![(String::from("mousedown"), Arc::new(Message::Add))],
                     Vec::new(),
                     vec![
                         Node::new(
                             ctx.identity.intersect(Identity::new(8)),
                             ComponentRef::Template(String::from("increment")),
+                            Vec::new(),
                             Vec::new(),
                             Vec::new(),
                         ),

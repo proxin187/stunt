@@ -1,10 +1,11 @@
 use crate::dom::component::{Component, Context};
 use crate::dom::tree::{Props, Attributes};
 use crate::dom::state::{self, Identity};
+use crate::dom::callback;
 
 use web_sys::HtmlElement;
-
 use wasm_bindgen::JsValue;
+use spin::Mutex;
 
 use std::marker::PhantomData;
 use std::sync::Arc;
@@ -29,16 +30,19 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
     #[inline]
     fn render(&self, identity: Identity) {
         let root = state::get(&identity);
+        let lock = root.lock();
 
-        let render = root.view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
+        let render = lock.view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
 
         web_sys::console::log_1(&format!("render: {:?}", render).into());
 
         self.body.set_inner_html(&render);
+
+        callback::flush();
     }
 
     pub fn init(self) -> Result<(), JsValue> {
-        state::get_or_insert(&Identity::new(0), || Arc::new(T::create()));
+        state::get_or_insert(&Identity::new(0), || Arc::new(Mutex::new(T::create())));
 
         self.render(Identity::new(0));
 
