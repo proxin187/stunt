@@ -1,4 +1,7 @@
 use crate::dom::state::{self, Identity};
+use crate::dom::tree::{Props, Attributes};
+use crate::dom::component::Context;
+use crate::render;
 
 use std::sync::{Arc, LazyLock};
 use std::any::Any;
@@ -33,11 +36,13 @@ impl Callback {
             let closure = Closure::<dyn Fn()>::new(move || {
                 web_sys::console::log_1(&"clicked".into());
 
-                let component = state::get(&identity);
+                let component = state::get(&identity.outer());
 
-                // TODO: we call the wrong callback here, figure out how to call the right one
+                let mut lock = component.lock();
 
-                component.lock().callback(&callback);
+                lock.callback(&callback);
+
+                // TODO: re-render the component
             });
 
             if let Err(_) = element.add_event_listener_with_callback(&self.event, closure.as_ref().unchecked_ref()) {

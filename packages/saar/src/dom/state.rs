@@ -26,6 +26,12 @@ impl Identity {
         }
     }
 
+    pub fn outer(&self) -> Identity {
+        Identity {
+            id: self.id[..self.id.len() - 1].to_vec(),
+        }
+    }
+
     pub fn render(&self) -> String {
         self.id.iter()
             .map(|id| id.to_string())
