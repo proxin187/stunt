@@ -1,6 +1,4 @@
 use crate::dom::state::{self, Identity};
-use crate::dom::tree::{Props, Attributes};
-use crate::dom::component::Context;
 use crate::render;
 
 use std::sync::{Arc, LazyLock};
@@ -34,15 +32,9 @@ impl Callback {
             let callback = self.callback.clone();
 
             let closure = Closure::<dyn Fn()>::new(move || {
-                web_sys::console::log_1(&"clicked".into());
+                hook_callback(&identity, &callback);
 
-                let component = state::get(&identity.outer());
-
-                let mut lock = component.lock();
-
-                lock.callback(&callback);
-
-                // TODO: re-render the component
+                render::render();
             });
 
             if let Err(_) = element.add_event_listener_with_callback(&self.event, closure.as_ref().unchecked_ref()) {
@@ -52,6 +44,12 @@ impl Callback {
             closure.forget();
         }
     }
+}
+
+fn hook_callback(identity: &Identity, callback: &Arc<dyn Any + Send + Sync>) {
+    let component = state::get(&identity.outer());
+
+    component.lock().callback(callback);
 }
 
 #[inline]
