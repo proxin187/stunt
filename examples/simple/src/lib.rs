@@ -5,6 +5,7 @@ use saar::dom::state::Identity;
 use saar::render::Renderer;
 
 use saar_components::*;
+use saar_macro::html;
 
 use wasm_bindgen::prelude::*;
 
@@ -39,6 +40,17 @@ impl Component for App {
     }
 
     fn view(&self, ctx: Context) -> Node {
+        html! {
+            <div>
+                <h1 style={ "background-color: yellow;" }>
+                    <template { format!("count: {}", self.count) } />
+                </h1>
+                <button event: mousedown={ Arc::new(Message::Add) }>
+                    <template { format!("increment") } />
+                </button>
+            </div>
+        }
+
         Node::new(
             ctx.identity.intersect(Identity::new(4)),
             ComponentRef::Component(|| Arc::new(saar::Mutex::new(Div::create()))),

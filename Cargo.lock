@@ -120,6 +120,7 @@ version = "0.1.0"
 dependencies = [
  "saar",
  "saar_components",
+ "saar_macro",
  "wasm-bindgen",
  "web-sys",
 ]

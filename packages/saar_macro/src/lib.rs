@@ -1,30 +1,27 @@
+mod tags;
+
 use proc_macro::TokenStream;
+use syn::parse_macro_input;
+use quote::quote;
 
-use syn::parse::{Parse, ParseStream, Result};
-use syn::{Token, Ident, Expr};
+use tags::{Intermediate, Tag};
 
 
-struct Attribute {
-    name: Ident,
-    value: Expr,
-}
-
-impl Parse for Attribute {
-    fn parse(input: ParseStream) -> Result<Attribute> {
-        Ok(Attribute {
-            name: input.parse(),
-            value: input.parse(),
-        })
+fn generate(tags: Vec<Tag>) -> TokenStream {
+    if let Some(tag) = tags.first() {
     }
-}
 
-struct Tag {
-    name: Ident,
-    attributes: Vec<Attribute>,
+    TokenStream::new()
 }
 
 #[proc_macro]
-pub fn html(tokens: TokenStream) {
+pub fn html(input: TokenStream) -> TokenStream {
+    let intermediate: Intermediate = parse_macro_input!(input as Intermediate);
+
+    // TODO: the next thing to do is to iterate over the tags and check for mismatches
+    // finally we need to generate the output code
+
+    generate(intermediate.tags)
 }
 
 
