@@ -5,9 +5,9 @@ use saar::dom::state::Identity;
 use std::sync::Arc;
 use std::any::Any;
 
-
 macro_rules! create_component {
     ($name:ident, $tag:expr, $id:expr) => {
+        #[allow(non_camel_case_types)]
         pub struct $name;
 
         impl Component for $name {
@@ -28,8 +28,8 @@ macro_rules! create_component {
     }
 }
 
-create_component!(H1, "h1", Identity::new(1));
-create_component!(Div, "div", Identity::new(2));
-create_component!(Button, "button", Identity::new(3));
+create_component!(h1, "h1", Identity::new(1));
+create_component!(div, "div", Identity::new(2));
+create_component!(button, "button", Identity::new(3));
 
 

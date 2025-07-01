@@ -1,5 +1,11 @@
 use syn::parse::{Parse, ParseStream, Result};
 use syn::{Token, Ident, ExprBlock};
+use syn::spanned::Spanned;
+
+use proc_macro2::TokenStream;
+use proc_macro::Span;
+
+use quote::quote;
 
 
 mod keyword {
@@ -7,20 +13,15 @@ mod keyword {
     syn::custom_keyword!(event);
 }
 
-pub struct Attribute {
-    pub event: bool,
+pub struct Event {
     pub name: Ident,
     pub value: ExprBlock,
 }
 
-impl Parse for Attribute {
-    fn parse(input: ParseStream) -> Result<Attribute> {
-        let event = input.peek(keyword::event);
-
-        if event {
-            input.parse::<keyword::event>()?;
-            input.parse::<Token![:]>()?;
-        }
+impl Parse for Event {
+    fn parse(input: ParseStream) -> Result<Event> {
+        input.parse::<keyword::event>()?;
+        input.parse::<Token![:]>()?;
 
         let name: Ident = input.parse()?;
 
@@ -28,17 +29,60 @@ impl Parse for Attribute {
 
         let value: ExprBlock = input.parse()?;
 
-        Ok(Attribute {
-            event,
+        Ok(Event {
             name,
             value,
         })
     }
 }
 
+impl Event {
+    pub fn tokens(&self) -> TokenStream {
+        let name = format!("{}", self.name);
+        let value = self.value.clone();
+
+        quote! {
+            (String::from(#name), #value),
+        }
+    }
+}
+
+pub struct Attribute {
+    pub name: Ident,
+    pub value: ExprBlock,
+}
+
+impl Parse for Attribute {
+    fn parse(input: ParseStream) -> Result<Attribute> {
+        let name: Ident = input.parse()?;
+
+        input.parse::<Token![=]>()?;
+
+        let value: ExprBlock = input.parse()?;
+
+        Ok(Attribute {
+            name,
+            value,
+        })
+    }
+}
+
+impl Attribute {
+    pub fn tokens(&self) -> TokenStream {
+        let name = format!("{}", self.name);
+        let value = self.value.clone();
+
+        quote! {
+            #[allow(unused_braces)]
+            (String::from(#name), String::from(#value)),
+        }
+    }
+}
+
 pub struct OpenTag {
     pub name: Ident,
     pub attributes: Vec<Attribute>,
+    pub events: Vec<Event>,
 }
 
 impl Parse for OpenTag {
@@ -46,9 +90,14 @@ impl Parse for OpenTag {
         let name: Ident = input.parse()?;
 
         let mut attributes: Vec<Attribute> = Vec::new();
+        let mut events: Vec<Event> = Vec::new();
 
         while !input.peek(Token![>]) {
-            attributes.push(input.parse::<Attribute>()?);
+            if input.peek(keyword::event) {
+                events.push(input.parse::<Event>()?);
+            } else {
+                attributes.push(input.parse::<Attribute>()?);
+            }
         }
 
         input.parse::<Token![>]>()?;
@@ -56,6 +105,7 @@ impl Parse for OpenTag {
         Ok(OpenTag {
             name,
             attributes,
+            events,
         })
     }
 }
@@ -78,7 +128,15 @@ impl Parse for CloseTag {
     }
 }
 
-struct Template {
+impl CloseTag {
+    pub fn new(name: Ident) -> CloseTag {
+        CloseTag {
+            name,
+        }
+    }
+}
+
+pub struct Template {
     pub value: ExprBlock,
 }
 
@@ -113,6 +171,16 @@ impl Parse for Tag {
             Ok(Tag::CloseTag(input.parse::<CloseTag>()?))
         } else {
             Ok(Tag::OpenTag(input.parse::<OpenTag>()?))
+        }
+    }
+}
+
+impl Tag {
+    pub fn span(&self) -> Span {
+        match self {
+            Tag::OpenTag(tag) => tag.name.span().unwrap(),
+            Tag::CloseTag(tag) => tag.name.span().unwrap(),
+            Tag::Template(tag) => tag.value.span().unwrap(),
         }
     }
 }

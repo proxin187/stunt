@@ -1,6 +1,5 @@
 use saar::dom::component::{Component, Context};
-use saar::dom::tree::{Node, ComponentRef};
-use saar::dom::state::Identity;
+use saar::dom::tree::Node;
 
 use saar::render::Renderer;
 
@@ -29,11 +28,9 @@ impl Component for App {
     }
 
     fn callback(&mut self, callback: &Arc<dyn Any + Send + Sync>) {
-        web_sys::console::log_1(&format!("count: {}", self.count).into());
-
         match callback.downcast_ref::<Message>() {
             Some(Message::Add) => {
-                self.count += 1;
+                self.count += 5;
             },
             None => unreachable!(),
         }
@@ -42,7 +39,7 @@ impl Component for App {
     fn view(&self, ctx: Context) -> Node {
         html! {
             <div>
-                <h1 style={ "background-color: yellow;" }>
+                <h1 style={ "background-color: blue;" }>
                     <template { format!("count: {}", self.count) } />
                 </h1>
                 <button event: mousedown={ Arc::new(Message::Add) }>
@@ -50,45 +47,6 @@ impl Component for App {
                 </button>
             </div>
         }
-
-        Node::new(
-            ctx.identity.intersect(Identity::new(4)),
-            ComponentRef::Component(|| Arc::new(saar::Mutex::new(Div::create()))),
-            Vec::new(),
-            Vec::new(),
-            vec![
-                Node::new(
-                    ctx.identity.intersect(Identity::new(5)),
-                    ComponentRef::Component(|| Arc::new(saar::Mutex::new(H1::create()))),
-                    Vec::new(),
-                    vec![(String::from("style"), String::from("background-color: yellow;"))],
-                    vec![
-                        Node::new(
-                            ctx.identity.intersect(Identity::new(6)),
-                            ComponentRef::Template(format!("Welcome to saar web framework demo: {}", self.count)),
-                            Vec::new(),
-                            Vec::new(),
-                            Vec::new(),
-                        ),
-                    ],
-                ),
-                Node::new(
-                    ctx.identity.intersect(Identity::new(7)),
-                    ComponentRef::Component(|| Arc::new(saar::Mutex::new(Button::create()))),
-                    vec![(String::from("mousedown"), Arc::new(Message::Add))],
-                    Vec::new(),
-                    vec![
-                        Node::new(
-                            ctx.identity.intersect(Identity::new(8)),
-                            ComponentRef::Template(String::from("increment")),
-                            Vec::new(),
-                            Vec::new(),
-                            Vec::new(),
-                        ),
-                    ],
-                ),
-            ],
-        )
     }
 }
 
