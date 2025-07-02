@@ -1,12 +1,14 @@
-use saar::dom::component::{Component, Context};
-use saar::dom::tree::{Node, ComponentRef};
-use saar::dom::state::Identity;
+use saar_core::dom::component::{Component, Context};
+use saar_core::dom::tree::Node;
+
+use saar_macro::html;
 
 use std::sync::Arc;
 use std::any::Any;
 
+
 macro_rules! create_component {
-    ($name:ident, $tag:expr, $id:expr) => {
+    ($name:ident, $tag:expr) => {
         #[allow(non_camel_case_types)]
         pub struct $name;
 
@@ -16,20 +18,18 @@ macro_rules! create_component {
             fn callback(&mut self, _callback: &Arc<dyn Any + Send + Sync>) {}
 
             fn view(&self, ctx: Context) -> Node {
-                Node::new(
-                    ctx.identity.intersect($id),
-                    ComponentRef::Template(format!("<{} id=\"{}\" {}>{}</{}>", $tag, ctx.identity.render(), ctx.attributes.render(), ctx.props.render(), $tag)),
-                    Vec::new(),
-                    Vec::new(),
-                    Vec::new(),
-                )
+                let tag = $tag;
+
+                html! {
+                    <template { format!("<{} id=\"{}\" {}>{}</{}>", tag, ctx.identity.render(), ctx.attributes.render(), ctx.props.render(), tag) } />
+                }
             }
         }
     }
 }
 
-create_component!(h1, "h1", Identity::new(1));
-create_component!(div, "div", Identity::new(2));
-create_component!(button, "button", Identity::new(3));
+create_component!(h1, "h1");
+create_component!(div, "div");
+create_component!(button, "button");
 
 

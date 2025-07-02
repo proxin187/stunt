@@ -3,7 +3,6 @@ use crate::dom::tree::{Props, Attributes};
 use crate::dom::state::{self, Identity};
 use crate::dom::callback;
 
-use web_sys::HtmlElement;
 use wasm_bindgen::JsValue;
 use spin::Mutex;
 

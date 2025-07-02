@@ -80,17 +80,27 @@ checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
 name = "saar"
 version = "0.1.0"
 dependencies = [
- "spin",
- "wasm-bindgen",
- "web-sys",
+ "saar_components",
+ "saar_core",
+ "saar_macro",
 ]
 
 [[package]]
 name = "saar_components"
 version = "0.1.0"
 dependencies = [
- "saar",
+ "saar_core",
+ "saar_macro",
  "syn",
+]
+
+[[package]]
+name = "saar_core"
+version = "0.1.0"
+dependencies = [
+ "spin",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -120,10 +130,6 @@ name = "simple"
 version = "0.1.0"
 dependencies = [
  "saar",
- "saar_components",
- "saar_macro",
- "wasm-bindgen",
- "web-sys",
 ]
 
 [[package]]

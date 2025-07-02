@@ -72,9 +72,9 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 .collect::<TokenStream>();
 
             let mut tokens = quote! {
-                saar::dom::tree::Node::new(
-                    ctx.identity.intersect(saar::dom::state::Identity::new(#identity)),
-                    saar::dom::tree::ComponentRef::Component(|| std::sync::Arc::new(saar::Mutex::new(#name::create()))),
+                saar_core::dom::tree::Node::new(
+                    ctx.identity.intersect(saar_core::dom::state::Identity::new(#identity)),
+                    saar_core::dom::tree::ComponentRef::Component(|| std::sync::Arc::new(saar_core::Mutex::new(#name::create()))),
                     vec![#events],
                     vec![#attributes],
                     vec![#nodes],
@@ -92,11 +92,11 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
             let block = template.value.clone();
 
             let mut tokens = quote! {
-                saar::dom::tree::Node::new(
-                    ctx.identity.intersect(saar::dom::state::Identity::new(#identity)),
+                saar_core::dom::tree::Node::new(
+                    ctx.identity.intersect(saar_core::dom::state::Identity::new(#identity)),
 
                     #[allow(unused_braces)]
-                    saar::dom::tree::ComponentRef::Template(#block),
+                    saar_core::dom::tree::ComponentRef::Template(#block),
                     Vec::new(),
                     Vec::new(),
                     Vec::new(),

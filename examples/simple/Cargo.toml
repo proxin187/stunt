@@ -8,7 +8,4 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 saar = { path = "../../packages/saar" }
-saar_components = { path = "../../packages/saar_components" }
-saar_macro = { path = "../../packages/saar_macro" }
-wasm-bindgen = "0.2.100"
-web-sys = "0.3.77"
+

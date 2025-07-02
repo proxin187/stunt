@@ -1,12 +1,4 @@
-use saar::dom::component::{Component, Context};
-use saar::dom::tree::Node;
-
-use saar::render::Renderer;
-
-use saar_components::*;
-use saar_macro::html;
-
-use wasm_bindgen::prelude::*;
+use saar::prelude::*;
 
 use std::sync::Arc;
 use std::any::Any;

@@ -5,5 +5,6 @@ edition = "2024"
 
 [dependencies]
 syn = "2.0.101"
-saar = { path = "../saar" }
+saar_core = { path = "../saar_core" }
+saar_macro = { path = "../saar_macro" }
 
