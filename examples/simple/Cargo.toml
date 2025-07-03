@@ -7,5 +7,6 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-saar = { path = "../../packages/saar" }
+puri = { path = "../../packages/puri" }
+
 

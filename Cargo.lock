@@ -62,6 +62,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "puri"
+version = "0.1.0"
+dependencies = [
+ "puri_components",
+ "puri_core",
+ "puri_macro",
+]
+
+[[package]]
+name = "puri_components"
+version = "0.1.0"
+dependencies = [
+ "puri_core",
+ "puri_macro",
+ "syn",
+]
+
+[[package]]
+name = "puri_core"
+version = "0.1.0"
+dependencies = [
+ "spin",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "puri_macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "puri_router"
+version = "0.1.0"
+dependencies = [
+ "syn",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -77,49 +120,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
 
 [[package]]
-name = "saar"
-version = "0.1.0"
-dependencies = [
- "saar_components",
- "saar_core",
- "saar_macro",
-]
-
-[[package]]
-name = "saar_components"
-version = "0.1.0"
-dependencies = [
- "saar_core",
- "saar_macro",
- "syn",
-]
-
-[[package]]
-name = "saar_core"
-version = "0.1.0"
-dependencies = [
- "spin",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "saar_macro"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "saar_router"
-version = "0.1.0"
-dependencies = [
- "syn",
-]
-
-[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -129,7 +129,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 name = "simple"
 version = "0.1.0"
 dependencies = [
- "saar",
+ "puri",
 ]
 
 [[package]]
