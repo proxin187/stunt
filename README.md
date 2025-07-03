@@ -16,6 +16,11 @@ puri is a frontend web framework for developing reactive user interfaces in Rust
 * Everything is a [component](#component)
 * Use any build tool you like eg. [trunk](https://trunkrs.dev/)
 
+## Goals
+
+- [ ] Optimized DOM api calls
+- [ ] React-like Router implementation
+
 ## Example
 The following example shows a button that increments a counter when pressed.
 
