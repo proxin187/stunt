@@ -1,15 +1,9 @@
 
 <div align="center">
-    <br>
-    <a href="">
-    </a>
-    <br>
-
-    ![GitHub License](https://img.shields.io/badge/license-MIT-red?style=for-the-badge&logo=none)
-    ![dependencies](https://deps.rs/repo/github/proxin187/puri/status.svg?style=for-the-badge)
-    [![crates.io](https://img.shields.io/badge/crates.io-puri-red?style=for-the-badge&logo=none)](https://crates.io/crates/puri)
-
-    <h4>A declarative web framework for Rust/Wasm</h4>
+![GitHub License](https://img.shields.io/badge/license-MIT-red?style=for-the-badge&logo=none)
+![dependencies](https://deps.rs/repo/github/proxin187/puri/status.svg?style=for-the-badge)
+[![crates.io](https://img.shields.io/badge/crates.io-puri-red?style=for-the-badge&logo=none)](https://crates.io/crates/puri)
+<h4>A declarative web framework for Rust/Wasm</h4>
 </div>
 
 
