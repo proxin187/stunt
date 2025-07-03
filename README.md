@@ -1,5 +1,7 @@
 
 <div align="center">
+<br>
+
 ![GitHub License](https://img.shields.io/badge/license-MIT-red?style=for-the-badge&logo=none)
 ![dependencies](https://deps.rs/repo/github/proxin187/puri/status.svg?style=for-the-badge)
 [![crates.io](https://img.shields.io/badge/crates.io-puri-red?style=for-the-badge&logo=none)](https://crates.io/crates/puri)
