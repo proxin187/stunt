@@ -1,5 +1,9 @@
-use crate::dom::tree::{Node, Props, Attributes};
-use crate::dom::state::Identity;
+pub mod callback;
+pub mod state;
+pub mod tree;
+
+use tree::{Tree, Props, Attributes};
+use state::Identity;
 
 use std::sync::Arc;
 use std::any::Any;
@@ -10,7 +14,7 @@ pub trait Component {
 
     fn callback(&mut self, callback: &Arc<dyn Any + Send + Sync>);
 
-    fn view(&self, ctx: Context) -> Node;
+    fn view(&self, ctx: Context) -> Tree;
 }
 
 pub struct Context {

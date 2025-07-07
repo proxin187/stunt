@@ -28,7 +28,7 @@ impl Component for App {
         }
     }
 
-    fn view(&self, ctx: Context) -> Node {
+    fn view(&self, ctx: Context) -> Tree {
         html! {
             <div>
                 <h1 style={ "background-color: blue;" }>

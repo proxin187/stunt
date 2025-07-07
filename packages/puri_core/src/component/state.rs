@@ -1,4 +1,4 @@
-use crate::dom::component::Component;
+use crate::component::Component;
 
 use std::sync::{Arc, LazyLock};
 use std::collections::HashMap;

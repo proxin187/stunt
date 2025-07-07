@@ -72,9 +72,9 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 .collect::<TokenStream>();
 
             let mut tokens = quote! {
-                puri_core::dom::tree::Node::new(
-                    ctx.identity.intersect(puri_core::dom::state::Identity::new(#identity)),
-                    puri_core::dom::tree::ComponentRef::Component(|| std::sync::Arc::new(puri_core::Mutex::new(#name::create()))),
+                puri_core::component::tree::Tree::new(
+                    ctx.identity.intersect(puri_core::component::state::Identity::new(#identity)),
+                    puri_core::component::tree::ComponentRef::Component(|| std::sync::Arc::new(puri_core::Mutex::new(#name::create()))),
                     vec![#events],
                     vec![#attributes],
                     vec![#nodes],
@@ -92,11 +92,11 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
             let block = template.value.clone();
 
             let mut tokens = quote! {
-                puri_core::dom::tree::Node::new(
-                    ctx.identity.intersect(puri_core::dom::state::Identity::new(#identity)),
+                puri_core::component::tree::Tree::new(
+                    ctx.identity.intersect(puri_core::component::state::Identity::new(#identity)),
 
                     #[allow(unused_braces)]
-                    puri_core::dom::tree::ComponentRef::Template(#block),
+                    puri_core::component::tree::ComponentRef::Template(#block),
                     Vec::new(),
                     Vec::new(),
                     Vec::new(),

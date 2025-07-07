@@ -1,4 +1,4 @@
-use crate::dom::state::{self, Identity};
+use crate::component::state::{self, Identity};
 use crate::render;
 
 use std::sync::{Arc, LazyLock};

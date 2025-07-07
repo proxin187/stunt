@@ -1,5 +1,5 @@
-use puri_core::dom::component::{Component, Context};
-use puri_core::dom::tree::Node;
+use puri_core::component::{Component, Context};
+use puri_core::component::tree::Tree;
 
 use puri_macro::html;
 
@@ -17,7 +17,7 @@ macro_rules! create_component {
 
             fn callback(&mut self, _callback: &Arc<dyn Any + Send + Sync>) {}
 
-            fn view(&self, ctx: Context) -> Node {
+            fn view(&self, ctx: Context) -> Tree {
                 let tag = $tag;
 
                 html! {

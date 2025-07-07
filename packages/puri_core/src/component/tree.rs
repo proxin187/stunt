@@ -1,6 +1,8 @@
-use crate::dom::component::{Component, Context};
-use crate::dom::state::{self, Identity};
-use crate::dom::callback;
+use crate::component::{Component, Context};
+use crate::component::state::{self, Identity};
+use crate::component::callback;
+
+use crate::vdom::{Node, VirtualElement, Inner};
 
 use std::sync::Arc;
 use std::any::Any;
@@ -9,13 +11,20 @@ use std::rc::Rc;
 use spin::Mutex;
 
 
+// TODO: element will only be used internally and does not need macro support
+// props will be available to the user and will need macro support
+//
+// TODO: template should either be a string or a tree or a vec of trees
+
 pub enum ComponentRef {
     Component(fn() -> Arc<Mutex<dyn Component + Send + Sync>>),
     Template(String),
+    Props(Props),
+    Element(Element),
 }
 
 impl ComponentRef {
-    pub fn render(&self, identity: &Identity, context: Context) -> String {
+    pub fn render(&self, identity: &Identity, context: Context) -> Node {
         match self {
             ComponentRef::Component(component) => {
                 state::get_or_insert(&identity, *component)
@@ -23,27 +32,47 @@ impl ComponentRef {
                     .view(context)
                     .render()
             },
-            ComponentRef::Template(template) => template.clone(),
+            ComponentRef::Template(template) => Node::new(identity.clone(), Inner::Template(template.clone())),
+            ComponentRef::Props(props) => Node::new(identity.clone(), Inner::Props(props.render())),
+            ComponentRef::Element(element) => {
+                Node::new(identity.clone(), Inner::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), element.props.render())))
+            },
+        }
+    }
+}
+
+pub struct Element {
+    name: String,
+    attributes: Attributes,
+    props: Props,
+}
+
+impl Element {
+    pub fn new(name: String, attributes: Attributes, props: Props) -> Element {
+        Element {
+            name,
+            attributes,
+            props,
         }
     }
 }
 
 #[derive(Clone)]
 pub struct Props {
-    props: Rc<Vec<Node>>,
+    props: Rc<Vec<Tree>>,
 }
 
 impl Props {
-    pub fn new(props: Vec<Node>) -> Props {
+    pub fn new(props: Vec<Tree>) -> Props {
         Props {
             props: Rc::new(props),
         }
     }
 
-    pub fn render(&self) -> String {
+    fn render(&self) -> Vec<Node> {
         self.props.iter()
             .map(|prop| prop.render())
-            .collect::<String>()
+            .collect::<Vec<Node>>()
     }
 }
 
@@ -66,7 +95,7 @@ impl Attributes {
     }
 }
 
-pub struct Node {
+pub struct Tree {
     pub(crate) identity: Identity,
     pub(crate) component: ComponentRef,
     pub(crate) callbacks: Rc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
@@ -74,15 +103,15 @@ pub struct Node {
     pub(crate) props: Props,
 }
 
-impl Node {
+impl Tree {
     pub fn new(
         identity: Identity,
         component: ComponentRef,
         callbacks: Vec<(String, Arc<dyn Any + Send + Sync>)>,
         attributes: Vec<(String, String)>,
-        props: Vec<Node>,
-    ) -> Node {
-        Node {
+        props: Vec<Tree>,
+    ) -> Tree {
+        Tree {
             identity,
             component,
             callbacks: Rc::new(callbacks),
@@ -91,7 +120,7 @@ impl Node {
         }
     }
 
-    pub fn render(&self) -> String {
+    pub fn render(&self) -> Node {
         for (event, cb) in self.callbacks.iter() {
             callback::push(self.identity.clone(), event.clone(), cb.clone());
         }

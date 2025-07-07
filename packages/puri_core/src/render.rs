@@ -1,7 +1,7 @@
-use crate::dom::component::{Component, Context};
-use crate::dom::tree::{Props, Attributes};
-use crate::dom::state::{self, Identity};
-use crate::dom::callback;
+use crate::component::tree::{Props, Attributes};
+use crate::component::state::{self, Identity};
+use crate::component::{Component, Context};
+use crate::component::callback;
 
 use wasm_bindgen::JsValue;
 use spin::Mutex;
@@ -32,6 +32,9 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
 // TODO: make the render function only update the part of the dom that is different instead of
 // updating everything like we do here
+//
+// we need to render into a virtual dom structure
+// and then we compare the virtual dom with the previous dom to know what has to be updated
 
 #[inline]
 pub fn render() {
