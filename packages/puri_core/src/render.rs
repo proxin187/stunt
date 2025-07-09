@@ -49,11 +49,13 @@ pub fn render() {
 
     let render = lock.view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
 
-    web_sys::console::log_1(&format!("render: {:?}", render).into());
+    // TODO: implement debug for Node so that we can assure we get a proper structure
 
-    body.set_inner_html(&render);
+    web_sys::console::log_1(&format!("render: {:#?}", render).into());
 
-    callback::flush();
+    // body.set_inner_html(&render);
+
+    // callback::flush();
 }
 
 

@@ -121,9 +121,11 @@ impl Tree {
     }
 
     pub fn render(&self) -> Node {
+        /*
         for (event, cb) in self.callbacks.iter() {
             callback::push(self.identity.clone(), event.clone(), cb.clone());
         }
+        */
 
         let context = Context::new(self.props.clone(), self.attributes.clone(), self.identity.clone());
 

@@ -1,6 +1,7 @@
 use crate::component::state::Identity;
 
 
+#[derive(Debug)]
 pub enum Inner {
     Component(Box<Node>),
     Template(String),
@@ -8,6 +9,7 @@ pub enum Inner {
     Element(VirtualElement),
 }
 
+#[derive(Debug)]
 pub struct VirtualElement {
     name: String,
     attributes: String,
@@ -24,6 +26,7 @@ impl VirtualElement {
     }
 }
 
+#[derive(Debug)]
 pub struct Node {
     identity: Identity,
     inner: Inner,

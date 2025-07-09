@@ -121,6 +121,15 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
 }
 
 #[proc_macro]
+pub fn next_id(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let identity = IDENTITY.next();
+
+    let tokens = quote! { #identity };
+
+    proc_macro::TokenStream::from(tokens)
+}
+
+#[proc_macro]
 pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let intermediate: Intermediate = parse_macro_input!(input as Intermediate);
 
