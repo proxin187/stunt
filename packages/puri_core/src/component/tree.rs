@@ -2,7 +2,7 @@ use crate::component::{Component, Context};
 use crate::component::state::{self, Identity};
 use crate::component::callback;
 
-use crate::vdom::{Node, VirtualElement, Inner};
+use crate::vdom::{Node, VirtualElement, Kind};
 
 use std::sync::Arc;
 use std::any::Any;
@@ -32,10 +32,10 @@ impl ComponentRef {
                     .view(context)
                     .render()
             },
-            ComponentRef::Template(template) => Node::new(identity.clone(), Inner::Template(template.clone())),
-            ComponentRef::Props(props) => Node::new(identity.clone(), Inner::Props(props.render())),
+            ComponentRef::Template(template) => Node::new(identity.clone(), Kind::Template(template.clone())),
+            ComponentRef::Props(props) => Node::new(identity.clone(), Kind::Props(props.render())),
             ComponentRef::Element(element) => {
-                Node::new(identity.clone(), Inner::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), element.props.render())))
+                Node::new(identity.clone(), Kind::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), element.props.render())))
             },
         }
     }
