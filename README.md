@@ -18,7 +18,7 @@ puri is a frontend web framework for developing reactive user interfaces in Rust
 
 ## Goals
 
-- [ ] Optimized DOM api calls
+- [x] Optimized DOM api calls
 - [ ] React-like Router implementation
 
 ## Example
