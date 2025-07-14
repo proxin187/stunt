@@ -2,6 +2,7 @@ use crate::component::tree::{Props, Attributes};
 use crate::component::state::{self, Identity};
 use crate::component::{Component, Context};
 use crate::component::callback;
+use crate::vdom;
 
 use wasm_bindgen::JsValue;
 use spin::Mutex;
@@ -30,32 +31,18 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
     }
 }
 
-// TODO: make the render function only update the part of the dom that is different instead of
-// updating everything like we do here
-//
-// we need to render into a virtual dom structure
-// and then we compare the virtual dom with the previous dom to know what has to be updated
-
 #[inline]
 pub fn render() {
     let identity = Identity::new(0);
-
-    let window = web_sys::window().expect("no global window exists");
-    let document = window.document().expect("should have a document on window");
-    let body = document.body().expect("document should have a body");
 
     let root = state::get(&identity);
     let lock = root.lock();
 
     let render = lock.view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
 
-    // TODO: implement debug for Node so that we can assure we get a proper structure
+    vdom::reconcile(render);
 
-    web_sys::console::log_1(&format!("render: {:#?}", render).into());
-
-    // body.set_inner_html(&render);
-
-    // callback::flush();
+    callback::flush();
 }
 
 

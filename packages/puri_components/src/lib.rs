@@ -26,12 +26,6 @@ macro_rules! create_component {
                     Vec::new(),
                     Vec::new(),
                 )
-
-                /*
-                html! {
-                    <template { format!("<{} id=\"{}\" {}>{}</{}>", tag, ctx.identity.render(), ctx.attributes.render(), ctx.props.render(), tag) } />
-                }
-                */
             }
         }
     }

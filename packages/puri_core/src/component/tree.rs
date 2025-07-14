@@ -1,6 +1,5 @@
 use crate::component::{Component, Context};
 use crate::component::state::{self, Identity};
-use crate::component::callback;
 
 use crate::vdom::{Node, VirtualElement, Kind};
 
@@ -24,18 +23,28 @@ pub enum ComponentRef {
 }
 
 impl ComponentRef {
-    pub fn render(&self, identity: &Identity, context: Context) -> Node {
+    pub fn render(&self, identity: &Identity, context: Context, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
         match self {
             ComponentRef::Component(component) => {
-                state::get_or_insert(&identity, *component)
+                let node = state::get_or_insert(&identity, *component)
                     .lock()
                     .view(context)
-                    .render()
+                    .render();
+
+                Node::new(
+                    identity.clone(),
+                    Kind::Element(VirtualElement::new(String::from("span"), String::new(), Arc::new(vec![node]))),
+                    callbacks,
+                )
             },
-            ComponentRef::Template(template) => Node::new(identity.clone(), Kind::Template(template.clone())),
-            ComponentRef::Props(props) => Node::new(identity.clone(), Kind::Props(props.render())),
+            ComponentRef::Template(template) => Node::new(identity.clone(), Kind::Template(template.clone()), callbacks),
+            ComponentRef::Props(props) => Node::new(identity.clone(), Kind::Props(Arc::new(props.render())), callbacks),
             ComponentRef::Element(element) => {
-                Node::new(identity.clone(), Kind::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), element.props.render())))
+                Node::new(
+                    identity.clone(),
+                    Kind::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), Arc::new(element.props.render()))),
+                    callbacks,
+                )
             },
         }
     }
@@ -98,7 +107,7 @@ impl Attributes {
 pub struct Tree {
     pub(crate) identity: Identity,
     pub(crate) component: ComponentRef,
-    pub(crate) callbacks: Rc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
+    pub(crate) callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
     pub(crate) attributes: Attributes,
     pub(crate) props: Props,
 }
@@ -114,22 +123,16 @@ impl Tree {
         Tree {
             identity,
             component,
-            callbacks: Rc::new(callbacks),
+            callbacks: Arc::new(callbacks),
             attributes: Attributes::new(attributes),
             props: Props::new(props),
         }
     }
 
     pub fn render(&self) -> Node {
-        /*
-        for (event, cb) in self.callbacks.iter() {
-            callback::push(self.identity.clone(), event.clone(), cb.clone());
-        }
-        */
-
         let context = Context::new(self.props.clone(), self.attributes.clone(), self.identity.clone());
 
-        self.component.render(&self.identity, context)
+        self.component.render(&self.identity, context, self.callbacks.clone())
     }
 }
 

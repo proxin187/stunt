@@ -34,7 +34,7 @@ impl Identity {
 
     pub fn render(&self) -> String {
         self.id.iter()
-            .map(|id| id.to_string())
+            .map(|id| format!("@{}", id))
             .collect::<String>()
     }
 }
