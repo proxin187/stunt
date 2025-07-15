@@ -1,7 +1,6 @@
 use crate::component::tree::{Props, Attributes};
 use crate::component::state::{self, Identity};
 use crate::component::{Component, Context};
-use crate::component::callback;
 use crate::vdom;
 
 use wasm_bindgen::JsValue;
@@ -41,8 +40,6 @@ pub fn render() {
     let render = lock.view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
 
     vdom::reconcile(render);
-
-    callback::flush();
 }
 
 

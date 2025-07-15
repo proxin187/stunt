@@ -1,10 +1,10 @@
-use crate::component::state::Identity;
-use crate::component::callback;
+use crate::component::state::{self, Identity};
+use crate::render;
 
 use std::sync::{LazyLock, Arc};
 use std::any::Any;
 
-use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 use spin::Mutex;
 
 static PREV: LazyLock<Arc<Mutex<Node>>> = LazyLock::new(|| Arc::new(Mutex::new(Node::default())));
@@ -98,13 +98,38 @@ impl Node {
         }
     }
 
-    pub fn reattach_callback(&self) {
-        for prop in self.kind.props().iter() {
-            for (event, cb) in prop.callbacks.iter() {
-                callback::push(prop.identity.clone(), event.clone(), cb.clone());
+    pub fn attach_listener(&self, document: &web_sys::Document, event: &str, cb: &Arc<dyn Any + Send + Sync>) {
+        if let Some(element) = document.get_element_by_id(&self.identity.render()) {
+            let identity = self.identity.clone();
+            let cb = cb.clone();
+
+            let closure = Closure::<dyn Fn()>::new(move || {
+                fn hook_callback(identity: &Identity, cb: &Arc<dyn Any + Send + Sync>) {
+                    let component = state::get(&identity.outer());
+
+                    component.lock().callback(&cb);
+                }
+
+                hook_callback(&identity, &cb);
+
+                render::render();
+            });
+
+            if let Err(_) = element.add_event_listener_with_callback(&event, closure.as_ref().unchecked_ref()) {
+                web_sys::console::log_1(&format!("failed to set callback on id: {}", self.identity.render()).into());
             }
 
-            prop.reattach_callback();
+            closure.forget();
+        }
+    }
+
+    pub fn attach_props_listener(&self, document: &web_sys::Document) {
+        for prop in self.kind.props().iter() {
+            for (event, cb) in prop.callbacks.iter() {
+                prop.attach_listener(document, event, cb);
+            }
+
+            prop.attach_props_listener(document);
         }
     }
 
@@ -126,7 +151,7 @@ impl Node {
                 },
             }
 
-            self.reattach_callback();
+            self.attach_props_listener(document);
         } else {
             for (a, b) in self.kind.props().iter().zip(other.kind.props().iter()) {
                 a.reconcile(&b, &document, None)?;

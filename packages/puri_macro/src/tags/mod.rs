@@ -128,14 +128,6 @@ impl Parse for CloseTag {
     }
 }
 
-impl CloseTag {
-    pub fn new(name: Ident) -> CloseTag {
-        CloseTag {
-            name,
-        }
-    }
-}
-
 pub struct Template {
     pub value: ExprBlock,
 }
