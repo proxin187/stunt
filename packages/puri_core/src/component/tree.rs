@@ -1,4 +1,4 @@
-use crate::component::{Component, Context};
+use crate::component::{BaseComponent, Context};
 use crate::component::state::{self, Identity};
 
 use crate::vdom::{Node, VirtualElement, Kind};
@@ -16,7 +16,7 @@ use spin::Mutex;
 // TODO: template should either be a string or a tree or a vec of trees
 
 pub enum ComponentRef {
-    Component(fn() -> Arc<Mutex<dyn Component + Send + Sync>>),
+    Component(fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>),
     Template(String),
     Props(Props),
     Element(Element),
@@ -28,7 +28,7 @@ impl ComponentRef {
             ComponentRef::Component(component) => {
                 let node = state::get_or_insert(&identity, *component)
                     .lock()
-                    .view(context)
+                    .base_view(context)
                     .render();
 
                 Node::new(

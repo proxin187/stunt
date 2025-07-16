@@ -1,11 +1,11 @@
-use crate::component::Component;
+use crate::component::BaseComponent;
 
 use std::sync::{Arc, LazyLock};
 use std::collections::HashMap;
 
 use spin::Mutex;
 
-static STATES: LazyLock<Arc<Mutex<HashMap<Identity, Arc<Mutex<dyn Component + Send + Sync>>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
+static STATES: LazyLock<Arc<Mutex<HashMap<Identity, Arc<Mutex<dyn BaseComponent + Send + Sync>>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
 
 #[derive(Debug, Clone,  Hash, PartialEq, Eq)]
@@ -40,15 +40,15 @@ impl Identity {
 }
 
 #[inline]
-pub fn get(identity: &Identity) -> Arc<Mutex<dyn Component + Send + Sync>> {
+pub fn get(identity: &Identity) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
     STATES.lock()[identity].clone()
 }
 
 #[inline]
 pub fn get_or_insert(
     identity: &Identity,
-    f: fn() -> Arc<Mutex<dyn Component + Send + Sync>>
-) -> Arc<Mutex<dyn Component + Send + Sync>> {
+    f: fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>
+) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
     let mut states = STATES.lock();
 
     match states.get(&identity) {

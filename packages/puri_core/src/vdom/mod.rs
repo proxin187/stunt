@@ -107,7 +107,7 @@ impl Node {
                 fn hook_callback(identity: &Identity, cb: &Arc<dyn Any + Send + Sync>) {
                     let component = state::get(&identity.outer());
 
-                    component.lock().callback(&cb);
+                    component.lock().base_callback(cb);
                 }
 
                 hook_callback(&identity, &cb);

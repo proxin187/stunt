@@ -9,11 +9,25 @@ use std::any::Any;
 
 
 pub trait Component {
+    type Message: 'static;
+
     fn create() -> Self where Self: Sized;
 
-    fn callback(&mut self, callback: &Arc<dyn Any + Send + Sync>);
+    fn callback(&mut self, callback: &Self::Message);
 
     fn view(&self, ctx: Context) -> Tree;
+}
+
+pub trait BaseComponent {
+    fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>);
+
+    fn base_view(&self, ctx: Context) -> Tree;
+}
+
+impl<T: Component> BaseComponent for T {
+    fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>) { T::callback(self, callback.downcast_ref().expect("invalid callback type")) }
+
+    fn base_view(&self, ctx: Context) -> Tree { T::view(self, ctx) }
 }
 
 pub struct Context {

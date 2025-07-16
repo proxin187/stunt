@@ -11,13 +11,13 @@ use std::sync::Arc;
 
 
 pub struct Renderer<T: Component + Send + Sync + 'static> {
-    _marker: PhantomData<T>,
+    _component: PhantomData<T>,
 }
 
 impl<T: Component + Send + Sync + 'static> Renderer<T> {
     pub fn new() -> Renderer<T> {
         Renderer {
-            _marker: PhantomData,
+            _component: PhantomData,
         }
     }
 
@@ -37,7 +37,7 @@ pub fn render() {
     let root = state::get(&identity);
     let lock = root.lock();
 
-    let render = lock.view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
+    let render = lock.base_view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
 
     vdom::reconcile(render);
 }

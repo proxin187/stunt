@@ -4,9 +4,6 @@ use puri_core::component::state::Identity;
 
 use puri_macro::next_id;
 
-use std::sync::Arc;
-use std::any::Any;
-
 
 macro_rules! create_component {
     ($name:ident, $tag:expr) => {
@@ -14,9 +11,11 @@ macro_rules! create_component {
         pub struct $name;
 
         impl Component for $name {
+            type Message = ();
+
             fn create() -> $name { $name }
 
-            fn callback(&mut self, _callback: &Arc<dyn Any + Send + Sync>) {}
+            fn callback(&mut self, _callback: &()) {}
 
             fn view(&self, ctx: Context) -> Tree {
                 Tree::new(
