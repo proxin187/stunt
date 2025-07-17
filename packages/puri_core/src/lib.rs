@@ -1,5 +1,6 @@
 pub mod component;
 pub mod render;
+pub mod global;
 pub mod error;
 mod vdom;
 

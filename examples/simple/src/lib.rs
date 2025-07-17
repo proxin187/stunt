@@ -1,6 +1,26 @@
 use puri::prelude::*;
 
 
+#[derive(PartialEq)]
+enum ThemeState {
+    Light,
+    Dark,
+}
+
+pub struct Theme {
+    state: ThemeState,
+    background: String,
+}
+
+impl Default for Theme {
+    fn default() -> Theme {
+        Theme {
+            state: ThemeState::Light,
+            background: String::from("#ffffffff"),
+        }
+    }
+}
+
 pub enum Message {
     Add,
 }
@@ -22,14 +42,29 @@ impl Component for App {
         match message {
             Message::Add => {
                 self.count += 2;
+
+                global::update_global::<Theme>(|theme| {
+                    match theme.state {
+                        ThemeState::Light => Theme {
+                            state: ThemeState::Dark,
+                            background: String::from("#000000ff"),
+                        },
+                        ThemeState::Dark => Theme {
+                            state: ThemeState::Light,
+                            background: String::from("#ffffffff"),
+                        },
+                    }
+                });
             },
         }
     }
 
     fn view(&self, ctx: Context) -> Tree {
+        let theme = global::use_global::<Theme>();
+
         html! {
             <div>
-                <h1 style={ "" }>
+                <h1 style={ format!("background-color: {};", theme.background) }>
                     <template { format!("count: {}", self.count) } />
                 </h1>
                 <button class={ "btn" } event: mousedown={ Message::Add }>
