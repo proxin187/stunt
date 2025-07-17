@@ -27,9 +27,6 @@ The following example shows a button that increments a counter when pressed.
 ```rust
 use puri::prelude::*;
 
-use std::sync::Arc;
-use std::any::Any;
-
 
 pub enum Message {
     Add,
@@ -40,28 +37,29 @@ pub struct App {
 }
 
 impl Component for App {
+    type Message = Message;
+
     fn create() -> App {
         App {
             count: 0,
         }
     }
 
-    fn callback(&mut self, callback: &Arc<dyn Any + Send + Sync>) {
-        match callback.downcast_ref::<Message>() {
-            Some(Message::Add) => {
-                self.count += 5;
+    fn callback(&mut self, message: &Message) {
+        match message {
+            Message::Add => {
+                self.count += 2;
             },
-            None => unreachable!(),
         }
     }
 
-    fn view(&self, ctx: Context) -> Node {
+    fn view(&self, ctx: Context) -> Tree {
         html! {
             <div>
-                <h1 style={ "background-color: blue;" }>
+                <h1 style={ "" }>
                     <template { format!("count: {}", self.count) } />
                 </h1>
-                <button event: mousedown={ Arc::new(Message::Add) }>
+                <button class={ "btn" } event: mousedown={ Message::Add }>
                     <template { format!("increment") } />
                 </button>
             </div>

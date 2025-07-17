@@ -42,7 +42,8 @@ impl Event {
         let value = self.value.clone();
 
         quote! {
-            (String::from(#name), #value),
+            #[allow(unused_braces)]
+            (String::from(#name), std::sync::Arc::new(#value)),
         }
     }
 }

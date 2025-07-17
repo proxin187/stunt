@@ -1,7 +1,5 @@
 use puri::prelude::*;
 
-use std::sync::Arc;
-
 
 pub enum Message {
     Add,
@@ -34,7 +32,7 @@ impl Component for App {
                 <h1 style={ "" }>
                     <template { format!("count: {}", self.count) } />
                 </h1>
-                <button class={ "btn" } event: mousedown={ Arc::new(Message::Add) }>
+                <button class={ "btn" } event: mousedown={ Message::Add }>
                     <template { format!("increment") } />
                 </button>
             </div>
