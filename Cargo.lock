@@ -117,7 +117,8 @@ dependencies = [
 name = "puri_router"
 version = "0.1.0"
 dependencies = [
- "syn",
+ "puri",
+ "web-sys",
 ]
 
 [[package]]
