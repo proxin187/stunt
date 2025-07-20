@@ -1,8 +1,9 @@
-use crate::component::{BaseComponent, Context};
 use crate::component::state::{self, Identity};
+use crate::component::{BaseComponent, Context};
 
 use crate::vdom::{Node, VirtualElement, Kind};
 
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::any::Any;
 use std::rc::Rc;
@@ -10,9 +11,6 @@ use std::rc::Rc;
 use spin::Mutex;
 
 
-// TODO: element will only be used internally and does not need macro support
-// props will be available to the user and will need macro support
-//
 // TODO: template should either be a string or a tree or a vec of trees
 
 pub enum ComponentRef {
@@ -23,12 +21,12 @@ pub enum ComponentRef {
 }
 
 impl ComponentRef {
-    pub fn render(&self, identity: &Identity, context: Context, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
+    pub fn render(&self, identity: &Identity, attributes: AttrMap, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
         match self {
             ComponentRef::Component(component) => {
                 let node = state::get_or_insert(&identity, *component)
                     .lock()
-                    .base_view(context)
+                    .base_view(Context::new(identity.clone()), AttrMap::from(attributes))
                     .render();
 
                 Node::new(
@@ -52,16 +50,16 @@ impl ComponentRef {
 
 pub struct Element {
     name: String,
-    attributes: Attributes,
+    attributes: AttrMap,
     props: Props,
 }
 
 impl Element {
-    pub fn new(name: String, attributes: Attributes, props: Props) -> Element {
+    pub fn new(name: String, attributes: Vec<(String, Arc<dyn AttrValue>)>, props: Vec<Tree>) -> Element {
         Element {
             name,
-            attributes,
-            props,
+            attributes: AttrMap::from(attributes),
+            props: Props::new(props),
         }
     }
 }
@@ -85,22 +83,33 @@ impl Props {
     }
 }
 
+pub trait AttrValue: Any + std::fmt::Display {}
+
+impl<T: Any + std::fmt::Display> AttrValue for T {}
+
 #[derive(Clone)]
-pub struct Attributes {
-    attributes: Rc<Vec<(String, String)>>,
+pub struct AttrMap {
+    attributes: Arc<HashMap<String, Arc<dyn AttrValue>>>,
 }
 
-impl Attributes {
-    pub fn new(attributes: Vec<(String, String)>) -> Attributes {
-        Attributes {
-            attributes: Rc::new(attributes),
+impl From<Vec<(String, Arc<dyn AttrValue>)>> for AttrMap {
+    fn from(from: Vec<(String, Arc<dyn AttrValue>)>) -> AttrMap {
+        AttrMap {
+            attributes: Arc::new(from.into_iter().collect()),
         }
+    }
+}
+
+impl AttrMap {
+    pub fn get<'a, T: Any>(&'a self, key: String) -> Option<&'a T> {
+        self.attributes.get(&key)
+            .and_then(|attr| (attr as &dyn Any).downcast_ref())
     }
 
     pub fn render(&self) -> String {
         self.attributes.iter()
             .map(|(key, value)| format!("{}=\"{}\"", key, value))
-            .collect::<String>()
+            .collect()
     }
 }
 
@@ -108,7 +117,7 @@ pub struct Tree {
     pub(crate) identity: Identity,
     pub(crate) component: ComponentRef,
     pub(crate) callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
-    pub(crate) attributes: Attributes,
+    pub(crate) attributes: AttrMap,
     pub(crate) props: Props,
 }
 
@@ -117,22 +126,20 @@ impl Tree {
         identity: Identity,
         component: ComponentRef,
         callbacks: Vec<(String, Arc<dyn Any + Send + Sync>)>,
-        attributes: Vec<(String, String)>,
+        attributes: Vec<(String, Arc<dyn AttrValue>)>,
         props: Vec<Tree>,
     ) -> Tree {
         Tree {
             identity,
             component,
             callbacks: Arc::new(callbacks),
-            attributes: Attributes::new(attributes),
+            attributes: AttrMap::from(attributes),
             props: Props::new(props),
         }
     }
 
     pub fn render(&self) -> Node {
-        let context = Context::new(self.props.clone(), self.attributes.clone(), self.identity.clone());
-
-        self.component.render(&self.identity, context, self.callbacks.clone())
+        self.component.render(&self.identity, self.attributes.clone(), self.callbacks.clone())
     }
 }
 

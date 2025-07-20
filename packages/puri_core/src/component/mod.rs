@@ -1,10 +1,9 @@
 pub mod state;
 pub mod tree;
 
-use tree::{Tree, Props, Attributes};
+use tree::{Tree, AttrMap};
 use state::Identity;
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::any::Any;
 
@@ -17,36 +16,36 @@ pub trait Component {
 
     fn callback(&mut self, callback: &Self::Message);
 
-    fn view(&self, ctx: Context) -> Tree;
+    fn view(&self, ctx: Context, properties: Self::Properties) -> Tree;
 }
 
 pub trait BaseComponent {
     fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>);
 
-    fn base_view(&self, ctx: Context) -> Tree;
+    fn base_view(&self, ctx: Context, attributes: AttrMap) -> Tree;
 }
 
 impl<T: Component> BaseComponent for T {
     fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>) { T::callback(self, callback.downcast_ref().expect("invalid callback type")) }
 
-    fn base_view(&self, ctx: Context) -> Tree { T::view(self, ctx) }
+    fn base_view(&self, ctx: Context, attributes: AttrMap) -> Tree { T::view(self, ctx, T::Properties::create(attributes)) }
 }
 
 pub trait Properties {
-    fn create(attr: HashMap<String, Arc<dyn Any>>) -> Self where Self: Sized;
+    fn create(attributes: AttrMap) -> Self where Self: Sized;
+}
+
+impl Properties for () {
+    fn create(_: AttrMap) -> () { () }
 }
 
 pub struct Context {
-    pub props: Props,
-    pub attributes: Attributes,
     pub identity: Identity,
 }
 
 impl Context {
-    pub fn new(props: Props, attributes: Attributes, identity: Identity) -> Context {
+    pub fn new(identity: Identity) -> Context {
         Context {
-            props,
-            attributes,
             identity,
         }
     }

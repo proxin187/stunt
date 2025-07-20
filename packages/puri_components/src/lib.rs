@@ -1,3 +1,4 @@
+/*
 use puri_core::component::{Component, Context};
 use puri_core::component::tree::{Tree, Element, ComponentRef};
 use puri_core::component::state::Identity;
@@ -12,12 +13,13 @@ macro_rules! create_component {
 
         impl Component for $name {
             type Message = ();
+            type Properties = ();
 
             fn create() -> $name { $name }
 
             fn callback(&mut self, _callback: &()) {}
 
-            fn view(&self, ctx: Context) -> Tree {
+            fn view(&self, ctx: Context, _properties: ()) -> Tree {
                 Tree::new(
                     ctx.identity.intersect(Identity::new(next_id!())),
                     ComponentRef::Element(Element::new(String::from($tag), ctx.attributes.clone(), ctx.props.clone())),
@@ -33,5 +35,6 @@ macro_rules! create_component {
 create_component!(h1, "h1");
 create_component!(div, "div");
 create_component!(button, "button");
+*/
 
 

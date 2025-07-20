@@ -31,6 +31,7 @@ pub struct App {
 
 impl Component for App {
     type Message = Message;
+    type Properties = ();
 
     fn create() -> App {
         App {
@@ -59,7 +60,7 @@ impl Component for App {
         }
     }
 
-    fn view(&self, ctx: Context) -> Tree {
+    fn view(&self, ctx: Context, properties: ()) -> Tree {
         let theme = global::use_global::<Theme>();
 
         html! {

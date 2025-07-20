@@ -1,4 +1,4 @@
-use crate::component::tree::{Props, Attributes};
+use crate::component::tree::AttrMap;
 use crate::component::state::{self, Identity};
 use crate::component::{Component, Context};
 use crate::vdom;
@@ -37,7 +37,7 @@ pub fn render() {
     let root = state::get(&identity);
     let lock = root.lock();
 
-    let render = lock.base_view(Context::new(Props::new(Vec::new()), Attributes::new(Vec::new()), identity)).render();
+    let render = lock.base_view(Context::new(identity), AttrMap::from(Vec::new())).render();
 
     vdom::reconcile(render);
 }

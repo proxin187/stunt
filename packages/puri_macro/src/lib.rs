@@ -61,6 +61,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
 
             let identity = IDENTITY.next();
             let name = open.name.clone();
+            let str_name = name.to_string();
             let nodes: TokenStream = inner.into_iter().collect();
 
             let events = open.events.iter()
@@ -71,6 +72,27 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 .map(|attribute| attribute.tokens())
                 .collect::<TokenStream>();
 
+            let mut tokens = is_html(&name.to_string())
+                .then(|| quote! {
+                    puri_core::component::tree::Tree::new(
+                        ctx.identity.intersect(puri_core::component::state::Identity::new(#identity)),
+                        puri_core::component::tree::ComponentRef::Element(puri_core::component::tree::Element::new(String::from(#str_name), vec![#attributes], vec![#nodes])),
+                        vec![#events],
+                        Vec::new(),
+                        Vec::new(),
+                    )
+                })
+                .unwrap_or_else(|| quote! {
+                    puri_core::component::tree::Tree::new(
+                        ctx.identity.intersect(puri_core::component::state::Identity::new(#identity)),
+                        puri_core::component::tree::ComponentRef::Component(|| std::sync::Arc::new(puri_core::Mutex::new(#name::create()))),
+                        vec![#events],
+                        vec![#attributes],
+                        vec![#nodes],
+                    )
+                });
+
+            /*
             let mut tokens = quote! {
                 puri_core::component::tree::Tree::new(
                     ctx.identity.intersect(puri_core::component::state::Identity::new(#identity)),
@@ -80,6 +102,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                     vec![#nodes],
                 )
             };
+            */
 
             if !is_root {
                 tokens.extend(quote! {,});
@@ -134,6 +157,16 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let intermediate: Intermediate = parse_macro_input!(input as Intermediate);
 
     proc_macro::TokenStream::from(generate(&mut intermediate.tags.iter().peekable(), true))
+}
+
+#[inline]
+fn is_html(ident: &str) -> bool {
+    matches!(
+        ident,
+        "h1"
+        | "div"
+        | "button"
+    )
 }
 
 
