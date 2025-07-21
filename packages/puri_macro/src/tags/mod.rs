@@ -75,7 +75,7 @@ impl Attribute {
 
         quote! {
             #[allow(unused_braces)]
-            (String::from(#name), String::from(#value)),
+            (String::from(#name), std::rc::Rc::new(#value)),
         }
     }
 }

@@ -13,7 +13,6 @@ static PREV: LazyLock<Arc<Mutex<Node>>> = LazyLock::new(|| Arc::new(Mutex::new(N
 #[derive(Debug, PartialEq)]
 pub enum Kind {
     Template(String),
-    Props(Arc<Vec<Node>>),
     Element(VirtualElement),
 }
 
@@ -21,16 +20,14 @@ impl Kind {
     pub fn render(&self, identity: &Identity) -> String {
         match self {
             Kind::Template(template) => template.clone(),
-            Kind::Props(props) => props.iter().map(|prop| prop.kind.render(&prop.identity)).collect(),
             Kind::Element(element) => element.render(identity),
         }
     }
 
-    pub fn props(&self) -> Arc<Vec<Node>> {
+    pub fn children(&self) -> Arc<Vec<Node>> {
         match self {
             Kind::Template(_) => Arc::new(Vec::new()),
-            Kind::Props(props) => props.clone(),
-            Kind::Element(element) => element.props.clone(),
+            Kind::Element(element) => element.children.clone(),
         }
     }
 }
@@ -39,7 +36,7 @@ impl Kind {
 pub struct VirtualElement {
     name: String,
     attributes: String,
-    props: Arc<Vec<Node>>,
+    children: Arc<Vec<Node>>,
 }
 
 impl PartialEq for VirtualElement {
@@ -49,20 +46,20 @@ impl PartialEq for VirtualElement {
 }
 
 impl VirtualElement {
-    pub fn new(name: String, attributes: String, props: Arc<Vec<Node>>) -> VirtualElement {
+    pub fn new(name: String, attributes: String, children: Arc<Vec<Node>>) -> VirtualElement {
         VirtualElement {
             name,
             attributes,
-            props,
+            children,
         }
     }
 
     pub fn render(&self, identity: &Identity) -> String {
-        let props = self.props.iter()
-            .map(|prop| prop.kind.render(&prop.identity))
+        let children = self.children.iter()
+            .map(|child| child.kind.render(&child.identity))
             .collect::<String>();
 
-        format!("<{} id=\"{}\" {}>{}</{}>", self.name, identity.render(), self.attributes, props, self.name)
+        format!("<{} id=\"{}\" {}>{}</{}>", self.name, identity.render(), self.attributes, children, self.name)
     }
 }
 
@@ -124,7 +121,7 @@ impl Node {
     }
 
     pub fn attach_props_listener(&self, document: &web_sys::Document) {
-        for prop in self.kind.props().iter() {
+        for prop in self.kind.children().iter() {
             for (event, cb) in prop.callbacks.iter() {
                 prop.attach_listener(document, event, cb);
             }
@@ -134,8 +131,8 @@ impl Node {
     }
 
     pub fn reconcile(&self, other: &Node, document: &web_sys::Document, body: Option<web_sys::HtmlElement>) -> Result<(), JsValue> {
-        if self.kind.props() != other.kind.props() {
-            let props = self.kind.props()
+        if self.kind.children() != other.kind.children() {
+            let props = self.kind.children()
                 .iter()
                 .map(|prop| prop.kind.render(&prop.identity))
                 .collect::<String>();
@@ -153,7 +150,7 @@ impl Node {
 
             self.attach_props_listener(document);
         } else {
-            for (a, b) in self.kind.props().iter().zip(other.kind.props().iter()) {
+            for (a, b) in self.kind.children().iter().zip(other.kind.children().iter()) {
                 a.reconcile(&b, &document, None)?;
             }
         }
@@ -163,7 +160,9 @@ impl Node {
 }
 
 #[inline]
-pub fn reconcile(vdom: Node) {
+pub fn reconcile(node: Node) {
+    let vdom = Node::new(Identity::new(0), Kind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Arc::new(Vec::new()));
+
     let mut prev = PREV.lock();
 
     let window = web_sys::window().expect("no global window exists");

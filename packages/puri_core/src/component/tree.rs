@@ -16,31 +16,29 @@ use spin::Mutex;
 pub enum ComponentRef {
     Component(fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>),
     Template(String),
-    Props(Props),
     Element(Element),
 }
 
 impl ComponentRef {
-    pub fn render(&self, identity: &Identity, attributes: AttrMap, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
+    pub fn render(self, identity: Identity, attributes: AttrMap, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
         match self {
             ComponentRef::Component(component) => {
-                let node = state::get_or_insert(&identity, *component)
+                let node = state::get_or_insert(&identity, component)
                     .lock()
-                    .base_view(Context::new(identity.clone()), AttrMap::from(attributes))
+                    .base_view(Context::new(identity.clone()), attributes)
                     .render();
 
                 Node::new(
-                    identity.clone(),
+                    identity,
                     Kind::Element(VirtualElement::new(String::from("span"), String::new(), Arc::new(vec![node]))),
                     callbacks,
                 )
             },
-            ComponentRef::Template(template) => Node::new(identity.clone(), Kind::Template(template.clone()), callbacks),
-            ComponentRef::Props(props) => Node::new(identity.clone(), Kind::Props(Arc::new(props.render())), callbacks),
+            ComponentRef::Template(template) => Node::new(identity, Kind::Template(template), callbacks),
             ComponentRef::Element(element) => {
                 Node::new(
-                    identity.clone(),
-                    Kind::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), Arc::new(element.props.render()))),
+                    identity,
+                    Kind::Element(VirtualElement::new(element.name, element.attributes.render(), Arc::new(element.children.render()))),
                     callbacks,
                 )
             },
@@ -51,34 +49,39 @@ impl ComponentRef {
 pub struct Element {
     name: String,
     attributes: AttrMap,
-    props: Props,
+    children: Children,
 }
 
 impl Element {
-    pub fn new(name: String, attributes: Vec<(String, Arc<dyn AttrValue>)>, props: Vec<Tree>) -> Element {
+    pub fn new(name: String, attributes: Vec<(String, Rc<dyn AttrValue>)>, children: Vec<Tree>) -> Element {
         Element {
             name,
             attributes: AttrMap::from(attributes),
-            props: Props::new(props),
+            children: Children::new(children),
         }
     }
 }
 
-#[derive(Clone)]
-pub struct Props {
-    props: Rc<Vec<Tree>>,
+pub struct Children {
+    children: Vec<Tree>,
 }
 
-impl Props {
-    pub fn new(props: Vec<Tree>) -> Props {
-        Props {
-            props: Rc::new(props),
+impl std::fmt::Display for Children {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        f.write_str("children")
+    }
+}
+
+impl Children {
+    pub fn new(children: Vec<Tree>) -> Children {
+        Children {
+            children: children,
         }
     }
 
-    fn render(&self) -> Vec<Node> {
-        self.props.iter()
-            .map(|prop| prop.render())
+    fn render(self) -> Vec<Node> {
+        self.children.into_iter()
+            .map(|child| child.render())
             .collect::<Vec<Node>>()
     }
 }
@@ -89,24 +92,34 @@ impl<T: Any + std::fmt::Display> AttrValue for T {}
 
 #[derive(Clone)]
 pub struct AttrMap {
-    attributes: Arc<HashMap<String, Arc<dyn AttrValue>>>,
+    attributes: HashMap<String, Rc<dyn AttrValue>>,
 }
 
-impl From<Vec<(String, Arc<dyn AttrValue>)>> for AttrMap {
-    fn from(from: Vec<(String, Arc<dyn AttrValue>)>) -> AttrMap {
+impl From<Vec<(String, Rc<dyn AttrValue>)>> for AttrMap {
+    fn from(from: Vec<(String, Rc<dyn AttrValue>)>) -> AttrMap {
         AttrMap {
-            attributes: Arc::new(from.into_iter().collect()),
+            attributes: from.into_iter().collect(),
         }
     }
 }
 
 impl AttrMap {
+    pub fn new(attributes: HashMap<String, Rc<dyn AttrValue>>) -> AttrMap {
+        AttrMap {
+            attributes,
+        }
+    }
+
+    fn insert<T: AttrValue>(&mut self, key: String, value: T) {
+        self.attributes.insert(key, Rc::new(value));
+    }
+
     pub fn get<'a, T: Any>(&'a self, key: String) -> Option<&'a T> {
         self.attributes.get(&key)
             .and_then(|attr| (attr as &dyn Any).downcast_ref())
     }
 
-    pub fn render(&self) -> String {
+    fn render(&self) -> String {
         self.attributes.iter()
             .map(|(key, value)| format!("{}=\"{}\"", key, value))
             .collect()
@@ -118,7 +131,7 @@ pub struct Tree {
     pub(crate) component: ComponentRef,
     pub(crate) callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
     pub(crate) attributes: AttrMap,
-    pub(crate) props: Props,
+    pub(crate) children: Children,
 }
 
 impl Tree {
@@ -126,20 +139,22 @@ impl Tree {
         identity: Identity,
         component: ComponentRef,
         callbacks: Vec<(String, Arc<dyn Any + Send + Sync>)>,
-        attributes: Vec<(String, Arc<dyn AttrValue>)>,
-        props: Vec<Tree>,
+        attributes: Vec<(String, Rc<dyn AttrValue>)>,
+        children: Vec<Tree>,
     ) -> Tree {
         Tree {
             identity,
             component,
             callbacks: Arc::new(callbacks),
             attributes: AttrMap::from(attributes),
-            props: Props::new(props),
+            children: Children::new(children),
         }
     }
 
-    pub fn render(&self) -> Node {
-        self.component.render(&self.identity, self.attributes.clone(), self.callbacks.clone())
+    pub fn render(mut self) -> Node {
+        self.attributes.insert(String::from("children"), self.children);
+
+        self.component.render(self.identity, self.attributes, self.callbacks)
     }
 }
 

@@ -60,7 +60,7 @@ impl Component for App {
         }
     }
 
-    fn view(&self, ctx: Context, properties: ()) -> Tree {
+    fn view(&self, ctx: Context, _properties: ()) -> Tree {
         let theme = global::use_global::<Theme>();
 
         html! {

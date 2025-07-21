@@ -92,18 +92,6 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                     )
                 });
 
-            /*
-            let mut tokens = quote! {
-                puri_core::component::tree::Tree::new(
-                    ctx.identity.intersect(puri_core::component::state::Identity::new(#identity)),
-                    puri_core::component::tree::ComponentRef::Component(|| std::sync::Arc::new(puri_core::Mutex::new(#name::create()))),
-                    vec![#events],
-                    vec![#attributes],
-                    vec![#nodes],
-                )
-            };
-            */
-
             if !is_root {
                 tokens.extend(quote! {,});
             }

@@ -6,6 +6,5 @@ edition = "2024"
 [dependencies]
 puri_core = { path = "../puri_core" }
 puri_macro = { path = "../puri_macro" }
-puri_components = { path = "../puri_components" }
 
 
