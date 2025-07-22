@@ -11,11 +11,40 @@ use std::rc::Rc;
 use spin::Mutex;
 
 
-// TODO: template should either be a string or a tree or a vec of trees
+macro_rules! impl_t {
+    ($($t:ty),+) => {
+        trait NonTreeTemplate {}
 
+        $(impl NonTreeTemplate for $t {})*
+    }
+}
+
+impl_t!(&str, String, usize, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8, f64, f32);
+
+pub trait Template {
+    fn render(self) -> Kind;
+}
+
+impl<T: std::fmt::Display + NonTreeTemplate + Clone> Template for T {
+    fn render(self) -> Kind {
+        Kind::Template(format!("{}", self))
+    }
+}
+
+impl Template for Vec<Tree> {
+    fn render(self) -> Kind {
+        let nodes = self.into_iter()
+            .map(|tree| tree.render())
+            .collect::<Vec<Node>>();
+
+        Kind::Element(VirtualElement::new(String::from("span"), String::new(), Arc::new(nodes)))
+    }
+}
+
+#[derive(Clone)]
 pub enum ComponentRef {
     Component(fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>),
-    Template(String),
+    Template(Arc<dyn Template>),
     Element(Element),
 }
 
@@ -34,7 +63,7 @@ impl ComponentRef {
                     callbacks,
                 )
             },
-            ComponentRef::Template(template) => Node::new(identity, Kind::Template(template), callbacks),
+            ComponentRef::Template(template) => Node::new(identity, (*(template.clone())).render(), callbacks),
             ComponentRef::Element(element) => {
                 Node::new(
                     identity,
@@ -46,6 +75,7 @@ impl ComponentRef {
     }
 }
 
+#[derive(Clone)]
 pub struct Element {
     name: String,
     attributes: AttrMap,
@@ -62,6 +92,7 @@ impl Element {
     }
 }
 
+#[derive(Clone)]
 pub struct Children {
     children: Vec<Tree>,
 }
@@ -78,6 +109,8 @@ impl Children {
             children: children,
         }
     }
+
+    pub fn children(self) -> Vec<Tree> { self.children }
 
     fn render(self) -> Vec<Node> {
         self.children.into_iter()
@@ -114,9 +147,9 @@ impl AttrMap {
         self.attributes.insert(key, Rc::new(value));
     }
 
-    pub fn get<'a, T: Any>(&'a self, key: String) -> Option<&'a T> {
-        self.attributes.get(&key)
-            .and_then(|attr| (attr as &dyn Any).downcast_ref())
+    pub fn get<'a, T: Any + Clone>(&'a self, key: &str) -> Option<T> {
+        self.attributes.get(key)
+            .and_then(|attr| (attr as &dyn Any).downcast_ref().cloned())
     }
 
     fn render(&self) -> String {
@@ -126,6 +159,7 @@ impl AttrMap {
     }
 }
 
+#[derive(Clone)]
 pub struct Tree {
     pub(crate) identity: Identity,
     pub(crate) component: ComponentRef,

@@ -1,5 +1,7 @@
 use puri::prelude::*;
 
+use puri_router::Route;
+
 
 #[derive(PartialEq)]
 enum ThemeState {
@@ -64,14 +66,18 @@ impl Component for App {
         let theme = global::use_global::<Theme>();
 
         html! {
-            <div>
-                <h1 style={ format!("background-color: {};", theme.background) }>
-                    <template { format!("count: {}", self.count) } />
-                </h1>
-                <button class={ "btn" } event: mousedown={ Message::Add }>
-                    <template { format!("increment") } />
-                </button>
-            </div>
+            <Route path={ "/settings/account" }>
+                <div>
+                    <h1 style={ format!("background-color: {};", theme.background) }>
+                        <template { format!("count: {}", self.count) } />
+                    </h1>
+                    <button class={ "btn" } event: mousedown={ Message::Add }>
+                        <template { format!("increment") } />
+                    </button>
+                </div>
+            </Route>
+            <Route path={ "/settings/theme" }>
+            </Route>
         }
     }
 }

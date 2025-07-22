@@ -38,6 +38,7 @@ pub struct App {
 
 impl Component for App {
     type Message = Message;
+    type Properties = ();
 
     fn create() -> App {
         App {
@@ -53,10 +54,10 @@ impl Component for App {
         }
     }
 
-    fn view(&self, ctx: Context) -> Tree {
+    fn view(&self, ctx: Context, _properties: ()) -> Tree {
         html! {
             <div>
-                <h1 style={ "" }>
+                <h1>
                     <template { format!("count: {}", self.count) } />
                 </h1>
                 <button class={ "btn" } event: mousedown={ Message::Add }>

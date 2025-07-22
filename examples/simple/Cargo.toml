@@ -8,5 +8,6 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 puri = { path = "../../packages/puri" }
+puri_router = { path = "../../packages/puri_router" }
 
 
