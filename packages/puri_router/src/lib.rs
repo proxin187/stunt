@@ -40,7 +40,9 @@ impl Component for Route {
                 if pathname == properties.path {
                     properties.children.children()
                 } else {
-                    ""
+                    vec![
+                        html! { <template { "" } /> }
+                    ]
                 }
             }/>
         }

@@ -22,18 +22,19 @@ macro_rules! impl_t {
 impl_t!(&str, String, usize, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8, f64, f32);
 
 pub trait Template {
-    fn render(self) -> Kind;
+    fn render(&self) -> Kind;
 }
 
 impl<T: std::fmt::Display + NonTreeTemplate + Clone> Template for T {
-    fn render(self) -> Kind {
+    fn render(&self) -> Kind {
         Kind::Template(format!("{}", self))
     }
 }
 
 impl Template for Vec<Tree> {
-    fn render(self) -> Kind {
+    fn render(&self) -> Kind {
         let nodes = self.into_iter()
+            .cloned()
             .map(|tree| tree.render())
             .collect::<Vec<Node>>();
 
@@ -63,7 +64,7 @@ impl ComponentRef {
                     callbacks,
                 )
             },
-            ComponentRef::Template(template) => Node::new(identity, (*(template.clone())).render(), callbacks),
+            ComponentRef::Template(template) => Node::new(identity, template.render(), callbacks),
             ComponentRef::Element(element) => {
                 Node::new(
                     identity,

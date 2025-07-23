@@ -107,7 +107,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                     ctx.identity.intersect(puri_core::component::state::Identity::new(#identity)),
 
                     #[allow(unused_braces)]
-                    puri_core::component::tree::ComponentRef::Template(#block),
+                    puri_core::component::tree::ComponentRef::Template(std::sync::Arc::new(#block)),
                     Vec::new(),
                     Vec::new(),
                     Vec::new(),
