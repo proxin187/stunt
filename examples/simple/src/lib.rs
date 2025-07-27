@@ -1,6 +1,6 @@
 use puri::prelude::*;
 
-use puri_router::Route;
+use puri_router::{Router, Switch};
 
 
 #[derive(PartialEq)]
@@ -66,18 +66,28 @@ impl Component for App {
         let theme = global::use_global::<Theme>();
 
         html! {
-            <Route path={ String::from("/settings/account") }>
-                <div>
-                    <h1 style={ format!("background-color: {};", theme.background) }>
-                        <template { format!("count: {}", self.count) } />
-                    </h1>
-                    <button class={ "btn" } event: mousedown={ Message::Add }>
-                        <template { format!("increment") } />
-                    </button>
-                </div>
-            </Route>
-            <Route path={ String::from("/settings/theme") }>
-            </Route>
+            <Router>
+                <Switch path={ "/settings/account" }>
+                    <div>
+                        <h1 style={ format!("background-color: {};", theme.background) }>
+                            <template { format!("this is the account count: {}", self.count) } />
+                        </h1>
+                        <button class={ "btn" } event: mousedown={ Message::Add }>
+                            <template { format!("increment") } />
+                        </button>
+                    </div>
+                </Switch>
+                <Switch path={ "/settings/theme" }>
+                    <div>
+                        <h1 style={ format!("background-color: {};", theme.background) }>
+                            <template { format!("this is the theme count: {}", self.count) } />
+                        </h1>
+                        <button class={ "btn" } event: mousedown={ Message::Add }>
+                            <template { format!("increment") } />
+                        </button>
+                    </div>
+                </Switch>
+            </Router>
         }
     }
 }

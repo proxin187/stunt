@@ -150,7 +150,7 @@ impl AttrMap {
 
     pub fn get<'a, T: Any + Clone>(&'a self, key: &str) -> Option<T> {
         self.attributes.get(key)
-            .and_then(|attr| (attr as &dyn Any).downcast_ref().cloned())
+            .and_then(|attr| (attr.as_ref() as &dyn Any).downcast_ref().cloned())
     }
 
     fn render(&self) -> String {
