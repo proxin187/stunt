@@ -1,21 +1,10 @@
 use puri::prelude::*;
 
 
+#[derive(Properties)]
 pub struct RouteProperties {
     path: String,
     children: Children,
-}
-
-impl Properties for RouteProperties {
-    fn create(attributes: AttrMap) -> RouteProperties {
-        RouteProperties {
-            path: attributes.get::<&str>("path")
-                .map(|string| string.to_string())
-                .unwrap_or_default(),
-            children: attributes.get::<Children>("children")
-                .expect("children should always be set"),
-        }
-    }
 }
 
 pub struct Route;

@@ -66,7 +66,7 @@ impl Component for App {
         let theme = global::use_global::<Theme>();
 
         html! {
-            <Route path={ "/settings/account" }>
+            <Route path={ String::from("/settings/account") }>
                 <div>
                     <h1 style={ format!("background-color: {};", theme.background) }>
                         <template { format!("count: {}", self.count) } />
@@ -76,7 +76,7 @@ impl Component for App {
                     </button>
                 </div>
             </Route>
-            <Route path={ "/settings/theme" }>
+            <Route path={ String::from("/settings/theme") }>
             </Route>
         }
     }

@@ -15,7 +15,7 @@ pub mod prelude {
     pub use puri_core::wasm_bindgen;
     pub use puri_core::web_sys;
 
-    pub use puri_macro::html;
+    pub use puri_macro::{html, Properties};
 }
 
 

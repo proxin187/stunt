@@ -93,7 +93,7 @@ impl Element {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Children {
     children: Vec<Tree>,
 }
