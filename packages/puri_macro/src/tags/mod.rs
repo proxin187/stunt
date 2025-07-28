@@ -1,5 +1,5 @@
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{Token, Ident, ExprBlock};
+use syn::{Token, Ident, ExprBlock, Type};
 use syn::spanned::Spanned;
 
 use proc_macro2::TokenStream;
@@ -82,6 +82,7 @@ impl Attribute {
 
 pub struct OpenTag {
     pub name: Ident,
+    pub generics: Vec<Type>,
     pub attributes: Vec<Attribute>,
     pub events: Vec<Event>,
 }
@@ -89,6 +90,22 @@ pub struct OpenTag {
 impl Parse for OpenTag {
     fn parse(input: ParseStream) -> Result<OpenTag> {
         let name: Ident = input.parse()?;
+
+        let mut generics: Vec<Type> = Vec::new();
+
+        if input.peek(Token![<]) {
+            input.parse::<Token![<]>()?;
+
+            while !input.peek(Token![>]) {
+                generics.push(input.parse()?);
+
+                if !input.peek(Token![>]) {
+                    input.parse::<Token![,]>()?;
+                }
+            }
+
+            input.parse::<Token![>]>()?;
+        }
 
         let mut attributes: Vec<Attribute> = Vec::new();
         let mut events: Vec<Event> = Vec::new();
@@ -105,6 +122,7 @@ impl Parse for OpenTag {
 
         Ok(OpenTag {
             name,
+            generics,
             attributes,
             events,
         })

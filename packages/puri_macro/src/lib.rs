@@ -72,6 +72,8 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 .map(|attribute| attribute.tokens())
                 .collect::<TokenStream>();
 
+            let generics = open.generics.clone();
+
             let mut tokens = is_html(&name.to_string())
                 .then(|| quote! {
                     ::puri::puri_core::component::tree::Tree::new(
@@ -85,7 +87,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 .unwrap_or_else(|| quote! {
                     ::puri::puri_core::component::tree::Tree::new(
                         ctx.identity.intersect(::puri::puri_core::component::state::Identity::new(#identity)),
-                        ::puri::puri_core::component::tree::ComponentRef::Component(|| std::sync::Arc::new(::puri::puri_core::Mutex::new(#name::create()))),
+                        ::puri::puri_core::component::tree::ComponentRef::Component(|| std::sync::Arc::new(::puri::puri_core::Mutex::new(#name::<#(#generics),*>::create()))),
                         vec![#events],
                         vec![#attributes],
                         vec![#nodes],

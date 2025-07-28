@@ -66,7 +66,7 @@ impl Component for App {
         let theme = global::use_global::<Theme>();
 
         html! {
-            <Router>
+            <Router<String>>
                 <Switch path={ "/settings/account" }>
                     <div>
                         <h1 style={ format!("background-color: {};", theme.background) }>

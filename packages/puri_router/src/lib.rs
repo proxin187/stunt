@@ -6,13 +6,15 @@ pub struct RouteProperties {
     children: Children,
 }
 
-pub struct Router;
+pub struct Router<T> {
+    _marker: std::marker::PhantomData<T>,
+}
 
-impl Component for Router {
+impl<T> Component for Router<T> {
     type Message = ();
     type Properties = RouteProperties;
 
-    fn create() -> Router { Router }
+    fn create() -> Router<T> { Router { _marker: std::marker::PhantomData } }
 
     fn callback(&mut self, _message: &()) {}
 
