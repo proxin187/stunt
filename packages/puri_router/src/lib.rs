@@ -20,7 +20,7 @@ impl<T> Component for Router<T> {
 
     fn view(&self, ctx: Context, properties: RouteProperties) -> Tree {
         html! {
-            <template { properties.children.children() } />
+            <? { properties.children.children() } ?>
         }
     }
 }
@@ -52,13 +52,7 @@ impl Component for Switch {
         web_sys::console::log_1(&format!("path: {:?}", properties.path).into());
 
         html! {
-            <template {
-                if pathname == properties.path {
-                    properties.children.children()
-                } else {
-                    Vec::new()
-                }
-            }/>
+            <? { pathname.eq(properties.path).then(|| properties.children.children()).unwrap_or_default() } ?>
         }
     }
 }

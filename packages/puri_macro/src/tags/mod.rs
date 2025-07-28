@@ -9,7 +9,6 @@ use quote::quote;
 
 
 mod keyword {
-    syn::custom_keyword!(template);
     syn::custom_keyword!(event);
 }
 
@@ -153,11 +152,11 @@ pub struct Template {
 
 impl Parse for Template {
     fn parse(input: ParseStream) -> Result<Template> {
-        input.parse::<keyword::template>()?;
+        input.parse::<Token![?]>()?;
 
         let value: ExprBlock = input.parse::<ExprBlock>()?;
 
-        input.parse::<Token![/]>()?;
+        input.parse::<Token![?]>()?;
         input.parse::<Token![>]>()?;
 
         Ok(Template {
@@ -176,7 +175,7 @@ impl Parse for Tag {
     fn parse(input: ParseStream) -> Result<Tag> {
         input.parse::<Token![<]>()?;
 
-        if input.peek(keyword::template) {
+        if input.peek(Token![?]) {
             Ok(Tag::Template(input.parse::<Template>()?))
         } else if input.peek(Token![/]) {
             Ok(Tag::CloseTag(input.parse::<CloseTag>()?))
