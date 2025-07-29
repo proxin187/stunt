@@ -47,34 +47,57 @@ impl Event {
     }
 }
 
-pub struct Attribute {
-    pub name: Ident,
-    pub value: ExprBlock,
+pub enum Attribute {
+    Multiple {
+        expr: ExprBlock,
+    },
+    Single {
+        name: Ident,
+        value: ExprBlock,
+    },
 }
 
 impl Parse for Attribute {
     fn parse(input: ParseStream) -> Result<Attribute> {
-        let name: Ident = input.parse()?;
+        if input.peek(Token![?]) {
+            input.parse::<Token![?]>()?;
 
-        input.parse::<Token![=]>()?;
+            let expr: ExprBlock = input.parse()?;
 
-        let value: ExprBlock = input.parse()?;
+            Ok(Attribute::Multiple {
+                expr,
+            })
+        } else {
+            let name: Ident = input.parse()?;
 
-        Ok(Attribute {
-            name,
-            value,
-        })
+            input.parse::<Token![=]>()?;
+
+            let value: ExprBlock = input.parse()?;
+
+            Ok(Attribute::Single {
+                name,
+                value,
+            })
+        }
     }
 }
 
 impl Attribute {
     pub fn tokens(&self) -> TokenStream {
-        let name = format!("{}", self.name);
-        let value = self.value.clone();
+        match self {
+            Attribute::Multiple { expr } => {
+                let expr = expr.clone();
 
-        quote! {
-            #[allow(unused_braces)]
-            (String::from(#name), std::rc::Rc::new(#value)),
+                quote! { #expr }
+            },
+            Attribute::Single { name, value } => {
+                let name = format!("{}", name);
+                let value = value.clone();
+
+                quote! {
+                    vec![#[allow(unused_braces)](String::from(#name), std::rc::Rc::new(#value))],
+                }
+            },
         }
     }
 }

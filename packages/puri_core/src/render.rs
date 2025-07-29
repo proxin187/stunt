@@ -37,9 +37,7 @@ pub fn render() {
     let root = state::get(&identity);
     let lock = root.lock();
 
-    let render = lock.base_view(Context::new(identity), AttrMap::from(Vec::new())).render();
-
-    web_sys::console::log_1(&format!("render: {:#?}", render).into());
+    let render = lock.base_view(Context::new(identity), AttrMap::from(Vec::new().into_iter())).render();
 
     vdom::reconcile(render);
 }

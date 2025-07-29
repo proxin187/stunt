@@ -1,6 +1,8 @@
 use puri::prelude::*;
 
 
+// TODO: we need to implement a url path parser
+
 #[derive(Properties)]
 pub struct RouteProperties {
     children: Children,

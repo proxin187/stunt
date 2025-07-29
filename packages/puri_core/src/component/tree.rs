@@ -84,10 +84,10 @@ pub struct Element {
 }
 
 impl Element {
-    pub fn new(name: String, attributes: Vec<(String, Rc<dyn AttrValue>)>, children: Vec<Tree>) -> Element {
+    pub fn new(name: String, attributes: Vec<Vec<(String, Rc<dyn AttrValue>)>>, children: Vec<Tree>) -> Element {
         Element {
             name,
-            attributes: AttrMap::from(attributes),
+            attributes: AttrMap::from(attributes.into_iter().flatten()),
             children: Children::new(children),
         }
     }
@@ -129,8 +129,8 @@ pub struct AttrMap {
     attributes: HashMap<String, Rc<dyn AttrValue>>,
 }
 
-impl From<Vec<(String, Rc<dyn AttrValue>)>> for AttrMap {
-    fn from(from: Vec<(String, Rc<dyn AttrValue>)>) -> AttrMap {
+impl<T: Iterator<Item = (String, Rc<dyn AttrValue>)>> From<T> for AttrMap {
+    fn from(from: T) -> AttrMap {
         AttrMap {
             attributes: from.into_iter().collect(),
         }
@@ -174,14 +174,14 @@ impl Tree {
         identity: Identity,
         component: ComponentRef,
         callbacks: Vec<(String, Arc<dyn Any + Send + Sync>)>,
-        attributes: Vec<(String, Rc<dyn AttrValue>)>,
+        attributes: Vec<Vec<(String, Rc<dyn AttrValue>)>>,
         children: Vec<Tree>,
     ) -> Tree {
         Tree {
             identity,
             component,
             callbacks: Arc::new(callbacks),
-            attributes: AttrMap::from(attributes),
+            attributes: AttrMap::from(attributes.into_iter().flatten()),
             children: Children::new(children),
         }
     }

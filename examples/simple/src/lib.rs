@@ -67,7 +67,7 @@ impl Component for App {
 
         html! {
             <Router<String>>
-                <Switch path={ "/settings/account" }>
+                <Switch path={ "/settings/account/:id" }>
                     <div>
                         <h1 style={ format!("background-color: {};", theme.background) }>
                             <? { format!("this is the account count: {}", self.count) } ?>
