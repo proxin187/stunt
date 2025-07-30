@@ -52,10 +52,10 @@ impl Component for App {
 
         html! {
             <Router<String>>
-                <Switch<AccountProperties> path={ "/settings/account/:id" }>
+                <Switch<AccountProperties> path={ "/settings/account/:id/:name" }>
                     <Account></Account>
                 </Switch>
-                <Switch path={ "/settings/theme" }>
+                <Switch<()> path={ "/settings/theme" }>
                     <div>
                         <h1 style={ format!("background-color: {};", theme.background) }>
                             <? { format!("this is the theme count: {}", self.count) } ?>
