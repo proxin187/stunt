@@ -5,5 +5,6 @@ edition = "2024"
 
 [dependencies]
 puri = { path = "../puri" }
+puri_router_macro = { path = "../puri_router_macro"}
 web-sys = { version = "0.3.77", features = ["Document", "HtmlElement", "Element", "Node", "Window", "console", "Location"] }
 

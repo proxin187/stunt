@@ -1,27 +1,12 @@
-use puri::prelude::*;
+mod account;
+mod theme;
 
+use account::{Account, AccountProperties};
+use theme::{Theme, ThemeState};
+
+use puri::prelude::*;
 use puri_router::{Router, Switch};
 
-
-#[derive(PartialEq)]
-enum ThemeState {
-    Light,
-    Dark,
-}
-
-pub struct Theme {
-    state: ThemeState,
-    background: String,
-}
-
-impl Default for Theme {
-    fn default() -> Theme {
-        Theme {
-            state: ThemeState::Light,
-            background: String::from("#ffffffff"),
-        }
-    }
-}
 
 pub enum Message {
     Add,
@@ -67,15 +52,8 @@ impl Component for App {
 
         html! {
             <Router<String>>
-                <Switch path={ "/settings/account/:id" }>
-                    <div>
-                        <h1 style={ format!("background-color: {};", theme.background) }>
-                            <? { format!("this is the account count: {}", self.count) } ?>
-                        </h1>
-                        <button class={ "btn" } event: mousedown={ Message::Add }>
-                            <? { format!("increment") } ?>
-                        </button>
-                    </div>
+                <Switch<AccountProperties> path={ "/settings/account/:id" }>
+                    <Account></Account>
                 </Switch>
                 <Switch path={ "/settings/theme" }>
                     <div>
