@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::any::Any;
 
 
-pub trait Component {
+pub trait Component: Send + Sync + 'static {
     type Message: 'static;
     type Properties: Properties;
 

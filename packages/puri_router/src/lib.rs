@@ -1,3 +1,5 @@
+mod path;
+
 pub use puri_router_macro::Routable;
 
 use puri_core::component::tree::AttrValue;
@@ -10,13 +12,7 @@ use std::rc::Rc;
 
 
 pub trait Routable {
-    fn route(map: HashMap<String, String>) -> Option<HashMap<String, Rc<dyn AttrValue>>>;
-}
-
-impl Routable for () {
-    fn route(_: HashMap<String, String>) -> Option<HashMap<String, Rc<dyn AttrValue>>> {
-        Some(HashMap::new())
-    }
+    fn route(map: HashMap<String, String>) -> Option<Vec<(String, Rc<dyn AttrValue>)>>;
 }
 
 #[derive(Properties)]
@@ -24,15 +20,13 @@ pub struct RouteProperties {
     children: Children,
 }
 
-pub struct Router<T> {
-    _marker: std::marker::PhantomData<T>,
-}
+pub struct Router;
 
-impl<T> Component for Router<T> {
+impl Component for Router {
     type Message = ();
     type Properties = RouteProperties;
 
-    fn create() -> Router<T> { Router { _marker: std::marker::PhantomData } }
+    fn create() -> Router { Router }
 
     fn callback(&mut self, _message: &()) {}
 
@@ -49,11 +43,11 @@ pub struct SwitchProperties {
     children: Children,
 }
 
-pub struct Switch<T: Routable> {
+pub struct Switch<T: Component> where T::Properties: Routable {
     _marker: PhantomData<T>,
 }
 
-impl<T: Routable> Component for Switch<T> {
+impl<T: Component> Component for Switch<T> where T::Properties: Routable {
     type Message = ();
     type Properties = SwitchProperties;
 
@@ -72,11 +66,10 @@ impl<T: Routable> Component for Switch<T> {
             .pathname()
             .expect("failed to get pathname");
 
-        web_sys::console::log_1(&format!("pathname: {:?}", pathname).into());
-        web_sys::console::log_1(&format!("path: {:?}", properties.path).into());
+        let attributes = path::parse(&pathname, properties.path).and_then(|path| T::Properties::route(path));
 
         html! {
-            <? { pathname.eq(properties.path).then(|| properties.children.children()).unwrap_or_default() } ?>
+            <? { attributes.map(|attributes| vec![html! { <T ?{ attributes }></T> }]).unwrap_or(properties.children.children()) } ?>
         }
     }
 }

@@ -17,7 +17,7 @@ pub fn route_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
                     quote! {
                         if let Some(value) = map.get(#key).and_then(|value| { use std::str::FromStr; #ty::from_str(&value).ok() }) {
-                            new.insert(String::from(#key), std::rc::Rc::new(value) as std::rc::Rc<dyn ::puri::puri_core::component::tree::AttrValue>);
+                            new.push((String::from(#key), std::rc::Rc::new(value) as std::rc::Rc<dyn ::puri::puri_core::component::tree::AttrValue>));
                         } else {
                             return None;
                         }
@@ -32,8 +32,8 @@ pub fn route_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 impl ::puri_router::Routable for #name {
                     fn route(
                         map: std::collections::HashMap<String, String>
-                    ) -> Option<std::collections::HashMap<String, std::rc::Rc<dyn ::puri::puri_core::component::tree::AttrValue>>> {
-                        let mut new = HashMap::new();
+                    ) -> Option<Vec<(String, std::rc::Rc<dyn ::puri::puri_core::component::tree::AttrValue>)>> {
+                        let mut new = Vec::new();
                         #(#fields);*
                         Some(new)
                     }

@@ -51,20 +51,8 @@ impl Component for App {
         let theme = global::use_global::<Theme>();
 
         html! {
-            <Router<String>>
-                <Switch<AccountProperties> path={ "/settings/account/:id/:name" }>
-                    <Account></Account>
-                </Switch>
-                <Switch<()> path={ "/settings/theme" }>
-                    <div>
-                        <h1 style={ format!("background-color: {};", theme.background) }>
-                            <? { format!("this is the theme count: {}", self.count) } ?>
-                        </h1>
-                        <button class={ "btn" } event: mousedown={ Message::Add }>
-                            <? { format!("increment") } ?>
-                        </button>
-                    </div>
-                </Switch>
+            <Router>
+                <Switch<Account> path={ "/settings/account/:id/:name" }></Switch>
             </Router>
         }
     }
