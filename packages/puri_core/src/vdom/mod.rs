@@ -19,7 +19,7 @@ pub enum Kind {
 impl Kind {
     pub fn render(&self, identity: &Identity) -> String {
         match self {
-            Kind::Template(template) => template.clone(),
+            Kind::Template(_) => format!("<span id=\"{}\"></span>", identity.render()),
             Kind::Element(element) => element.render(identity),
         }
     }
@@ -95,7 +95,7 @@ impl Node {
         }
     }
 
-    pub fn attach_listener(&self, document: &web_sys::Document, event: &str, cb: &Arc<dyn Any + Send + Sync>) {
+    fn attach_listener(&self, document: &web_sys::Document, event: &str, cb: &Arc<dyn Any + Send + Sync>) {
         if let Some(element) = document.get_element_by_id(&self.identity.render()) {
             let identity = self.identity.clone();
             let cb = cb.clone();
@@ -120,13 +120,21 @@ impl Node {
         }
     }
 
-    pub fn attach_props_listener(&self, document: &web_sys::Document) {
+    fn passover(&self, document: &web_sys::Document) {
+        if let Some((element, Kind::Template(template))) = document.get_element_by_id(&self.identity.render()).map(|element| (element, &self.kind)) {
+            let node = document.create_text_node(&template);
+
+            if let Err(_) = element.append_child(&node) {
+                web_sys::console::log_1(&format!("failed to set template on id: {}", self.identity.render()).into());
+            }
+        }
+
         for prop in self.kind.children().iter() {
             for (event, cb) in prop.callbacks.iter() {
                 prop.attach_listener(document, event, cb);
             }
 
-            prop.attach_props_listener(document);
+            prop.passover(document);
         }
     }
 
@@ -148,7 +156,7 @@ impl Node {
                 },
             }
 
-            self.attach_props_listener(document);
+            self.passover(document);
         } else {
             for (a, b) in self.kind.children().iter().zip(other.kind.children().iter()) {
                 a.reconcile(&b, &document, None)?;

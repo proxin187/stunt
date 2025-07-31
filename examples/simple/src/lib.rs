@@ -1,8 +1,8 @@
 mod account;
 mod theme;
 
-use account::{Account, AccountProperties};
 use theme::{Theme, ThemeState};
+use account::Account;
 
 use puri::prelude::*;
 use puri_router::{Router, Switch};
@@ -53,6 +53,7 @@ impl Component for App {
         html! {
             <Router>
                 <Switch<Account> path={ "/settings/account/:id/:name" }></Switch>
+                <? { "<script>alert(1);</script>" } ?>
             </Router>
         }
     }

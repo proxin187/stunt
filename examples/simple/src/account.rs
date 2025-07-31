@@ -2,8 +2,6 @@ use puri::prelude::*;
 
 use puri_router::Routable;
 
-use std::collections::HashMap;
-
 
 #[derive(Properties, Routable)]
 pub struct AccountProperties {
