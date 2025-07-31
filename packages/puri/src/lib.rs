@@ -6,8 +6,6 @@ mod vdom;
 
 pub use spin::Mutex;
 
-pub use wasm_bindgen;
-pub use web_sys;
 pub use puri_macro;
 
 
@@ -16,11 +14,6 @@ pub mod prelude {
     pub use crate::component::tree::{Tree, Children, AttrMap};
     pub use crate::render::Renderer;
     pub use crate::global;
-
-    pub use crate::wasm_bindgen::prelude::*;
-
-    pub use crate::wasm_bindgen;
-    pub use crate::web_sys;
 
     pub use crate::puri_macro::{html, Properties};
 }
