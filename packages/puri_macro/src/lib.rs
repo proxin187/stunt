@@ -76,18 +76,18 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
 
             let mut tokens = is_html(&name.to_string())
                 .then(|| quote! {
-                    ::puri::puri_core::component::tree::Tree::new(
-                        ctx.identity.intersect(::puri::puri_core::component::state::Identity::new(#identity)),
-                        ::puri::puri_core::component::tree::ComponentRef::Element(::puri::puri_core::component::tree::Element::new(String::from(#str_name), vec![#attributes], vec![#nodes])),
+                    ::puri::component::tree::Tree::new(
+                        ctx.identity.intersect(::puri::component::state::Identity::new(#identity)),
+                        ::puri::component::tree::ComponentRef::Element(::puri::component::tree::Element::new(String::from(#str_name), vec![#attributes], vec![#nodes])),
                         vec![#events],
                         Vec::new(),
                         Vec::new(),
                     )
                 })
                 .unwrap_or_else(|| quote! {
-                    ::puri::puri_core::component::tree::Tree::new(
-                        ctx.identity.intersect(::puri::puri_core::component::state::Identity::new(#identity)),
-                        ::puri::puri_core::component::tree::ComponentRef::Component(|| std::sync::Arc::new(::puri::puri_core::Mutex::new(#name::<#(#generics),*>::create()))),
+                    ::puri::component::tree::Tree::new(
+                        ctx.identity.intersect(::puri::component::state::Identity::new(#identity)),
+                        ::puri::component::tree::ComponentRef::Component(|| std::sync::Arc::new(::puri::Mutex::new(#name::<#(#generics),*>::create()))),
                         vec![#events],
                         vec![#attributes],
                         vec![#nodes],
@@ -105,11 +105,11 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
             let block = template.value.clone();
 
             let mut tokens = quote! {
-                ::puri::puri_core::component::tree::Tree::new(
-                    ctx.identity.intersect(::puri::puri_core::component::state::Identity::new(#identity)),
+                ::puri::component::tree::Tree::new(
+                    ctx.identity.intersect(::puri::component::state::Identity::new(#identity)),
 
                     #[allow(unused_braces)]
-                    ::puri::puri_core::component::tree::ComponentRef::Template(std::sync::Arc::new(#block)),
+                    ::puri::component::tree::ComponentRef::Template(std::sync::Arc::new(#block)),
                     Vec::new(),
                     Vec::new(),
                     Vec::new(),
@@ -162,7 +162,7 @@ pub fn properties_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStr
             let name = input.ident;
 
             return proc_macro::TokenStream::from(quote! {
-                impl ::puri::puri_core::component::Properties for #name {
+                impl ::puri::component::Properties for #name {
                     fn create(attributes: AttrMap) -> Self {
                         #name {
                             #(#fields),*

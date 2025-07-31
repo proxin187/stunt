@@ -5,6 +5,7 @@ use theme::{Theme, ThemeState};
 use account::Account;
 
 use puri::prelude::*;
+
 use puri_router::{Router, Switch};
 
 
@@ -59,14 +60,8 @@ impl Component for App {
     }
 }
 
-#[wasm_bindgen(start)]
-fn main() -> Result<(), JsValue> {
-    // NOTE: for some magic reason it only works when you put a console log at the start wtf, thats so
-    // weird
-
-    web_sys::console::log_1(&"loading wasm".into());
-
-    Renderer::<App>::new().init()
+fn main() {
+    Renderer::<App>::new().render();
 }
 
 

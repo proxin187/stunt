@@ -3,7 +3,6 @@ use crate::component::state::{self, Identity};
 use crate::component::{Component, Context};
 use crate::vdom;
 
-use wasm_bindgen::JsValue;
 use spin::Mutex;
 
 use std::marker::PhantomData;
@@ -21,12 +20,10 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
         }
     }
 
-    pub fn init(self) -> Result<(), JsValue> {
+    pub fn render(self) {
         state::get_or_insert(&Identity::new(0), || Arc::new(Mutex::new(T::create())));
 
         render();
-
-        Ok(())
     }
 }
 

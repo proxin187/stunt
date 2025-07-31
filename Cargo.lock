@@ -80,15 +80,8 @@ dependencies = [
 name = "puri"
 version = "0.1.0"
 dependencies = [
- "puri_core",
- "puri_macro",
-]
-
-[[package]]
-name = "puri_core"
-version = "0.1.0"
-dependencies = [
  "itertools",
+ "puri_macro",
  "spin",
  "wasm-bindgen",
  "web-sys",

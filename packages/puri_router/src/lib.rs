@@ -2,7 +2,7 @@ mod path;
 
 pub use puri_router_macro::Routable;
 
-use puri_core::component::tree::AttrValue;
+use puri::component::tree::AttrValue;
 
 use puri::prelude::*;
 
