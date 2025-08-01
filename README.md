@@ -8,6 +8,8 @@
 <h4>A declarative web framework for Rust/Wasm</h4>
 </div>
 
+> [!WARNING]
+> stunt isnt ready for real-world use yet, use with caution
 
 ## About
 stunt is a frontend web framework for developing reactive user interfaces in Rust/Wasm
