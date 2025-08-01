@@ -47,7 +47,7 @@ pub fn get(identity: &Identity) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
 #[inline]
 pub fn get_or_insert(
     identity: &Identity,
-    f: fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>
+    f: impl Fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>
 ) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
     let mut states = STATES.lock();
 

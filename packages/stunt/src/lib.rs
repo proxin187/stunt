@@ -4,8 +4,6 @@ pub mod global;
 pub mod error;
 mod vdom;
 
-pub use spin::Mutex;
-
 pub use stunt_macro;
 
 

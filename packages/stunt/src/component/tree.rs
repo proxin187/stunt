@@ -1,5 +1,5 @@
 use crate::component::state::{self, Identity};
-use crate::component::{BaseComponent, Context};
+use crate::component::{Component, BaseComponent, Context};
 
 use crate::vdom::{Node, VirtualElement, Kind};
 
@@ -50,6 +50,10 @@ pub enum ComponentRef {
 }
 
 impl ComponentRef {
+    pub fn create_component<T: Component + Send + Sync>() -> ComponentRef {
+        ComponentRef::Component(|| Arc::new(Mutex::new(T::create())))
+    }
+
     pub fn render(self, identity: Identity, attributes: AttrMap, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
         match self {
             ComponentRef::Component(component) => {

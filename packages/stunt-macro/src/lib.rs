@@ -87,7 +87,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 .unwrap_or_else(|| quote! {
                     ::stunt::component::tree::Tree::new(
                         ctx.identity.intersect(::stunt::component::state::Identity::new(#identity)),
-                        ::stunt::component::tree::ComponentRef::Component(|| std::sync::Arc::new(::stunt::Mutex::new(#name::<#(#generics),*>::create()))),
+                        ::stunt::component::tree::ComponentRef::create_component::<#name<#(#generics),*>>(),
                         vec![#events],
                         vec![#attributes],
                         vec![#nodes],
