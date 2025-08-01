@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 description = "A declarative web framework for Rust/Wasm"
-readme = "README.md"
+readme = "../../README.md"
 authors = ["proxin"]
 repository = "https://github.com/proxin187/stunt"
 keywords = ["web", "javascript", "gui", "wasm", "webasm"]
