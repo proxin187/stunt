@@ -3,6 +3,15 @@ name = "stunt-macro"
 version = "0.1.0"
 edition = "2024"
 
+description = "Built-in macros for stunt"
+readme = "README.md"
+authors = ["proxin"]
+repository = "https://github.com/proxin187/stunt"
+keywords = ["web", "javascript", "gui", "wasm", "webasm"]
+categories = ["gui", "wasm", "web-programming"]
+license = "MIT OR Apache-2.0"
+
+
 [lib]
 proc-macro = true
 
