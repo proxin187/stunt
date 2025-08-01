@@ -1,6 +1,6 @@
-use puri::prelude::*;
+use stunt::prelude::*;
 
-use puri_router::Routable;
+use stunt_router::Routable;
 
 
 #[derive(Properties, Routable)]

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-puri = { path = "../../packages/puri" }
-puri_router = { path = "../../packages/puri_router" }
+stunt = { path = "../../packages/stunt" }
+stunt-router = { path = "../../packages/stunt-router" }
 
 

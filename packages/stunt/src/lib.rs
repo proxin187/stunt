@@ -6,7 +6,7 @@ mod vdom;
 
 pub use spin::Mutex;
 
-pub use puri_macro;
+pub use stunt_macro;
 
 
 pub mod prelude {
@@ -15,7 +15,7 @@ pub mod prelude {
     pub use crate::render::Renderer;
     pub use crate::global;
 
-    pub use crate::puri_macro::{html, Properties};
+    pub use crate::stunt_macro::{html, Properties};
 }
 
 

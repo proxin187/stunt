@@ -1,10 +1,10 @@
 mod path;
 
-pub use puri_router_macro::Routable;
+pub use stunt_router_macro::Routable;
 
-use puri::component::tree::AttrValue;
+use stunt::component::tree::AttrValue;
 
-use puri::prelude::*;
+use stunt::prelude::*;
 
 use std::collections::HashMap;
 use std::marker::PhantomData;

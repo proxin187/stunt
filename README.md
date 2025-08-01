@@ -10,16 +10,18 @@
 
 
 ## About
-puri is a frontend web framework for developing reactive user interfaces in Rust/Wasm
+stunt is a frontend web framework for developing reactive user interfaces in Rust/Wasm
 
 * Features a macro for writing html with rust expressions, similar to that of JSX.
-* Everything is a [component](#component)
+* Highly extensible using [components](#component)
 * Use any build tool you like eg. [trunk](https://trunkrs.dev/)
+* Templates are injected as Text Nodes making cross-site scripting impossible
 
 ## Goals
 
 - [x] Optimized DOM api calls
-- [ ] React-like Router implementation
+- [x] Router implementation
+- [ ] Full Documentation
 
 ## Example
 The following example shows a button that increments a counter when pressed.

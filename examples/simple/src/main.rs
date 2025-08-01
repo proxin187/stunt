@@ -4,9 +4,9 @@ mod theme;
 use theme::{Theme, ThemeState};
 use account::Account;
 
-use puri::prelude::*;
+use stunt::prelude::*;
 
-use puri_router::{Router, Switch};
+use stunt_router::{Router, Switch};
 
 
 pub enum Message {

@@ -1,10 +1,10 @@
 [package]
-name = "puri_router"
+name = "stunt-router"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-puri = { path = "../puri" }
-puri_router_macro = { path = "../puri_router_macro"}
+stunt = { path = "../stunt" }
+stunt-router-macro = { path = "../stunt-router-macro"}
 web-sys = { version = "0.3.77", features = ["Document", "HtmlElement", "Element", "Node", "Window", "console", "Location"] }
 
