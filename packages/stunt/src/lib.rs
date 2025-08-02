@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 pub mod component;
 pub mod render;
 pub mod global;

@@ -55,6 +55,7 @@ impl Component for App {
             <Router>
                 <Switch<Account> path={ "/settings/account/:id/:name" }></Switch>
                 <? { "<script>alert(1);</script>" } ?>
+                <? { format!("count: {}", self.count) } ?>
             </Router>
         }
     }

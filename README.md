@@ -2,35 +2,33 @@
 <div align="center">
 <br>
 
-![GitHub License](https://img.shields.io/badge/license-MIT-red?style=for-the-badge&logo=none)
-![dependencies](https://deps.rs/repo/github/proxin187/puri/status.svg?style=for-the-badge)
-[![crates.io](https://img.shields.io/badge/crates.io-puri-red?style=for-the-badge&logo=none)](https://crates.io/crates/puri)
-<h4>A declarative web framework for Rust/Wasm</h4>
+[![crates.io](https://img.shields.io/badge/crates.io-stunt-red?style=flat-square&logo=none)](https://crates.io/crates/stunt)
+[![docs.rs](https://img.shields.io/badge/docs.rs-stunt-green?style=flat-square&logo=none)](https://docs.rs/stunt)
+![GitHub License](https://img.shields.io/badge/license-MIT-red?style=flat-square&logo=none)
+![dependencies](https://deps.rs/repo/github/proxin187/stunt/status.svg?style=flat-square)
+
+<br>
+
+<strong>stunt is a frontend web framework for developing reactive user interfaces with Rust.</strong>
 </div>
 
-> [!WARNING]
-> stunt isnt ready for real-world use yet, use with caution
+## Features
 
-## About
-stunt is a frontend web framework for developing reactive user interfaces in Rust/Wasm
-
-* Features a macro for writing html with rust expressions, similar to that of JSX.
-* Highly extensible using [components](#component)
+* Macro for writing html with rust expressions, similar to that of JSX.
+* Highly extensible [components](#component)
 * Use any build tool you like eg. [trunk](https://trunkrs.dev/)
-* Templates are injected as Text Nodes making cross-site scripting impossible
+* Multiple ways to manage the state of your application.
 
 ## Goals
 
 - [x] Optimized DOM api calls
 - [x] Router implementation
+- [ ] Webworker integration
 - [ ] Full Documentation
 
 ## Example
-The following example shows a button that increments a counter when pressed.
-
 ```rust
-use puri::prelude::*;
-
+use stunt::prelude::*;
 
 pub enum Message {
     Add,
@@ -53,34 +51,27 @@ impl Component for App {
     fn callback(&mut self, message: &Message) {
         match message {
             Message::Add => {
-                self.count += 2;
+                self.count += 1;
             },
         }
     }
 
     fn view(&self, ctx: Context, _properties: ()) -> Tree {
         html! {
-            <div>
-                <h1>
-                    <template { format!("count: {}", self.count) } />
-                </h1>
-                <button class={ "btn" } event: mousedown={ Message::Add }>
-                    <template { format!("increment") } />
-                </button>
-            </div>
+            <h1>
+                <? { format!("count: {}", self.count) } ?>
+            </h1>
         }
     }
 }
 
-#[wasm_bindgen(start)]
-fn main() -> Result<(), JsValue> {
-    web_sys::console::log_1(&"loading wasm".into());
-
-    Renderer::<App>::new().init()
+fn main() {
+    Renderer::<App>::new().render();
 }
+
 ```
 
 ## License
-puri is licensed under the MIT license.
+stunt is licensed under the MIT license.
 
 
