@@ -54,7 +54,7 @@ impl ComponentRef {
         ComponentRef::Component(|| Arc::new(Mutex::new(T::create())))
     }
 
-    pub fn render(self, identity: Identity, attributes: AttrMap, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
+    pub(crate) fn render(self, identity: Identity, attributes: AttrMap, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
         match self {
             ComponentRef::Component(component) => {
                 let node = state::get_or_insert(&identity, component)
@@ -109,13 +109,13 @@ impl std::fmt::Display for Children {
 }
 
 impl Children {
-    pub fn new(children: Vec<Tree>) -> Children {
+    fn new(children: Vec<Tree>) -> Children {
         Children {
             children: children,
         }
     }
 
-    pub fn children(self) -> Vec<Tree> { self.children }
+    pub fn inner(self) -> Vec<Tree> { self.children }
 
     fn render(self) -> Vec<Node> {
         self.children.into_iter()

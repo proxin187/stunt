@@ -121,12 +121,15 @@ impl Node {
     }
 
     fn passover(&self, document: &web_sys::Document) {
-        if let Some((element, Kind::Template(template))) = document.get_element_by_id(&self.identity.render()).map(|element| (element, &self.kind)) {
-            let node = document.create_text_node(&template);
+        match &self.kind {
+            Kind::Template(template) => if let Some(element) = document.get_element_by_id(&self.identity.render()) {
+                let node = document.create_text_node(&template);
 
-            if let Err(_) = element.append_child(&node) {
-                web_sys::console::log_1(&format!("failed to set template on id: {}", self.identity.render()).into());
-            }
+                if let Err(_) = element.append_child(&node) {
+                    web_sys::console::log_1(&format!("failed to set template on id: {}", self.identity.render()).into());
+                }
+            },
+            _ => {},
         }
 
         for prop in self.kind.children().iter() {
