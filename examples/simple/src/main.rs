@@ -55,6 +55,9 @@ impl Component for App {
             <Router>
                 <Switch<Account> path={ "/settings/account/:id/:name" }></Switch>
                 <? { "<script>alert(1);</script>" } ?>
+                <button class={ "btn" } event: mousedown={ Message::Add } >
+                    <? { "increment" } ?>
+                </button>
                 <? { format!("count: {}", self.count) } ?>
             </Router>
         }

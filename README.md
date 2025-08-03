@@ -58,9 +58,14 @@ impl Component for App {
 
     fn view(&self, ctx: Context, _properties: ()) -> Tree {
         html! {
-            <h1>
-                <? { format!("count: {}", self.count) } ?>
-            </h1>
+            <div>
+                <button event: mousedown={ Message::Add } >
+                    <? { "increment" } ?>
+                </button>
+                <h1>
+                    <? { format!("count: {}", self.count) } ?>
+                </h1>
+            </div>
         }
     }
 }
