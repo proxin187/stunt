@@ -1,3 +1,31 @@
+//! The renderer is the entry point of a stunt application
+//!
+//! ## Example
+//! ```rust
+//! use stunt::prelude::*;
+//!
+//! pub struct App;
+//!
+//! impl Component for App {
+//!     type Message = ();
+//!     type Properties = ();
+//!
+//!     fn create() -> App { App }
+//!
+//!     fn callback(&mut self, _: &()) {}
+//!
+//!     fn view(&self, ctx: Context, _properties: ()) -> Tree {
+//!         html! {
+//!             <div></div>
+//!         }
+//!     }
+//! }
+//!
+//! fn main() {
+//!     Renderer::<App>::new().render();
+//! }
+//! ```
+
 use crate::component::tree::AttrMap;
 use crate::component::state::{self, Identity};
 use crate::component::{Component, Context};
@@ -20,6 +48,7 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
         }
     }
 
+    /// Render the 
     pub fn render(self) {
         state::get_or_insert(&Identity::new(0), || Arc::new(Mutex::new(T::create())));
 
@@ -28,7 +57,7 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 }
 
 #[inline]
-pub fn render() {
+pub(crate) fn render() {
     let identity = Identity::new(0);
 
     let root = state::get(&identity);

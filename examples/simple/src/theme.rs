@@ -1,11 +1,12 @@
 
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum ThemeState {
     Light,
     Dark,
 }
 
+#[derive(Clone)]
 pub struct Theme {
     pub state: ThemeState,
     pub background: String,

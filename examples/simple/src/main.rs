@@ -5,6 +5,7 @@ use theme::{Theme, ThemeState};
 use account::Account;
 
 use stunt::prelude::*;
+use stunt::global;
 
 use stunt_router::{Router, Switch};
 
@@ -32,15 +33,13 @@ impl Component for App {
             Message::Add => {
                 self.count += 2;
 
-                global::update_global::<Theme>(|theme| {
+                global::use_global(|theme: &mut Theme| {
                     match theme.state {
-                        ThemeState::Light => Theme {
-                            state: ThemeState::Dark,
-                            background: String::from("#000000ff"),
+                        ThemeState::Light => {
+                            theme.background = String::from("#000000ff");
                         },
-                        ThemeState::Dark => Theme {
-                            state: ThemeState::Light,
-                            background: String::from("#ffffffff"),
+                        ThemeState::Dark => {
+                            theme.background = String::from("#ffffffff");
                         },
                     }
                 });
@@ -49,7 +48,7 @@ impl Component for App {
     }
 
     fn view(&self, ctx: Context, _properties: ()) -> Tree {
-        let theme = global::use_global::<Theme>();
+        let theme = global::use_global(|theme: &mut Theme| theme.clone());
 
         html! {
             <Router>
