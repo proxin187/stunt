@@ -12,7 +12,7 @@
 //!
 //!     fn create() -> App { App }
 //!
-//!     fn callback(&mut self, _: &()) {}
+//!     fn callback(&mut self, _: &Self::Message) {}
 //!
 //!     fn view(&self, ctx: Context, _properties: ()) -> Tree {
 //!         html! {
@@ -37,18 +37,20 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 
+/// Represents the renderer
 pub struct Renderer<T: Component + Send + Sync + 'static> {
     _component: PhantomData<T>,
 }
 
 impl<T: Component + Send + Sync + 'static> Renderer<T> {
+    /// Create a new render instance
     pub fn new() -> Renderer<T> {
         Renderer {
             _component: PhantomData,
         }
     }
 
-    /// Render the 
+    /// Render the application
     pub fn render(self) {
         state::get_or_insert(&Identity::new(0), || Arc::new(Mutex::new(T::create())));
 

@@ -77,7 +77,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
             let mut tokens = is_html(&name.to_string())
                 .then(|| quote! {
                     ::stunt::component::tree::Tree::new(
-                        ctx.identity.intersect(::stunt::component::state::Identity::new(#identity)),
+                        ctx.identity.intersect(#identity),
                         ::stunt::component::tree::ComponentRef::Element(::stunt::component::tree::Element::new(String::from(#str_name), vec![#attributes], vec![#nodes])),
                         vec![#events],
                         Vec::new(),
@@ -86,7 +86,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 })
                 .unwrap_or_else(|| quote! {
                     ::stunt::component::tree::Tree::new(
-                        ctx.identity.intersect(::stunt::component::state::Identity::new(#identity)),
+                        ctx.identity.intersect(#identity),
                         ::stunt::component::tree::ComponentRef::create_component::<#name<#(#generics),*>>(),
                         vec![#events],
                         vec![#attributes],
@@ -106,7 +106,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
 
             let mut tokens = quote! {
                 ::stunt::component::tree::Tree::new(
-                    ctx.identity.intersect(::stunt::component::state::Identity::new(#identity)),
+                    ctx.identity.intersect(#identity),
 
                     #[allow(unused_braces)]
                     ::stunt::component::tree::ComponentRef::Template(std::sync::Arc::new(#block)),

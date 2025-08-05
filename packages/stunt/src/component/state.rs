@@ -1,3 +1,5 @@
+//! The state of each component is stored globally with each its own [`Identity`].
+
 use crate::component::BaseComponent;
 
 use std::sync::{Arc, LazyLock};
@@ -7,32 +9,36 @@ use spin::Mutex;
 
 static STATES: LazyLock<Arc<Mutex<HashMap<Identity, Arc<Mutex<dyn BaseComponent + Send + Sync>>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
-
+/// Represents the identity of a node within the virtual dom.
+///
+/// ## Warning
+/// Identities are not supposed to be used outside the framework.
 #[derive(Debug, Clone,  Hash, PartialEq, Eq)]
 pub struct Identity {
     id: Vec<usize>,
 }
 
 impl Identity {
-    pub fn new(id: usize) -> Identity {
+    pub(crate) fn new(id: usize) -> Identity {
         Identity {
             id: vec![id],
         }
     }
 
-    pub fn intersect(&self, other: Identity) -> Identity {
+    /// Create an intersection of two identites
+    pub fn intersect(&self, other: usize) -> Identity {
         Identity {
-            id: [self.id.clone(), other.id].concat(),
+            id: [self.id.clone(), vec![other]].concat(),
         }
     }
 
-    pub fn outer(&self) -> Identity {
+    pub(crate) fn outer(&self) -> Identity {
         Identity {
             id: self.id[..self.id.len() - 1].to_vec(),
         }
     }
 
-    pub fn render(&self) -> String {
+    pub(crate) fn render(&self) -> String {
         self.id.iter()
             .map(|id| format!("@{}", id))
             .collect::<String>()
@@ -40,12 +46,12 @@ impl Identity {
 }
 
 #[inline]
-pub fn get(identity: &Identity) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
+pub(crate) fn get(identity: &Identity) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
     STATES.lock()[identity].clone()
 }
 
 #[inline]
-pub fn get_or_insert(
+pub(crate) fn get_or_insert(
     identity: &Identity,
     f: impl Fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>
 ) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {

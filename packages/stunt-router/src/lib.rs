@@ -32,7 +32,7 @@ impl Component for Router {
 
     fn view(&self, ctx: Context, properties: RouteProperties) -> Tree {
         html! {
-            <? { properties.children.inner() } ?>
+            <? { properties.children } ?>
         }
     }
 }
@@ -69,7 +69,7 @@ impl<T: Component> Component for Switch<T> where T::Properties: Routable {
         let attributes = path::parse(&pathname, properties.path).and_then(|path| T::Properties::route(path));
 
         html! {
-            <? { attributes.map(|attributes| vec![html! { <T ?{ attributes }></T> }]).unwrap_or(properties.children.inner()) } ?>
+            <? { attributes.map(|attributes| Children::new(vec![html! { <T ?{ attributes }></T> }])).unwrap_or(properties.children) } ?>
         }
     }
 }

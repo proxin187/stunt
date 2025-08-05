@@ -1,3 +1,5 @@
+//! The basic building blocks for constructing html trees. This module is mostly used by macros.
+
 use crate::component::state::{self, Identity};
 use crate::component::{Component, BaseComponent, Context};
 
@@ -21,7 +23,12 @@ macro_rules! impl_t {
 
 impl_t!(&str, String, usize, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8, f64, f32);
 
+/// The template trait allows a type to be used as a template.
+///
+/// ## Warning
+/// For the time being this trait is not supposed to be implemented outside the framework.
 pub trait Template {
+    /// Render the template into the virtual dom
     fn render(&self) -> Kind;
 }
 
@@ -31,10 +38,10 @@ impl<T: std::fmt::Display + NonTreeTemplate + Clone> Template for T {
     }
 }
 
-impl Template for Vec<Tree> {
+impl Template for Children {
     fn render(&self) -> Kind {
-        let nodes = self.into_iter()
-            .cloned()
+        let nodes = self.children.clone()
+            .into_iter()
             .map(|tree| tree.render())
             .collect::<Vec<Node>>();
 
@@ -42,14 +49,24 @@ impl Template for Vec<Tree> {
     }
 }
 
+/// Represents a component, template or element.
+///
+/// ## Warning
+/// This enum is not supposed to be used outside of the framework.
 #[derive(Clone)]
 pub enum ComponentRef {
+    #[allow(missing_docs)]
     Component(fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>),
+
+    #[allow(missing_docs)]
     Template(Arc<dyn Template>),
+
+    #[allow(missing_docs)]
     Element(Element),
 }
 
 impl ComponentRef {
+    /// Create a component of the generic type
     pub fn create_component<T: Component + Send + Sync>() -> ComponentRef {
         ComponentRef::Component(|| Arc::new(Mutex::new(T::create())))
     }
@@ -80,6 +97,7 @@ impl ComponentRef {
     }
 }
 
+/// Represents a html element.
 #[derive(Clone)]
 pub struct Element {
     name: String,
@@ -88,6 +106,7 @@ pub struct Element {
 }
 
 impl Element {
+    /// Create a new html element.
     pub fn new(name: String, attributes: Vec<Vec<(String, Rc<dyn AttrValue>)>>, children: Vec<Tree>) -> Element {
         Element {
             name,
@@ -97,6 +116,7 @@ impl Element {
     }
 }
 
+/// Represents the children of a node.
 #[derive(Clone, Default)]
 pub struct Children {
     children: Vec<Tree>,
@@ -109,13 +129,12 @@ impl std::fmt::Display for Children {
 }
 
 impl Children {
-    fn new(children: Vec<Tree>) -> Children {
+    /// Create a new children instance from a vector of trees
+    pub fn new(children: Vec<Tree>) -> Children {
         Children {
             children: children,
         }
     }
-
-    pub fn inner(self) -> Vec<Tree> { self.children }
 
     fn render(self) -> Vec<Node> {
         self.children.into_iter()
@@ -124,10 +143,14 @@ impl Children {
     }
 }
 
+/// The AttrValue trait represents a value in an attribute.
+///
+/// The trait provides a blanket implementation for types that implement Any + Display.
 pub trait AttrValue: Any + std::fmt::Display {}
 
 impl<T: Any + std::fmt::Display> AttrValue for T {}
 
+/// Represents a map of attributes. Only a wrapper around HashMap.
 #[derive(Clone)]
 pub struct AttrMap {
     attributes: HashMap<String, Rc<dyn AttrValue>>,
@@ -142,16 +165,12 @@ impl<T: Iterator<Item = (String, Rc<dyn AttrValue>)>> From<T> for AttrMap {
 }
 
 impl AttrMap {
-    pub fn new(attributes: HashMap<String, Rc<dyn AttrValue>>) -> AttrMap {
-        AttrMap {
-            attributes,
-        }
-    }
-
     fn insert<T: AttrValue>(&mut self, key: String, value: T) {
         self.attributes.insert(key, Rc::new(value));
     }
 
+    /// Get a value from a key. This function returns None if the key doesnt exist, or if the
+    /// return type doesnt match the type of the value.
     pub fn get<'a, T: Any + Clone>(&'a self, key: &str) -> Option<T> {
         self.attributes.get(key)
             .and_then(|attr| (attr.as_ref() as &dyn Any).downcast_ref().cloned())
@@ -164,6 +183,10 @@ impl AttrMap {
     }
 }
 
+/// Represents a html Tree.
+///
+/// ## Warning
+/// A html tree should only be built by the [`html`](crate::stunt_macro::html) macro.
 #[derive(Clone)]
 pub struct Tree {
     pub(crate) identity: Identity,
@@ -174,6 +197,7 @@ pub struct Tree {
 }
 
 impl Tree {
+    /// Create a new tree
     pub fn new(
         identity: Identity,
         component: ComponentRef,
@@ -190,7 +214,7 @@ impl Tree {
         }
     }
 
-    pub fn render(mut self) -> Node {
+    pub(crate) fn render(mut self) -> Node {
         self.attributes.insert(String::from("children"), self.children);
 
         self.component.render(self.identity, self.attributes, self.callbacks)
