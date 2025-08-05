@@ -68,13 +68,59 @@ mod vdom;
 pub(crate) use stunt_macro;
 
 pub mod prelude {
-    //! Re-export of common types within stunt
+    //! Re-export of common types within stunt.
 
     pub use crate::component::{Component, Context, Properties};
     pub use crate::component::tree::{Tree, Children, AttrMap};
     pub use crate::render::Renderer;
 
-    pub use crate::stunt_macro::{html, Properties};
+    /// The html macro implements html templating for Rust. A context under the identifier "ctx" must
+    /// be in scope of the macro, or else it will return a compile time error.
+    ///
+    /// This macro returns a [`tree`](crate::component::tree::Tree) and should always be the
+    /// prefered method for creating a [`tree`](crate::component::tree::Tree).
+    ///
+    /// ## Syntax
+    /// The syntax is similar to JSX.
+    ///
+    /// ### Attributes
+    /// ```rust
+    /// html! {
+    ///     <h1 foo={ "bar" } baz={ 44 }></h1>
+    /// }
+    /// ```
+    ///
+    /// ### Event listeners
+    /// Event listeners will call the callback with any value. If the type of the event doesnt
+    /// match the [`Message`](crate::component::Component::Message) type of the [`Component`] you will encounter a runtime error.
+    ///
+    /// ```rust
+    /// html! {
+    ///     <button event: mousedown={ None }></button>
+    /// }
+    /// ```
+    ///
+    /// ### Templates
+    /// Templates will render as a Text Node into the DOM, or as html if you template a vector of trees.
+    ///
+    /// ```rust
+    /// html! {
+    ///     <? { "this will be inserted as a template" } ?>
+    /// }
+    /// ```
+    ///
+    /// ```rust
+    /// html! {
+    ///     <? {
+    ///         vec![html! { <? { "you can also use Vec<Tree> as a template" } ?>}]
+    ///     } ?>
+    /// }
+    /// ```
+    pub use crate::stunt_macro::html;
+
+    /// This macro will implement the [`Properties`] trait for a
+    /// named Struct.
+    pub use crate::stunt_macro::Properties;
 }
 
 
