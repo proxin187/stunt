@@ -55,7 +55,7 @@
 //!
 //!         html! {
 //!             <div>
-//!                 <button event: mousedown={ Message::Change } >
+//!                 <button onclick={ Message::Change } >
 //!                     { "change theme" }
 //!                 </button>
 //!                 <h1 style={ format!("background-color: {};", theme.background()) }>

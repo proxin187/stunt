@@ -13,15 +13,12 @@ mod keyword {
 }
 
 pub struct Event {
-    pub name: Ident,
+    pub name: String,
     pub value: ExprBlock,
 }
 
 impl Parse for Event {
     fn parse(input: ParseStream) -> Result<Event> {
-        input.parse::<keyword::event>()?;
-        input.parse::<Token![:]>()?;
-
         let name: Ident = input.parse()?;
 
         input.parse::<Token![=]>()?;
@@ -29,7 +26,7 @@ impl Parse for Event {
         let value: ExprBlock = input.parse()?;
 
         Ok(Event {
-            name,
+            name: name.to_string().split_off(2),
             value,
         })
     }
@@ -37,7 +34,7 @@ impl Parse for Event {
 
 impl Event {
     pub fn tokens(&self) -> TokenStream {
-        let name = format!("{}", self.name);
+        let name = self.name.clone();
         let value = self.value.clone();
 
         quote! {
@@ -135,7 +132,7 @@ impl Parse for OpenTag {
         let mut events: Vec<Event> = Vec::new();
 
         while !input.peek(Token![>]) {
-            if input.peek(keyword::event) {
+            if input.fork().parse::<Ident>().map(|ident| ident.to_string().starts_with("on")).unwrap_or_default() {
                 events.push(input.parse::<Event>()?);
             } else {
                 attributes.push(input.parse::<Attribute>()?);

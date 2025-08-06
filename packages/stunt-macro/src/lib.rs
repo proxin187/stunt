@@ -74,7 +74,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
 
             let generics = open.generics.clone();
 
-            let mut tokens = is_html(&name.to_string())
+            let mut tokens = name.to_string().chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
                 .then(|| quote! {
                     ::stunt::component::tree::Tree::new(
                         ctx.identity.intersect(#identity),
@@ -174,16 +174,6 @@ pub fn properties_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStr
     }
 
     proc_macro::TokenStream::from(syn::Error::new(input.ident.span(), "You can only derive Properties for Structs with Named fields").to_compile_error())
-}
-
-#[inline]
-fn is_html(ident: &str) -> bool {
-    matches!(
-        ident,
-        "h1"
-        | "div"
-        | "button"
-    )
 }
 
 

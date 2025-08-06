@@ -44,7 +44,7 @@
 //!     fn view(&self, ctx: Context, _properties: ()) -> Tree {
 //!         html! {
 //!             <div>
-//!                 <button event: mousedown={ Message::Add } >
+//!                 <button onclick={ Message::Add } >
 //!                     { "increment" }
 //!                 </button>
 //!                 <h1>
@@ -113,6 +113,8 @@ pub mod prelude {
     /// Event listeners will call the callback with any value. If the type of the event doesnt
     /// match the [`Message`](crate::component::Component::Message) type of the [`Component`] you will encounter a runtime error.
     ///
+    /// Any attribute that starts with "on" will be threated as an event listener.
+    ///
     /// ```rust,no_run
     /// # use stunt::prelude::*;
     /// #
@@ -128,7 +130,7 @@ pub mod prelude {
     /// #
     /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
     /// html! {
-    ///     <button event: mousedown={ () }></button>
+    ///     <button onclick={ () }></button>
     /// }
     /// #     }
     /// # }

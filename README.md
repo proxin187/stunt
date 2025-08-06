@@ -59,7 +59,7 @@ impl Component for App {
     fn view(&self, ctx: Context, _properties: ()) -> Tree {
         html! {
             <div>
-                <button event: mousedown={ Message::Add } >
+                <button onclick={ Message::Add } >
                     { "increment" }
                 </button>
                 <h1>
