@@ -12,7 +12,7 @@
 //! - Multiple ways to manage the state of your application.
 //!
 //! ## Example
-//! ```rust
+//! ```rust,no_run
 //! use stunt::prelude::*;
 //!
 //! pub enum Message {
@@ -45,10 +45,10 @@
 //!         html! {
 //!             <div>
 //!                 <button event: mousedown={ Message::Add } >
-//!                     <? { "increment" } ?>
+//!                     { "increment" }
 //!                 </button>
 //!                 <h1>
-//!                     <? { format!("count: {}", self.count) } ?>
+//!                     { format!("count: {}", self.count) }
 //!                 </h1>
 //!             </div>
 //!         }
@@ -84,37 +84,117 @@ pub mod prelude {
     /// The syntax is similar to JSX.
     ///
     /// ### Attributes
-    /// ```rust
+    /// ```rust,no_run
+    /// # use stunt::prelude::*;
+    /// #
+    /// # pub struct App;
+    /// #
+    /// # impl Component for App {
+    /// #     type Message = ();
+    /// #     type Properties = ();
+    /// #
+    /// #     fn create() -> App { App }
+    /// #
+    /// #     fn callback(&mut self, _: &Self::Message) {}
+    /// #
+    /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
     /// html! {
     ///     <h1 foo={ "bar" } baz={ 44 }></h1>
     /// }
+    /// #     }
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     Renderer::<App>::new().render();
+    /// # }
     /// ```
     ///
     /// ### Event listeners
     /// Event listeners will call the callback with any value. If the type of the event doesnt
     /// match the [`Message`](crate::component::Component::Message) type of the [`Component`] you will encounter a runtime error.
     ///
-    /// ```rust
+    /// ```rust,no_run
+    /// # use stunt::prelude::*;
+    /// #
+    /// # pub struct App;
+    /// #
+    /// # impl Component for App {
+    /// #     type Message = ();
+    /// #     type Properties = ();
+    /// #
+    /// #     fn create() -> App { App }
+    /// #
+    /// #     fn callback(&mut self, _: &Self::Message) {}
+    /// #
+    /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
     /// html! {
-    ///     <button event: mousedown={ None }></button>
+    ///     <button event: mousedown={ () }></button>
     /// }
+    /// #     }
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     Renderer::<App>::new().render();
+    /// # }
     /// ```
     ///
     /// ### Templates
     /// Templates will render as a Text Node into the DOM, or as html if you template a vector of trees.
     ///
-    /// ```rust
+    /// ```rust,no_run
+    /// # use stunt::prelude::*;
+    /// #
+    /// # pub struct App;
+    /// #
+    /// # impl Component for App {
+    /// #     type Message = ();
+    /// #     type Properties = ();
+    /// #
+    /// #     fn create() -> App { App }
+    /// #
+    /// #     fn callback(&mut self, _: &Self::Message) {}
+    /// #
+    /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
     /// html! {
-    ///     <? { "this will be inserted as a template" } ?>
+    ///     { "this will be inserted as a template" }
     /// }
+    /// #     }
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     Renderer::<App>::new().render();
+    /// # }
     /// ```
     ///
-    /// ```rust
+    /// ```rust,no_run
+    /// # use stunt::prelude::*;
+    /// #
+    /// # pub struct App;
+    /// #
+    /// # impl Component for App {
+    /// #     type Message = ();
+    /// #     type Properties = ();
+    /// #
+    /// #     fn create() -> App { App }
+    /// #
+    /// #     fn callback(&mut self, _: &Self::Message) {}
+    /// #
+    /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
     /// html! {
-    ///     <? {
-    ///         vec![html! { <? { "you can also use Vec<Tree> as a template" } ?>}]
-    ///     } ?>
+    ///     {
+    ///         Children::new(vec![
+    ///             html! {
+    ///                 { "you can also use Children as a template" }
+    ///             }
+    ///         ])
+    ///     }
     /// }
+    /// #     }
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     Renderer::<App>::new().render();
+    /// # }
     /// ```
     pub use crate::stunt_macro::html;
 

@@ -60,10 +60,10 @@ impl Component for App {
         html! {
             <div>
                 <button event: mousedown={ Message::Add } >
-                    <? { "increment" } ?>
+                    { "increment" }
                 </button>
                 <h1>
-                    <? { format!("count: {}", self.count) } ?>
+                    { format!("count: {}", self.count) }
                 </h1>
             </div>
         }

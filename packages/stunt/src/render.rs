@@ -1,7 +1,7 @@
 //! The renderer is the entry point of a stunt application
 //!
 //! ## Example
-//! ```rust
+//! ```rust,no_run
 //! use stunt::prelude::*;
 //!
 //! pub struct App;

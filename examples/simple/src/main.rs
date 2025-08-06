@@ -53,11 +53,11 @@ impl Component for App {
         html! {
             <Router>
                 <Switch<Account> path={ "/settings/account/:id/:name" }></Switch>
-                <? { "<script>alert(1);</script>" } ?>
+                { "<script>alert(1);</script>" }
                 <button class={ "btn" } event: mousedown={ Message::Add } >
-                    <? { "increment" } ?>
+                    { "increment" }
                 </button>
-                <? { format!("count: {}", self.count) } ?>
+                { format!("count: {}", self.count) }
             </Router>
         }
     }

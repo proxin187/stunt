@@ -22,7 +22,7 @@ impl Component for Account {
     fn view(&self, ctx: Context, properties: AccountProperties) -> Tree {
         html! {
             <h1>
-                <? { format!("id: {}, name: {}", properties.id, properties.name) } ?>
+                { format!("id: {}, name: {}", properties.id, properties.name) }
             </h1>
         }
     }

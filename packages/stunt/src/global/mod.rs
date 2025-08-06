@@ -5,12 +5,13 @@
 //!
 //!
 //! ## Example
-//! ```rust
+//! ```rust,no_run
 //! use stunt::prelude::*;
 //! use stunt::global;
 //!
-//! #[derive(Clone, PartialEq)]
+//! #[derive(Clone, Default, PartialEq)]
 //! pub enum Theme {
+//!     #[default]
 //!     Light,
 //!     Dark,
 //! }
@@ -41,8 +42,8 @@
 //!             Message::Change => {
 //!                 global::use_global(|theme: &mut Theme| {
 //!                     match theme {
-//!                         ThemeState::Light => theme = Theme::Dark,
-//!                         ThemeState::Dark => theme = Theme::Light,
+//!                         Theme::Light => *theme = Theme::Dark,
+//!                         Theme::Dark => *theme = Theme::Light,
 //!                     }
 //!                 });
 //!             },
@@ -55,10 +56,10 @@
 //!         html! {
 //!             <div>
 //!                 <button event: mousedown={ Message::Change } >
-//!                     <? { "change theme" } ?>
+//!                     { "change theme" }
 //!                 </button>
 //!                 <h1 style={ format!("background-color: {};", theme.background()) }>
-//!                     <? { "the background color of this text should change on click" } ?>
+//!                     { "the background color of this text should change on click" }
 //!                 </h1>
 //!             </div>
 //!         }
@@ -83,8 +84,10 @@ static GLOBALS: LazyLock<Arc<Mutex<HashMap<TypeId, Box<dyn Any + Send + Sync>>>>
 /// function to both mutate the state of the global and to extract a value for use outside of your closure.
 ///
 /// ## Example
-/// ```rust
-/// global::use_global(|foo: &mut usize| foo += 1);
+/// ```rust,no_run
+/// use stunt::global;
+///
+/// global::use_global(|foo: &mut usize| *foo += 1);
 /// ```
 
 #[inline]

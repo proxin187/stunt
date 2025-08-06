@@ -111,6 +111,8 @@ pub struct OpenTag {
 
 impl Parse for OpenTag {
     fn parse(input: ParseStream) -> Result<OpenTag> {
+        input.parse::<Token![<]>()?;
+
         let name: Ident = input.parse()?;
 
         let mut generics: Vec<Type> = Vec::new();
@@ -157,6 +159,7 @@ pub struct CloseTag {
 
 impl Parse for CloseTag {
     fn parse(input: ParseStream) -> Result<CloseTag> {
+        input.parse::<Token![<]>()?;
         input.parse::<Token![/]>()?;
 
         let name: Ident = input.parse()?;
@@ -175,15 +178,8 @@ pub struct Template {
 
 impl Parse for Template {
     fn parse(input: ParseStream) -> Result<Template> {
-        input.parse::<Token![?]>()?;
-
-        let value: ExprBlock = input.parse::<ExprBlock>()?;
-
-        input.parse::<Token![?]>()?;
-        input.parse::<Token![>]>()?;
-
         Ok(Template {
-            value,
+            value: input.parse::<ExprBlock>()?,
         })
     }
 }
@@ -196,11 +192,9 @@ pub enum Tag {
 
 impl Parse for Tag {
     fn parse(input: ParseStream) -> Result<Tag> {
-        input.parse::<Token![<]>()?;
-
-        if input.peek(Token![?]) {
+        if input.peek(syn::token::Brace) {
             Ok(Tag::Template(input.parse::<Template>()?))
-        } else if input.peek(Token![/]) {
+        } else if input.peek(Token![<]) && input.peek2(Token![/]) {
             Ok(Tag::CloseTag(input.parse::<CloseTag>()?))
         } else {
             Ok(Tag::OpenTag(input.parse::<OpenTag>()?))
