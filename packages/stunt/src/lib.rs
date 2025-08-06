@@ -113,7 +113,7 @@ pub mod prelude {
     /// Event listeners will call the callback with any value. If the type of the event doesnt
     /// match the [`Message`](crate::component::Component::Message) type of the [`Component`] you will encounter a runtime error.
     ///
-    /// Any attribute that starts with "on" will be threated as an event listener.
+    /// Any attribute that starts with "on" will be treated as an event listener.
     ///
     /// ```rust,no_run
     /// # use stunt::prelude::*;
