@@ -63,14 +63,14 @@
 pub mod component;
 pub mod render;
 pub mod global;
-mod vdom;
+mod virtual_dom;
 
 pub(crate) use stunt_macro;
 
 pub mod prelude {
-    //! Re-export of common types within stunt.
+    //! Re-export of common types.
 
-    pub use crate::component::{Component, Context, Properties};
+    pub use crate::component::{Component, Properties};
     pub use crate::component::tree::{Tree, Children, AttrMap};
     pub use crate::render::Renderer;
 

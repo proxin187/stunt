@@ -1,9 +1,9 @@
 //! The basic building blocks for constructing html trees. This module is mostly used by macros.
 
-use crate::component::state::{self, Identity};
-use crate::component::{Component, BaseComponent, Context};
+use crate::component::state::{self, Path, PathNode};
+use crate::component::{Component, BaseComponent};
 
-use crate::vdom::{Node, VirtualElement, Kind};
+use crate::virtual_dom::{Node, VirtualElement, Kind};
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -29,23 +29,33 @@ impl_t!(&str, String, usize, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8, 
 /// For the time being this trait is not supposed to be implemented outside the framework.
 pub trait Template {
     /// Render the template into the virtual dom
-    fn render(&self) -> Kind;
+    fn render(&self, path: PathBuilder) -> Kind;
 }
 
 impl<T: std::fmt::Display + NonTreeTemplate + Clone> Template for T {
-    fn render(&self) -> Kind {
+    fn render(&self, _: PathBuilder) -> Kind {
         Kind::Template(format!("{}", self))
     }
 }
 
 impl Template for Children {
-    fn render(&self) -> Kind {
-        let nodes = self.children.clone()
-            .into_iter()
-            .map(|tree| tree.render())
-            .collect::<Vec<Node>>();
+    fn render(&self, path: PathBuilder) -> Kind {
+        Kind::Element(VirtualElement::new(String::from("span"), String::new(), Arc::new(self.clone().render(path))))
+    }
+}
 
-        Kind::Element(VirtualElement::new(String::from("span"), String::new(), Arc::new(nodes)))
+#[derive(Clone, Default)]
+pub(crate) struct PathBuilder {
+    real: Path,
+    virt: Path,
+}
+
+impl PathBuilder {
+    pub fn new(real: Path, virt: Path) -> PathBuilder {
+        PathBuilder {
+            real,
+            virt,
+        }
     }
 }
 
@@ -56,7 +66,10 @@ impl Template for Children {
 #[derive(Clone)]
 pub enum ComponentRef {
     #[allow(missing_docs)]
-    Component(fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>),
+    Component {
+        builder: fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>,
+        name: String,
+    },
 
     #[allow(missing_docs)]
     Template(Arc<dyn Template>),
@@ -67,30 +80,35 @@ pub enum ComponentRef {
 
 impl ComponentRef {
     /// Create a component of the generic type
-    pub fn create_component<T: Component + Send + Sync>() -> ComponentRef {
-        ComponentRef::Component(|| Arc::new(Mutex::new(T::create())))
+    pub fn create_component<T: Component + Send + Sync>(name: String) -> ComponentRef {
+        ComponentRef::Component {
+            builder: || Arc::new(Mutex::new(T::create())),
+            name,
+        }
     }
 
-    pub(crate) fn render(self, identity: Identity, attributes: AttrMap, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
+    fn path_node(&self, index: usize) -> PathNode {
         match self {
-            ComponentRef::Component(component) => {
-                let node = state::get_or_insert(&identity, component)
-                    .lock()
-                    .base_view(Context::new(identity.clone()), attributes)
-                    .render();
+            ComponentRef::Component { name, .. } => PathNode::new(index, name.clone()),
+            ComponentRef::Template(_) => PathNode::new(index, String::from("template")),
+            ComponentRef::Element(_) => PathNode::new(index, String::from("element")),
+        }
+    }
 
-                Node::new(
-                    identity,
-                    Kind::Element(VirtualElement::new(String::from("span"), String::new(), Arc::new(vec![node]))),
-                    callbacks,
-                )
+    pub(crate) fn render(self, path: PathBuilder, attributes: AttrMap, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
+        match self {
+            ComponentRef::Component { builder, .. } => {
+                state::get_or_insert(&path.real, builder)
+                    .lock()
+                    .base_view(attributes)
+                    .render(path, 0)
             },
-            ComponentRef::Template(template) => Node::new(identity, template.render(), callbacks),
+            ComponentRef::Template(template) => Node::new(callbacks, template.render(path.clone()), path.virt),
             ComponentRef::Element(element) => {
                 Node::new(
-                    identity,
-                    Kind::Element(VirtualElement::new(element.name, element.attributes.render(), Arc::new(element.children.render()))),
                     callbacks,
+                    Kind::Element(VirtualElement::new(element.name, element.attributes.render(), Arc::new(element.children.render(path.clone())))),
+                    path.virt,
                 )
             },
         }
@@ -136,9 +154,10 @@ impl Children {
         }
     }
 
-    fn render(self) -> Vec<Node> {
+    fn render(self, path: PathBuilder) -> Vec<Node> {
         self.children.into_iter()
-            .map(|child| child.render())
+            .enumerate()
+            .map(|(index, child)| child.render(path.clone(), index))
             .collect::<Vec<Node>>()
     }
 }
@@ -189,7 +208,6 @@ impl AttrMap {
 /// A html tree should only be built by the [`html`](crate::stunt_macro::html) macro.
 #[derive(Clone)]
 pub struct Tree {
-    pub(crate) identity: Identity,
     pub(crate) component: ComponentRef,
     pub(crate) callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
     pub(crate) attributes: AttrMap,
@@ -199,14 +217,12 @@ pub struct Tree {
 impl Tree {
     /// Create a new tree
     pub fn new(
-        identity: Identity,
         component: ComponentRef,
         callbacks: Vec<(String, Arc<dyn Any + Send + Sync>)>,
         attributes: Vec<Vec<(String, Rc<dyn AttrValue>)>>,
         children: Vec<Tree>,
     ) -> Tree {
         Tree {
-            identity,
             component,
             callbacks: Arc::new(callbacks),
             attributes: AttrMap::from(attributes.into_iter().flatten()),
@@ -214,10 +230,16 @@ impl Tree {
         }
     }
 
-    pub(crate) fn render(mut self) -> Node {
+    pub(crate) fn render(mut self, path: PathBuilder, index: usize) -> Node {
         self.attributes.insert(String::from("children"), self.children);
 
-        self.component.render(self.identity, self.attributes, self.callbacks)
+        let path_node = self.component.path_node(index);
+
+        if let ComponentRef::Component { .. } = self.component {
+            self.component.render(PathBuilder::new(path.real.concat(path_node), path.virt), self.attributes, self.callbacks)
+        } else {
+            self.component.render(PathBuilder::new(path.real.concat(path_node.clone()), path.virt.concat(path_node)), self.attributes, self.callbacks)
+        }
     }
 }
 

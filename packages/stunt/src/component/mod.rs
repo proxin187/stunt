@@ -4,7 +4,6 @@ pub mod state;
 pub mod tree;
 
 use tree::{Tree, AttrMap};
-use state::Identity;
 
 use std::sync::Arc;
 use std::any::Any;
@@ -28,7 +27,7 @@ pub trait Component: Send + Sync + 'static {
     fn callback(&mut self, callback: &Self::Message);
 
     /// The view describes the layout of how your component is to be rendered in the DOM.
-    fn view(&self, ctx: Context, properties: Self::Properties) -> Tree;
+    fn view(&self, properties: Self::Properties) -> Tree;
 }
 
 /// The underlying low-level representation of a component within stunt.
@@ -42,13 +41,13 @@ pub trait BaseComponent {
     fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>);
 
     /// Low-level implementation of a view.
-    fn base_view(&self, ctx: Context, attributes: AttrMap) -> Tree;
+    fn base_view(&self, attributes: AttrMap) -> Tree;
 }
 
 impl<T: Component> BaseComponent for T {
     fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>) { T::callback(self, callback.downcast_ref().expect("invalid callback type")) }
 
-    fn base_view(&self, ctx: Context, attributes: AttrMap) -> Tree { T::view(self, ctx, T::Properties::create(attributes)) }
+    fn base_view(&self, attributes: AttrMap) -> Tree { T::view(self, T::Properties::create(attributes)) }
 }
 
 /// The Properties trait can be implemented on any Struct you wish to recieve as
@@ -63,24 +62,6 @@ pub trait Properties {
 
 impl Properties for () {
     fn create(_: AttrMap) -> () { () }
-}
-
-/// The context stores the identity of the component. The context must be in scope when using the [`html`](crate::stunt_macro::html) macro.
-pub struct Context {
-    /// The identity of the component.
-    pub identity: Identity,
-}
-
-impl Context {
-    /// Create a new context.
-    ///
-    /// ## Warning
-    /// This function should not be used outside the framework.
-    pub fn new(identity: Identity) -> Context {
-        Context {
-            identity,
-        }
-    }
 }
 
 

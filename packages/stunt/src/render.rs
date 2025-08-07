@@ -26,10 +26,10 @@
 //! }
 //! ```
 
-use crate::component::tree::AttrMap;
-use crate::component::state::{self, Identity};
-use crate::component::{Component, Context};
-use crate::vdom;
+use crate::component::tree::{AttrMap, PathBuilder};
+use crate::component::state::{self, Path};
+use crate::component::Component;
+use crate::virtual_dom;
 
 use spin::Mutex;
 
@@ -52,7 +52,7 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
     /// Render the application
     pub fn render(self) {
-        state::get_or_insert(&Identity::new(0), || Arc::new(Mutex::new(T::create())));
+        state::get_or_insert(&Path::new(), || Arc::new(Mutex::new(T::create())));
 
         render();
     }
@@ -60,14 +60,15 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
 #[inline]
 pub(crate) fn render() {
-    let identity = Identity::new(0);
+    let path = Path::new();
 
-    let root = state::get(&identity);
+    let root = state::get(&path);
     let lock = root.lock();
 
-    let render = lock.base_view(Context::new(identity), AttrMap::from(Vec::new().into_iter())).render();
+    // TODO: finish the new path thingy
+    let render = lock.base_view(AttrMap::from(Vec::new().into_iter())).render(PathBuilder::default(), 0);
 
-    vdom::reconcile(render);
+    // virtual_dom::reconcile(render);
 }
 
 

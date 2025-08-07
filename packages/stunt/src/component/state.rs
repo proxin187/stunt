@@ -1,5 +1,7 @@
 //! The state of each component is stored globally with each its own [`Identity`].
 
+// TODO: store the state under its path instead of identity
+
 use crate::component::BaseComponent;
 
 use std::sync::{Arc, LazyLock};
@@ -7,62 +9,63 @@ use std::collections::HashMap;
 
 use spin::Mutex;
 
-static STATES: LazyLock<Arc<Mutex<HashMap<Identity, Arc<Mutex<dyn BaseComponent + Send + Sync>>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
+static STATES: LazyLock<Arc<Mutex<HashMap<Path, Arc<Mutex<dyn BaseComponent + Send + Sync>>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
-/// Represents the identity of a node within the virtual dom.
-///
-/// ## Warning
-/// Identities are not supposed to be used outside the framework.
-#[derive(Debug, Clone,  Hash, PartialEq, Eq)]
-pub struct Identity {
-    id: Vec<usize>,
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub(crate) struct PathNode {
+    index: usize,
+    name: String,
 }
 
-impl Identity {
-    pub(crate) fn new(id: usize) -> Identity {
-        Identity {
-            id: vec![id],
+impl PathNode {
+    pub(crate) fn new(index: usize, name: String) -> PathNode {
+        PathNode {
+            index,
+            name,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Hash, PartialEq, Eq)]
+pub(crate) struct Path {
+    nodes: Vec<PathNode>,
+}
+
+impl Path {
+    pub(crate) fn new() -> Path {
+        Path {
+            nodes: Vec::new(),
         }
     }
 
-    /// Create an intersection of two identites
-    pub fn intersect(&self, other: usize) -> Identity {
-        Identity {
-            id: [self.id.clone(), vec![other]].concat(),
-        }
-    }
+    pub(crate) fn concat(mut self, node: PathNode) -> Path {
+        self.nodes.push(node);
 
-    pub(crate) fn outer(&self) -> Identity {
-        Identity {
-            id: self.id[..self.id.len() - 1].to_vec(),
+        Path {
+            nodes: self.nodes,
         }
-    }
-
-    pub(crate) fn render(&self) -> String {
-        self.id.iter()
-            .map(|id| format!("@{}", id))
-            .collect::<String>()
     }
 }
 
 #[inline]
-pub(crate) fn get(identity: &Identity) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
-    STATES.lock()[identity].clone()
+pub(crate) fn get(path: &Path) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
+    STATES.lock()[path].clone()
 }
 
 #[inline]
 pub(crate) fn get_or_insert(
-    identity: &Identity,
+    path: &Path,
     f: impl Fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>
 ) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
     let mut states = STATES.lock();
 
-    match states.get(&identity) {
+    match states.get(path) {
         Some(component) => component.clone(),
         None => {
-            states.insert(identity.clone(), (f)());
+            states.insert(path.clone(), (f)());
 
-            states[&identity].clone()
+            states[&path].clone()
         },
     }
 }

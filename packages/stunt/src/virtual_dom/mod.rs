@@ -1,4 +1,4 @@
-use crate::component::state::{self, Identity};
+use crate::component::state::{self, Path, PathNode};
 use crate::render;
 
 use std::sync::{LazyLock, Arc};
@@ -17,10 +17,10 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub fn render(&self, identity: &Identity) -> String {
+    pub fn render(&self) -> String {
         match self {
-            Kind::Template(_) => format!("<span id=\"{}\"></span>", identity.render()),
-            Kind::Element(element) => element.render(identity),
+            Kind::Template(_) => String::from("<span></span>"),
+            Kind::Element(element) => element.render(),
         }
     }
 
@@ -54,25 +54,25 @@ impl VirtualElement {
         }
     }
 
-    pub fn render(&self, identity: &Identity) -> String {
+    pub fn render(&self) -> String {
         let children = self.children.iter()
-            .map(|child| child.kind.render(&child.identity))
+            .map(|child| child.kind.render())
             .collect::<String>();
 
-        format!("<{} id=\"{}\" {}>{}</{}>", self.name, identity.render(), self.attributes, children, self.name)
+        format!("<{} {}>{}</{}>", self.name, self.attributes, children, self.name)
     }
 }
 
 #[derive(Debug)]
 pub struct Node {
     callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
-    identity: Identity,
     kind: Kind,
+    path: Path,
 }
 
 impl PartialEq for Node {
     fn eq(&self, other: &Node) -> bool {
-        self.identity == other.identity && self.kind == other.kind
+        self.kind == other.kind
     }
 }
 
@@ -80,21 +80,22 @@ impl Default for Node {
     fn default() -> Node {
         Node {
             callbacks: Arc::new(Vec::new()),
-            identity: Identity::new(0),
             kind: Kind::Template(String::new()),
+            path: Path::new(),
         }
     }
 }
 
 impl Node {
-    pub fn new(identity: Identity, kind: Kind, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Node {
+    pub(crate) fn new(callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>, kind: Kind, path: Path) -> Node {
         Node {
             callbacks,
-            identity,
             kind,
+            path,
         }
     }
 
+    /*
     fn attach_listener(&self, document: &web_sys::Document, event: &str, cb: &Arc<dyn Any + Send + Sync>) {
         if let Some(element) = document.get_element_by_id(&self.identity.render()) {
             let identity = self.identity.clone();
@@ -168,11 +169,13 @@ impl Node {
 
         Ok(())
     }
+    */
 }
 
+/*
 #[inline]
 pub fn reconcile(node: Node) {
-    let vdom = Node::new(Identity::new(0), Kind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Arc::new(Vec::new()));
+    let vdom = Node::new(Kind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Arc::new(Vec::new()));
 
     let mut prev = PREV.lock();
 
@@ -187,5 +190,6 @@ pub fn reconcile(node: Node) {
         },
     }
 }
+*/
 
 

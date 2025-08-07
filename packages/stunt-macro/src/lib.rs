@@ -11,27 +11,6 @@ use tags::{Intermediate, Tag};
 use std::sync::{LazyLock, Arc, Mutex};
 use std::iter::Peekable;
 
-static IDENTITY: LazyLock<Arc<Identity>> = LazyLock::new(|| Arc::new(Identity::new()));
-
-struct Identity {
-    identity: Mutex<usize>,
-}
-
-impl Identity {
-    pub fn new() -> Identity {
-        Identity {
-            identity: Mutex::new(5),
-        }
-    }
-
-    pub fn next(&self) -> usize {
-        let mut lock = self.identity.lock().expect("failed to lock");
-
-        *lock += 1;
-
-        *lock
-    }
-}
 
 // TODO: this function is ugly beyond all imagination, refactor it so that it looks acceptable at least
 fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: bool) -> TokenStream {
@@ -59,7 +38,6 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 }
             }
 
-            let identity = IDENTITY.next();
             let name = open.name.clone();
             let str_name = name.to_string();
             let nodes: TokenStream = inner.into_iter().collect();
@@ -77,7 +55,6 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
             let mut tokens = name.to_string().chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
                 .then(|| quote! {
                     ::stunt::component::tree::Tree::new(
-                        ctx.identity.intersect(#identity),
                         ::stunt::component::tree::ComponentRef::Element(::stunt::component::tree::Element::new(String::from(#str_name), vec![#attributes], vec![#nodes])),
                         vec![#events],
                         Vec::new(),
@@ -86,7 +63,6 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 })
                 .unwrap_or_else(|| quote! {
                     ::stunt::component::tree::Tree::new(
-                        ctx.identity.intersect(#identity),
                         ::stunt::component::tree::ComponentRef::create_component::<#name<#(#generics),*>>(),
                         vec![#events],
                         vec![#attributes],
@@ -101,13 +77,10 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
             TokenStream::from(tokens)
         },
         Some(Tag::Template(template)) => {
-            let identity = IDENTITY.next();
             let block = template.value.clone();
 
             let mut tokens = quote! {
                 ::stunt::component::tree::Tree::new(
-                    ctx.identity.intersect(#identity),
-
                     #[allow(unused_braces)]
                     ::stunt::component::tree::ComponentRef::Template(std::sync::Arc::new(#block)),
                     Vec::new(),
