@@ -95,7 +95,6 @@ impl Node {
         }
     }
 
-    /*
     fn attach_listener(&self, document: &web_sys::Document, event: &str, cb: &Arc<dyn Any + Send + Sync>) {
         if let Some(element) = document.get_element_by_id(&self.identity.render()) {
             let identity = self.identity.clone();
@@ -146,7 +145,7 @@ impl Node {
         if self.kind.children() != other.kind.children() {
             let props = self.kind.children()
                 .iter()
-                .map(|prop| prop.kind.render(&prop.identity))
+                .map(|prop| prop.kind.render())
                 .collect::<String>();
 
             match body {
@@ -169,13 +168,10 @@ impl Node {
 
         Ok(())
     }
-    */
 }
 
-/*
-#[inline]
 pub fn reconcile(node: Node) {
-    let vdom = Node::new(Kind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Arc::new(Vec::new()));
+    let vdom = Node::new(Arc::new(Vec::new()), Kind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Path::new());
 
     let mut prev = PREV.lock();
 
@@ -190,6 +186,5 @@ pub fn reconcile(node: Node) {
         },
     }
 }
-*/
 
 

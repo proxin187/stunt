@@ -1,7 +1,5 @@
 //! The state of each component is stored globally with each its own [`Identity`].
 
-// TODO: store the state under its path instead of identity
-
 use crate::component::BaseComponent;
 
 use std::sync::{Arc, LazyLock};
@@ -27,8 +25,9 @@ impl PathNode {
     }
 }
 
+/// Describes a path from root to an element.
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq)]
-pub(crate) struct Path {
+pub struct Path {
     nodes: Vec<PathNode>,
 }
 
@@ -45,6 +44,12 @@ impl Path {
         Path {
             nodes: self.nodes,
         }
+    }
+
+    pub(crate) fn selector(&self) -> String {
+        self.nodes.iter()
+            .map(|node| format!(":nth-child({}) > ", node.index))
+            .collect::<String>()
     }
 }
 

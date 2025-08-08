@@ -8,7 +8,6 @@ use quote::quote;
 
 use tags::{Intermediate, Tag};
 
-use std::sync::{LazyLock, Arc, Mutex};
 use std::iter::Peekable;
 
 
@@ -63,7 +62,7 @@ fn generate<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, is_root: boo
                 })
                 .unwrap_or_else(|| quote! {
                     ::stunt::component::tree::Tree::new(
-                        ::stunt::component::tree::ComponentRef::create_component::<#name<#(#generics),*>>(),
+                        ::stunt::component::tree::ComponentRef::create_component::<#name<#(#generics),*>>(String::from(#str_name)),
                         vec![#events],
                         vec![#attributes],
                         vec![#nodes],

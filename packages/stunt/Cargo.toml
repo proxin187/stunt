@@ -19,7 +19,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 stunt-macro = { path = "../stunt-macro", version = "0.1.0" }
 spin = "0.10.0"
 wasm-bindgen = "0.2.100"
-web-sys = { version = "0.3.77", features = ["Document", "HtmlElement", "Element", "Node", "Text", "Window", "console"] }
+web-sys = { version = "0.3.77", features = ["Document", "XPathResult", "HtmlElement", "Element", "Node", "Text", "Window", "console"] }
 itertools = "0.14.0"
 
 

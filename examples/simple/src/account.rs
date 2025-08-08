@@ -19,7 +19,7 @@ impl Component for Account {
 
     fn callback(&mut self, _: &()) {}
 
-    fn view(&self, ctx: Context, properties: AccountProperties) -> Tree {
+    fn view(&self, properties: AccountProperties) -> Tree {
         html! {
             <h1>
                 { format!("id: {}, name: {}", properties.id, properties.name) }

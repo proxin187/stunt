@@ -47,7 +47,7 @@ impl Component for App {
         }
     }
 
-    fn view(&self, ctx: Context, _properties: ()) -> Tree {
+    fn view(&self, _properties: ()) -> Tree {
         let theme = global::use_global(|theme: &mut Theme| theme.clone());
 
         html! {

@@ -65,10 +65,11 @@ pub(crate) fn render() {
     let root = state::get(&path);
     let lock = root.lock();
 
-    // TODO: finish the new path thingy
     let render = lock.base_view(AttrMap::from(Vec::new().into_iter())).render(PathBuilder::default(), 0);
 
-    // virtual_dom::reconcile(render);
+    web_sys::console::log_1(&format!("render: {:#?}", render).into());
+
+    virtual_dom::reconcile(render);
 }
 
 

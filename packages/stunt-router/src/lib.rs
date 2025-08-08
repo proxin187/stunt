@@ -30,7 +30,7 @@ impl Component for Router {
 
     fn callback(&mut self, _message: &()) {}
 
-    fn view(&self, ctx: Context, properties: RouteProperties) -> Tree {
+    fn view(&self, properties: RouteProperties) -> Tree {
         html! {
             { properties.children }
         }
@@ -59,7 +59,7 @@ impl<T: Component> Component for Switch<T> where T::Properties: Routable {
 
     fn callback(&mut self, _message: &()) {}
 
-    fn view(&self, ctx: Context, properties: SwitchProperties) -> Tree {
+    fn view(&self, properties: SwitchProperties) -> Tree {
         let pathname = web_sys::window()
             .expect("no window found")
             .location()
