@@ -52,7 +52,7 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
     /// Render the application
     pub fn render(self) {
-        state::get_or_insert(&Path::new(), || Arc::new(Mutex::new(T::create())));
+        state::get_or_insert(&Path::new(), || Arc::new(Mutex::new(T::create())), "root");
 
         render();
     }

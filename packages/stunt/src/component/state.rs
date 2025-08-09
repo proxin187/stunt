@@ -80,13 +80,16 @@ pub(crate) fn get(path: &Path) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
 #[inline]
 pub(crate) fn get_or_insert(
     path: &Path,
-    f: impl Fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>
+    f: impl Fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>,
+    name: &str,
 ) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
     let mut states = STATES.lock();
 
     match states.get(path) {
         Some(component) => component.clone(),
         None => {
+            web_sys::console::log_1(&format!("path: {}, name: {}", path, name).into());
+
             states.insert(path.clone(), (f)());
 
             states[&path].clone()

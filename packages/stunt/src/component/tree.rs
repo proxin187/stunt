@@ -106,8 +106,8 @@ impl ComponentRef {
         callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>
     ) -> Node {
         match self {
-            ComponentRef::Component { builder, .. } => {
-                state::get_or_insert(&path.real, builder)
+            ComponentRef::Component { builder, name } => {
+                state::get_or_insert(&path.real, builder, &name)
                     .lock()
                     .base_view(attributes)
                     .render(path.clone(), path.real, 0)
@@ -161,6 +161,8 @@ impl Children {
         }
     }
 
+    // Children should inherit the scope of the component they are described in, not the component
+    // they are used in
     fn render(self, path: PathBuilder, scope: Path) -> Vec<Node> {
         self.children.into_iter()
             .enumerate()
@@ -238,6 +240,7 @@ impl Tree {
     }
 
     pub(crate) fn render(mut self, path: PathBuilder, scope: Path, index: usize) -> Node {
+        // TODO: maybe we can do something with this?
         self.attributes.insert(String::from("children"), self.children);
 
         let path_node = self.component.path_node(index);
