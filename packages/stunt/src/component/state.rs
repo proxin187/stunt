@@ -1,10 +1,11 @@
-//! The state of each component is stored globally with each its own [`Identity`].
+//! The state of each component is stored globally under its [`Path`].
 
 use crate::component::BaseComponent;
 
 use std::sync::{Arc, LazyLock};
 use std::collections::HashMap;
 
+use wasm_bindgen::prelude::*;
 use spin::Mutex;
 
 static STATES: LazyLock<Arc<Mutex<HashMap<Path, Arc<Mutex<dyn BaseComponent + Send + Sync>>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
@@ -25,10 +26,21 @@ impl PathNode {
     }
 }
 
-/// Describes a path from root to an element.
+/// Describes a path from root to an element. This is used to build an XPath query during
+/// reconciliation.
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq)]
 pub struct Path {
     nodes: Vec<PathNode>,
+}
+
+impl std::fmt::Display for Path {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        let xpath = self.nodes.iter()
+            .map(|node| format!("/*[{}]", node.index + 1))
+            .collect::<String>();
+
+        f.write_str(&xpath)
+    }
 }
 
 impl Path {
@@ -46,10 +58,17 @@ impl Path {
         }
     }
 
-    pub(crate) fn selector(&self) -> String {
-        self.nodes.iter()
-            .map(|node| format!(":nth-child({}) > ", node.index))
-            .collect::<String>()
+    #[inline]
+    pub(crate) fn get_element_by_path(&self, document: &web_sys::Document) -> Result<web_sys::HtmlElement, JsValue> {
+        web_sys::console::log_1(&format!("xpath: {}", self).into());
+
+        let node = document.evaluate(&format!("/html/body{}", self), &document.get_root_node())?
+            .iterate_next()?
+            .ok_or(JsValue::from_str("failed to get node"))?;
+
+        node.dyn_ref::<web_sys::HtmlElement>()
+            .map(|element| element.clone())
+            .ok_or(JsValue::from_str("failed to cast"))
     }
 }
 

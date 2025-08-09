@@ -1,4 +1,5 @@
-use crate::component::state::{self, Path, PathNode};
+use crate::component::state::Path;
+use crate::component::state;
 use crate::render;
 
 use std::sync::{LazyLock, Arc};
@@ -68,6 +69,7 @@ pub struct Node {
     callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
     kind: Kind,
     path: Path,
+    scope: Path,
 }
 
 impl PartialEq for Node {
@@ -82,38 +84,46 @@ impl Default for Node {
             callbacks: Arc::new(Vec::new()),
             kind: Kind::Template(String::new()),
             path: Path::new(),
+            scope: Path::new(),
         }
     }
 }
 
 impl Node {
-    pub(crate) fn new(callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>, kind: Kind, path: Path) -> Node {
+    pub(crate) fn new(callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>, kind: Kind, path: Path, scope: Path) -> Node {
         Node {
             callbacks,
             kind,
             path,
+            scope,
         }
     }
 
     fn attach_listener(&self, document: &web_sys::Document, event: &str, cb: &Arc<dyn Any + Send + Sync>) {
-        if let Some(element) = document.get_element_by_id(&self.identity.render()) {
-            let identity = self.identity.clone();
+        if let Ok(element) = self.path.get_element_by_path(document) {
+            let scope = self.scope.clone();
             let cb = cb.clone();
 
             let closure = Closure::<dyn Fn()>::new(move || {
-                fn hook_callback(identity: &Identity, cb: &Arc<dyn Any + Send + Sync>) {
-                    let component = state::get(&identity.outer());
+                fn hook_callback(scope: &Path, cb: &Arc<dyn Any + Send + Sync>) {
+                    let component = state::get(&scope);
 
+                    web_sys::console::log_1(&format!("do we get here?").into());
+
+                    // TODO: the issue is inside base_callback
                     component.lock().base_callback(cb);
+
+                    web_sys::console::log_1(&format!("we return here").into());
                 }
 
-                hook_callback(&identity, &cb);
+                hook_callback(&scope, &cb);
 
-                render::render();
+                // TODO: the issue is not inside the renderer
+                // render::render();
             });
 
             if let Err(_) = element.add_event_listener_with_callback(&event, closure.as_ref().unchecked_ref()) {
-                web_sys::console::log_1(&format!("failed to set callback on id: {}", self.identity.render()).into());
+                web_sys::console::log_1(&format!("failed to set callback: {}", self.path).into());
             }
 
             closure.forget();
@@ -122,11 +132,11 @@ impl Node {
 
     fn passover(&self, document: &web_sys::Document) {
         match &self.kind {
-            Kind::Template(template) => if let Some(element) = document.get_element_by_id(&self.identity.render()) {
+            Kind::Template(template) => if let Ok(element) = self.path.get_element_by_path(document) {
                 let node = document.create_text_node(&template);
 
                 if let Err(_) = element.append_child(&node) {
-                    web_sys::console::log_1(&format!("failed to set template on id: {}", self.identity.render()).into());
+                    web_sys::console::log_1(&format!("failed to set template: {}", self.path).into());
                 }
             },
             _ => {},
@@ -141,28 +151,21 @@ impl Node {
         }
     }
 
-    pub fn reconcile(&self, other: &Node, document: &web_sys::Document, body: Option<web_sys::HtmlElement>) -> Result<(), JsValue> {
+    pub fn reconcile(&self, other: &Node, document: &web_sys::Document) -> Result<(), JsValue> {
         if self.kind.children() != other.kind.children() {
             let props = self.kind.children()
                 .iter()
                 .map(|prop| prop.kind.render())
                 .collect::<String>();
 
-            match body {
-                Some(body) => {
-                    body.set_inner_html(&props);
-                },
-                None => {
-                    let element = document.get_element_by_id(&self.identity.render()).ok_or(JsValue::from_str("failed to get element"))?;
+            let element = self.path.get_element_by_path(document)?;
 
-                    element.set_inner_html(&props);
-                },
-            }
+            element.set_inner_html(&props);
 
             self.passover(document);
         } else {
             for (a, b) in self.kind.children().iter().zip(other.kind.children().iter()) {
-                a.reconcile(&b, &document, None)?;
+                a.reconcile(&b, &document)?;
             }
         }
 
@@ -171,15 +174,14 @@ impl Node {
 }
 
 pub fn reconcile(node: Node) {
-    let vdom = Node::new(Arc::new(Vec::new()), Kind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Path::new());
+    let vdom = Node::new(Arc::new(Vec::new()), Kind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Path::new(), Path::new());
 
     let mut prev = PREV.lock();
 
     let window = web_sys::window().expect("no global window exists");
     let document = window.document().expect("should have a document on window");
-    let body = document.body().expect("document should have a body");
 
-    match vdom.reconcile(&*prev, &document, Some(body)) {
+    match vdom.reconcile(&*prev, &document) {
         Ok(()) => *prev = vdom,
         Err(err) => {
             web_sys::console::log_1(&format!("failed to reconcile: {:?}", err).into());
