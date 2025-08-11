@@ -106,6 +106,8 @@ impl Node {
 
             let closure = Closure::<dyn Fn()>::new(move || {
                 fn hook_callback(scope: &Path, cb: &Arc<dyn Any + Send + Sync>) {
+                    web_sys::console::log_1(&format!("do we fail here? scope: {:?}", scope).into());
+
                     let component = state::get(&scope);
 
                     web_sys::console::log_1(&format!("do we get here?").into());

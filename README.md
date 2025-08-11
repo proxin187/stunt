@@ -12,6 +12,9 @@
 <strong>stunt is a frontend web framework for developing reactive user interfaces with Rust.</strong>
 </div>
 
+> [!WARNING]
+> Currently the library is broken, this will be fixed within thursday
+
 ## Features
 
 * Macro for writing html with rust expressions, similar to that of JSX.

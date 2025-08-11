@@ -2,8 +2,10 @@
 
 pub mod state;
 pub mod tree;
+pub mod html;
 
-use tree::{Tree, AttrMap};
+use tree::AttrMap;
+use html::Html;
 
 use std::sync::Arc;
 use std::any::Any;
@@ -27,7 +29,7 @@ pub trait Component: Send + Sync + Sized + 'static {
     fn callback(&mut self, callback: &Self::Message);
 
     /// The view describes the layout of how your component is to be rendered in the DOM.
-    fn view(&self, properties: Self::Properties) -> Tree;
+    fn view(&self, properties: Self::Properties) -> Html;
 }
 
 /// The underlying low-level representation of a component within stunt.
@@ -41,7 +43,7 @@ pub trait BaseComponent {
     fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>);
 
     /// Low-level implementation of a view.
-    fn base_view(&self, attributes: AttrMap) -> Tree;
+    fn base_view(&self, attributes: AttrMap) -> Html;
 }
 
 impl<T: Component> BaseComponent for T {
