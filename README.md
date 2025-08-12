@@ -13,7 +13,7 @@
 </div>
 
 > [!WARNING]
-> Currently the library is broken, this will be fixed within thursday
+> Currently the library is broken, this will be fixed within thursday, the entire framework is essentially going through a large renovation
 
 ## Features
 

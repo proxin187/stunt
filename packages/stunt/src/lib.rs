@@ -71,7 +71,7 @@ pub mod prelude {
     //! Re-export of common types.
 
     pub use crate::component::{Component, Properties};
-    pub use crate::component::tree::{Tree, Children, AttrMap};
+    pub use crate::component::html::{Html, AttrMap};
     pub use crate::render::Renderer;
 
     /// The html macro implements html templating for Rust. A context under the identifier "ctx" must

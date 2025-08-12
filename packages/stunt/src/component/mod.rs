@@ -1,11 +1,9 @@
 //! This module contains everything related to components.
 
 pub mod state;
-pub mod tree;
 pub mod html;
 
-use tree::AttrMap;
-use html::Html;
+use html::{Html, AttrMap};
 
 use std::sync::Arc;
 use std::any::Any;
@@ -60,7 +58,7 @@ impl<T: Component> BaseComponent for T {
         T::callback(self, downcast.expect("invalid callback type"))
     }
 
-    fn base_view(&self, attributes: AttrMap) -> Tree { T::view(self, T::Properties::create(attributes)) }
+    fn base_view(&self, attributes: AttrMap) -> Html { T::view(self, T::Properties::create(attributes)) }
 }
 
 /// The Properties trait can be implemented on any Struct you wish to recieve as

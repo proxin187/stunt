@@ -26,8 +26,8 @@
 //! }
 //! ```
 
-use crate::component::tree::{AttrMap, PathBuilder};
-use crate::component::state::{self, Path};
+use crate::component::state::{self, Path, PathBuilder};
+use crate::component::html::AttrMap;
 use crate::component::Component;
 use crate::virtual_dom;
 
@@ -65,11 +65,13 @@ pub(crate) fn render() {
     let root = state::get(&path);
     let lock = root.lock();
 
+    /*
     let render = lock.base_view(AttrMap::from(Vec::new().into_iter())).render(PathBuilder::default(), Path::new(), 0);
 
     web_sys::console::log_1(&format!("render: {:#?}", render).into());
 
     virtual_dom::reconcile(render);
+    */
 }
 
 

@@ -8,27 +8,27 @@ use std::any::Any;
 use wasm_bindgen::prelude::*;
 use spin::Mutex;
 
-static PREV: LazyLock<Arc<Mutex<Node>>> = LazyLock::new(|| Arc::new(Mutex::new(Node::default())));
+static PREV: LazyLock<Arc<Mutex<VirtualNode>>> = LazyLock::new(|| Arc::new(Mutex::new(VirtualNode::default())));
 
 
 #[derive(Debug, PartialEq)]
-pub enum Kind {
+pub enum VirtualKind {
     Template(String),
     Element(VirtualElement),
 }
 
-impl Kind {
+impl VirtualKind {
     pub fn render(&self) -> String {
         match self {
-            Kind::Template(_) => String::from("<span></span>"),
-            Kind::Element(element) => element.render(),
+            VirtualKind::Template(_) => String::from("<span></span>"),
+            VirtualKind::Element(element) => element.render(),
         }
     }
 
-    pub fn children(&self) -> Arc<Vec<Node>> {
+    pub fn children(&self) -> Arc<Vec<VirtualNode>> {
         match self {
-            Kind::Template(_) => Arc::new(Vec::new()),
-            Kind::Element(element) => element.children.clone(),
+            VirtualKind::Template(_) => Arc::new(Vec::new()),
+            VirtualKind::Element(element) => element.children.clone(),
         }
     }
 }
@@ -37,7 +37,7 @@ impl Kind {
 pub struct VirtualElement {
     name: String,
     attributes: String,
-    children: Arc<Vec<Node>>,
+    children: Arc<Vec<VirtualNode>>,
 }
 
 impl PartialEq for VirtualElement {
@@ -47,7 +47,7 @@ impl PartialEq for VirtualElement {
 }
 
 impl VirtualElement {
-    pub fn new(name: String, attributes: String, children: Arc<Vec<Node>>) -> VirtualElement {
+    pub fn new(name: String, attributes: String, children: Arc<Vec<VirtualNode>>) -> VirtualElement {
         VirtualElement {
             name,
             attributes,
@@ -65,33 +65,33 @@ impl VirtualElement {
 }
 
 #[derive(Debug)]
-pub struct Node {
+pub struct VirtualNode {
     callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
-    kind: Kind,
+    kind: VirtualKind,
     path: Path,
     scope: Path,
 }
 
-impl PartialEq for Node {
-    fn eq(&self, other: &Node) -> bool {
+impl PartialEq for VirtualNode {
+    fn eq(&self, other: &VirtualNode) -> bool {
         self.kind == other.kind
     }
 }
 
-impl Default for Node {
-    fn default() -> Node {
-        Node {
+impl Default for VirtualNode {
+    fn default() -> VirtualNode {
+        VirtualNode {
             callbacks: Arc::new(Vec::new()),
-            kind: Kind::Template(String::new()),
+            kind: VirtualKind::Template(String::new()),
             path: Path::new(),
             scope: Path::new(),
         }
     }
 }
 
-impl Node {
-    pub(crate) fn new(callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>, kind: Kind, path: Path, scope: Path) -> Node {
-        Node {
+impl VirtualNode {
+    pub(crate) fn new(callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>, kind: VirtualKind, path: Path, scope: Path) -> VirtualNode {
+        VirtualNode {
             callbacks,
             kind,
             path,
@@ -134,7 +134,7 @@ impl Node {
 
     fn passover(&self, document: &web_sys::Document) {
         match &self.kind {
-            Kind::Template(template) => if let Ok(element) = self.path.get_element_by_path(document) {
+            VirtualKind::Template(template) => if let Ok(element) = self.path.get_element_by_path(document) {
                 let node = document.create_text_node(&template);
 
                 if let Err(_) = element.append_child(&node) {
@@ -153,7 +153,7 @@ impl Node {
         }
     }
 
-    pub fn reconcile(&self, other: &Node, document: &web_sys::Document) -> Result<(), JsValue> {
+    pub fn reconcile(&self, other: &VirtualNode, document: &web_sys::Document) -> Result<(), JsValue> {
         if self.kind.children() != other.kind.children() {
             let props = self.kind.children()
                 .iter()
@@ -175,8 +175,8 @@ impl Node {
     }
 }
 
-pub fn reconcile(node: Node) {
-    let vdom = Node::new(Arc::new(Vec::new()), Kind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Path::new(), Path::new());
+pub fn reconcile(node: VirtualNode) {
+    let vdom = VirtualNode::new(Arc::new(Vec::new()), VirtualKind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Path::new(), Path::new());
 
     let mut prev = PREV.lock();
 
