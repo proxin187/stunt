@@ -2,7 +2,7 @@ mod path;
 
 pub use stunt_router_macro::Routable;
 
-use stunt::component::tree::AttrValue;
+use stunt::component::html::{AttrValue, Children};
 
 use stunt::prelude::*;
 
@@ -30,7 +30,7 @@ impl Component for Router {
 
     fn callback(&mut self, _message: &()) {}
 
-    fn view(&self, properties: RouteProperties) -> Tree {
+    fn view(&self, properties: RouteProperties) -> Html {
         html! {
             { properties.children }
         }
@@ -58,7 +58,7 @@ impl<T: Component> Component for Switch<T> where T::Properties: Routable {
 
     fn callback(&mut self, _message: &()) {}
 
-    fn view(&self, properties: SwitchProperties) -> Tree {
+    fn view(&self, properties: SwitchProperties) -> Html {
         let pathname = web_sys::window()
             .expect("no window found")
             .location()

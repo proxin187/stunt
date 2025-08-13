@@ -1,6 +1,7 @@
 #![feature(proc_macro_diagnostic)]
 
 mod tags;
+mod ir;
 
 use proc_macro2::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Data, Fields};

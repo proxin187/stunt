@@ -26,8 +26,9 @@ impl PathNode {
     }
 }
 
+/// PathBuilder represents the path within the virtual dom and the real path
 #[derive(Debug, Clone, Default)]
-pub(crate) struct PathBuilder {
+pub struct PathBuilder {
     pub(crate) real: Path,
     pub(crate) virt: Path,
 }

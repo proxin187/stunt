@@ -1,6 +1,5 @@
 use crate::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
 
-// use crate::component::tree::{AttrMap, Element, Template};
 use crate::component::state::{Path, PathNode, PathBuilder};
 use crate::component::BaseComponent;
 
@@ -92,6 +91,32 @@ impl AttrMap {
     }
 }
 
+/// Represents the children of a node.
+#[derive(Clone, Default)]
+pub struct Children {
+    html: Html,
+    scope: Path,
+}
+
+impl std::fmt::Display for Children {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        f.write_str("children")
+    }
+}
+
+impl Children {
+    fn new(html: Html, scope: Path) -> Children {
+        Children {
+            html,
+            scope,
+        }
+    }
+
+    fn render(self, path: PathBuilder) -> VirtualNode {
+        self.html.render(self.scope, path)
+    }
+}
+
 /// Represents a html element.
 #[derive(Clone)]
 pub struct HtmlElement {
@@ -150,6 +175,7 @@ pub struct HtmlNode {
 }
 
 impl HtmlNode {
+    /// Create a new [`HtmlNode`]
     pub fn new(
         kind: HtmlKind,
         callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
@@ -163,7 +189,7 @@ impl HtmlNode {
     }
 }
 
-/// Reference to a [`HtmlNode`]
+/// Reference to a [`HtmlNode`] and its children
 #[derive(Clone)]
 pub struct NodeRef {
     index: usize,
@@ -171,6 +197,7 @@ pub struct NodeRef {
 }
 
 impl NodeRef {
+    /// Create a new [`NodeRef`]
     pub fn new(index: usize, children: Vec<NodeRef>) -> NodeRef {
         NodeRef {
             index,
@@ -178,7 +205,7 @@ impl NodeRef {
         }
     }
 
-    pub fn render(&self, scope: Path, path: PathBuilder, nodes: &[HtmlNode]) -> VirtualNode {
+    fn render(&self, scope: Path, path: PathBuilder, nodes: &[HtmlNode]) -> VirtualNode {
         // TODO: this might have to change so that it contains the children in a non-rendered state
         // instead
         /*
@@ -205,22 +232,22 @@ impl NodeRef {
 
 /// Html is a representation of the layout of a [`view`](Component::view). The Html struct stores
 /// all the children and the layout of the children.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Html {
     nodes: Vec<HtmlNode>,
-    layout: NodeRef,
+    layout: Vec<NodeRef>,
 }
 
 impl Html {
     /// Create a new Html tree
-    pub fn new(nodes: Vec<HtmlNode>, layout: NodeRef) -> Html {
+    pub fn new(nodes: Vec<HtmlNode>, layout: Vec<NodeRef>) -> Html {
         Html {
             nodes,
             layout,
         }
     }
 
-    pub fn render(self, scope: Path, path: PathBuilder) -> VirtualNode {
+    pub(crate) fn render(self, scope: Path, path: PathBuilder) -> VirtualNode {
         // TODO: here we will have to update the path
 
         // let node = self.nodes[self.layout.index].kind.path_node(index);

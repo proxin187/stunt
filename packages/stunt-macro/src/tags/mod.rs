@@ -12,6 +12,7 @@ mod keyword {
     syn::custom_keyword!(event);
 }
 
+#[derive(Clone)]
 pub struct Event {
     pub name: String,
     pub value: ExprBlock,
@@ -44,6 +45,7 @@ impl Event {
     }
 }
 
+#[derive(Clone)]
 pub enum Attribute {
     Multiple {
         expr: ExprBlock,
@@ -99,6 +101,7 @@ impl Attribute {
     }
 }
 
+#[derive(Clone)]
 pub struct OpenTag {
     pub name: Ident,
     pub generics: Vec<Type>,
