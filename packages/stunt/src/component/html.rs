@@ -1,7 +1,7 @@
 use crate::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
 
 use crate::component::state::{Path, PathNode, PathBuilder};
-use crate::component::BaseComponent;
+use crate::component::{Component, BaseComponent};
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -59,15 +59,15 @@ pub trait AttrValue: Any + std::fmt::Display {}
 impl<T: Any + std::fmt::Display> AttrValue for T {}
 
 /// Represents a map of attributes. Only a wrapper around HashMap.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct AttrMap {
     attributes: HashMap<String, Rc<dyn AttrValue>>,
 }
 
-impl<T: Iterator<Item = (String, Rc<dyn AttrValue>)>> From<T> for AttrMap {
+impl<T: Iterator<Item = Vec<(String, Rc<dyn AttrValue>)>>> From<T> for AttrMap {
     fn from(from: T) -> AttrMap {
         AttrMap {
-            attributes: from.into_iter().collect(),
+            attributes: from.into_iter().flatten().collect(),
         }
     }
 }
@@ -129,7 +129,7 @@ impl HtmlElement {
     pub fn new(name: String, attributes: Vec<Vec<(String, Rc<dyn AttrValue>)>>) -> HtmlElement {
         HtmlElement {
             name,
-            attributes: AttrMap::from(attributes.into_iter().flatten()),
+            attributes: AttrMap::from(attributes.into_iter()),
         }
     }
 }
@@ -154,6 +154,14 @@ pub enum HtmlKind {
 }
 
 impl HtmlKind {
+    /// Create a component of the generic type
+    pub fn create_component<T: Component + Send + Sync>(name: String) -> HtmlKind {
+        HtmlKind::Component {
+            builder: || Arc::new(Mutex::new(T::create())),
+            name,
+        }
+    }
+
     fn path_node(&self, index: usize) -> PathNode {
         match self {
             HtmlKind::Component { name, .. } => PathNode::new(index, name.clone()),
@@ -175,7 +183,7 @@ pub struct HtmlNode {
 }
 
 impl HtmlNode {
-    /// Create a new [`HtmlNode`]
+    /// Create a new [`HtmlNode`].
     pub fn new(
         kind: HtmlKind,
         callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
@@ -189,7 +197,7 @@ impl HtmlNode {
     }
 }
 
-/// Reference to a [`HtmlNode`] and its children
+/// Reference to a [`HtmlNode`] and its children.
 #[derive(Clone)]
 pub struct NodeRef {
     index: usize,

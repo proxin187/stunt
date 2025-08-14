@@ -5,6 +5,6 @@ edition = "2024"
 
 [dependencies]
 stunt = { path = "../../packages/stunt", version = "0.1.0" }
-stunt-router = { path = "../../packages/stunt-router", version = "0.1.0" }
+# stunt-router = { path = "../../packages/stunt-router", version = "0.1.0" }
 
 

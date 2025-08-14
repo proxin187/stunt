@@ -94,7 +94,7 @@ impl Attribute {
                 let value = value.clone();
 
                 quote! {
-                    vec![#[allow(unused_braces)](String::from(#name), std::rc::Rc::new(#value))],
+                    vec![#[allow(unused_braces)](String::from(#name), std::rc::Rc::new(#value) as std::rc::Rc<dyn ::stunt::component::html::AttrValue>)],
                 }
             },
         }

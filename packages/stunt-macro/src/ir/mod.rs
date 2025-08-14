@@ -2,13 +2,13 @@ use crate::tags::{Event, Attribute, Tag, OpenTag};
 
 use syn::{Ident, Type, ExprBlock};
 
-use proc_macro2::Span;
+use proc_macro2::{TokenStream, Span};
 
 use std::iter::Peekable;
 
 
 pub struct Template {
-    expr: ExprBlock,
+    pub expr: ExprBlock,
 }
 
 impl Template {
@@ -20,11 +20,11 @@ impl Template {
 }
 
 pub struct Node {
-    name: Ident,
-    events: Vec<Event>,
-    attributes: Vec<Attribute>,
-    generics: Vec<Type>,
-    children: Vec<Kind>,
+    pub name: Ident,
+    pub events: Vec<Event>,
+    pub attributes: Vec<Attribute>,
+    pub generics: Vec<Type>,
+    pub children: Vec<Kind>,
 }
 
 impl Default for Node {
@@ -62,7 +62,7 @@ impl Node {
                 _ => {
                     let ir = Ir::new(tags);
 
-                    children.extend(ir.nodes)
+                    children.extend(ir.nodes);
                 },
             }
         }
@@ -83,27 +83,26 @@ pub enum Kind {
 }
 
 pub struct Ir {
-    nodes: Vec<Kind>,
+    pub nodes: Vec<Kind>,
 }
 
 impl Ir {
-    fn new<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>) -> Ir {
+    pub fn new<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>) -> Ir {
         let mut nodes: Vec<Kind> = Vec::new();
 
-        while let Some(tag) = tags.next() {
-            match tag {
-                Tag::OpenTag(open) => {
-                    nodes.push(Kind::Node(Node::new(tags, open.clone())));
-                },
-                Tag::Template(template) => {
-                    nodes.push(Kind::Template(Template::new(template.value.clone())));
-                },
-                _ => {
-                    tag.span()
-                        .error("expected an open tag or template")
-                        .emit();
-                },
-            }
+        match tags.next() {
+            Some(Tag::OpenTag(open)) => {
+                nodes.push(Kind::Node(Node::new(tags, open.clone())));
+            },
+            Some(Tag::Template(template)) => {
+                nodes.push(Kind::Template(Template::new(template.value.clone())));
+            },
+            Some(tag) => {
+                tag.span()
+                    .error("expected an open tag or template")
+                    .emit();
+            },
+            None => {},
         }
 
         Ir {
