@@ -1,6 +1,6 @@
 use crate::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
 
-use crate::component::state::{Path, PathNode, PathBuilder};
+use crate::component::state::{self, Path, PathNode, PathBuilder};
 use crate::component::{Component, BaseComponent};
 
 use std::collections::HashMap;
@@ -26,11 +26,11 @@ impl_t!(&str, String, usize, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8, 
 /// For the time being this trait is not supposed to be implemented outside the framework.
 pub trait Template {
     /// Render the template into the virtual dom
-    fn template(&self, path: PathBuilder, scope: Path) -> VirtualKind;
+    fn render(&self, path: PathBuilder, scope: Path) -> VirtualKind;
 }
 
 impl<T: std::fmt::Display + NonTreeTemplate + Clone> Template for T {
-    fn template(&self, _: PathBuilder, _: Path) -> VirtualKind {
+    fn render(&self, _: PathBuilder, _: Path) -> VirtualKind {
         VirtualKind::Template(format!("{}", self))
     }
 }
@@ -170,7 +170,33 @@ impl HtmlKind {
         }
     }
 
-    fn render(&self) {
+    // TODO: maybe we should pass the children through here?
+    fn render(
+        &self,
+        path: PathBuilder,
+        scope: Path,
+        attributes: AttrMap,
+        callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
+    ) -> VirtualNode {
+        match self {
+            HtmlKind::Component { builder, name } => {
+                state::get_or_insert(&path.real, builder, &name)
+                    .lock()
+                    .base_view(attributes)
+                    .render(scope, path)
+            },
+            HtmlKind::Template(template) => {
+                VirtualNode::new(callbacks, template.render(path.clone(), scope.clone()), path.virt, scope)
+            },
+            HtmlKind::Element(element) => {
+                VirtualNode::new(
+                    callbacks,
+                    VirtualKind::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), Arc::new())),
+                    path.virt,
+                    scope,
+                )
+            },
+        }
     }
 }
 
@@ -226,15 +252,11 @@ impl NodeRef {
 
         // node.insert(String::from("children"), Children::new(self.children, scope.clone()));
 
-        /*
         if let HtmlKind::Component { .. } = nodes[self.index].kind {
             nodes[self.index].kind.render(PathBuilder::new(path.real.concat(path_node), path.virt), scope, self.attributes, self.callbacks)
         } else {
             self.kind.render(PathBuilder::new(path.real.concat(path_node.clone()), path.virt.concat(path_node)), scope, self.attributes, self.callbacks)
         }
-        */
-
-        todo!()
     }
 }
 
@@ -256,12 +278,14 @@ impl Html {
     }
 
     pub(crate) fn render(self, scope: Path, path: PathBuilder) -> VirtualNode {
-        // TODO: here we will have to update the path
+        // TODO: the scope shouldnt be accepted as an argument here, rather the scope should be
+        // derived from the path
 
-        // let node = self.nodes[self.layout.index].kind.path_node(index);
+        // TODO: here we will have to update the scope
 
-        // self.layout.render(scope.concat(node), &self.nodes)
-        todo!()
+        let path_node = self.nodes[self.layout[0].index].kind.path_node(0);
+
+        self.layout[0].render(scope.concat(path_node), path, &self.nodes)
     }
 }
 
