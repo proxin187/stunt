@@ -15,13 +15,16 @@ impl HtmlBuilder {
         }
     }
 
-    fn build_nodes(&mut self, nodes: &[Kind]) {
+    fn build_nodes(&mut self, nodes: &[Kind]) -> TokenStream {
+        let mut layout: Vec<TokenStream> = Vec::new();
+
         for kind in nodes.iter() {
             match kind {
                 Kind::Node(node) => {
                     let name = &node.name;
                     let str_name = name.to_string();
                     let generics = &node.generics;
+                    let index = self.nodes.len();
 
                     let events = node.events.iter()
                         .map(|event| event.tokens())
@@ -49,10 +52,18 @@ impl HtmlBuilder {
                         });
                     }
 
-                    self.build_nodes(&node.children);
+                    let children = self.build_nodes(&node.children);
+
+                    layout.push(quote! {
+                        ::stunt::component::html::NodeRef::new(
+                            #index,
+                            #children,
+                        )
+                    });
                 },
                 Kind::Template(template) => {
                     let block = &template.expr;
+                    let index = self.nodes.len();
 
                     self.nodes.push(quote! {
                         ::stunt::component::html::HtmlNode::new(
@@ -62,9 +73,18 @@ impl HtmlBuilder {
                             ::stunt::component::html::AttrMap::default(),
                         )
                     });
+
+                    layout.push(quote! {
+                        ::stunt::component::html::NodeRef::new(
+                            #index,
+                            std::vec::Vec::new(),
+                        )
+                    });
                 },
             }
         }
+
+        quote! { std::vec![#(#layout),*] }
     }
 
     pub fn build(&mut self, ir: Ir) -> TokenStream {
@@ -74,7 +94,7 @@ impl HtmlBuilder {
         quote! {
             ::stunt::component::html::Html::new(
                 std::vec![#(#nodes),*],
-                std::vec![],
+                #layout,
             )
         }
     }

@@ -198,7 +198,7 @@ impl HtmlNode {
 }
 
 /// Reference to a [`HtmlNode`] and its children.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct NodeRef {
     index: usize,
     children: Vec<NodeRef>,
