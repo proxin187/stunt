@@ -93,7 +93,7 @@ impl HtmlBuilder {
 
         quote! {
             ::stunt::component::html::Html::new(
-                std::vec![#(#nodes),*],
+                std::rc::Rc::new(std::vec![#(#nodes),*]),
                 #layout,
             )
         }

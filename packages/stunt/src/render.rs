@@ -52,7 +52,7 @@ impl<T: Component + Send + Sync + 'static> Renderer<T> {
 
     /// Render the application
     pub fn render(self) {
-        state::get_or_insert(&Path::new(), || Arc::new(Mutex::new(T::create())), "root");
+        state::get_or_insert(&Path::new(), || Arc::new(Mutex::new(T::create())));
 
         render();
     }
@@ -65,11 +65,11 @@ pub(crate) fn render() {
     let root = state::get(&path);
     let lock = root.lock();
 
-    let render = lock.base_view(AttrMap::from(Vec::new().into_iter())).render(Path::new(), PathBuilder::default());
+    let render = lock.base_view(AttrMap::from(Vec::new().into_iter())).render(PathBuilder::default());
 
     web_sys::console::log_1(&format!("render: {:#?}", render).into());
 
-    // virtual_dom::reconcile(render);
+    virtual_dom::reconcile(render[0].clone());
 }
 
 

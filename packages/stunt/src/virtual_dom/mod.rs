@@ -11,7 +11,7 @@ use spin::Mutex;
 static PREV: LazyLock<Arc<Mutex<VirtualNode>>> = LazyLock::new(|| Arc::new(Mutex::new(VirtualNode::default())));
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum VirtualKind {
     Template(String),
     Element(VirtualElement),
@@ -33,7 +33,7 @@ impl VirtualKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VirtualElement {
     name: String,
     attributes: String,
@@ -64,7 +64,7 @@ impl VirtualElement {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VirtualNode {
     callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
     kind: VirtualKind,
@@ -106,22 +106,14 @@ impl VirtualNode {
 
             let closure = Closure::<dyn Fn()>::new(move || {
                 fn hook_callback(scope: &Path, cb: &Arc<dyn Any + Send + Sync>) {
-                    web_sys::console::log_1(&format!("do we fail here? scope: {:?}", scope).into());
-
                     let component = state::get(&scope);
 
-                    web_sys::console::log_1(&format!("do we get here?").into());
-
-                    // TODO: the issue is inside base_callback
                     component.lock().base_callback(cb);
-
-                    web_sys::console::log_1(&format!("we return here").into());
                 }
 
                 hook_callback(&scope, &cb);
 
-                // TODO: the issue is not inside the renderer
-                // render::render();
+                render::render();
             });
 
             if let Err(_) = element.add_event_listener_with_callback(&event, closure.as_ref().unchecked_ref()) {

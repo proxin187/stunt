@@ -76,8 +76,6 @@ impl Path {
 
     #[inline]
     pub(crate) fn get_element_by_path(&self, document: &web_sys::Document) -> Result<web_sys::HtmlElement, JsValue> {
-        web_sys::console::log_1(&format!("xpath: {}", self).into());
-
         let node = document.evaluate(&format!("/html/body{}", self), &document.get_root_node())?
             .iterate_next()?
             .ok_or(JsValue::from_str("failed to get node"))?;
@@ -97,15 +95,12 @@ pub(crate) fn get(path: &Path) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
 pub(crate) fn get_or_insert(
     path: &Path,
     f: impl Fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>,
-    name: &str,
 ) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
     let mut states = STATES.lock();
 
     match states.get(path) {
         Some(component) => component.clone(),
         None => {
-            web_sys::console::log_1(&format!("path: {}, name: {}", path, name).into());
-
             states.insert(path.clone(), (f)());
 
             states[&path].clone()

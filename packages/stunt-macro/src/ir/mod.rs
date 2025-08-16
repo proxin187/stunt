@@ -2,7 +2,7 @@ use crate::tags::{Event, Attribute, Tag, OpenTag};
 
 use syn::{Ident, Type, ExprBlock};
 
-use proc_macro2::{TokenStream, Span};
+use proc_macro2::Span;
 
 use std::iter::Peekable;
 

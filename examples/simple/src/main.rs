@@ -31,7 +31,7 @@ impl Component for App {
     fn callback(&mut self, message: &Message) {
         match message {
             Message::Add => {
-                self.count += 2;
+                self.count += 1;
 
                 global::use_global(|theme: &mut Theme| {
                     match theme.state {

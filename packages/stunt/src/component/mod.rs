@@ -46,16 +46,7 @@ pub trait BaseComponent {
 
 impl<T: Component> BaseComponent for T {
     fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>) {
-        // TODO: the reason we are getting none is because we are most likely trying on the wrong
-        // component, so instead of getting a () it gets a Message
-        //
-        // the callback gets called on the Router instead of root
-
-        let downcast = callback.downcast_ref();
-
-        web_sys::console::log_1(&format!("downcast: {:?}", downcast.is_some()).into());
-
-        T::callback(self, downcast.expect("invalid callback type"))
+        T::callback(self, callback.downcast_ref().expect("invalid callback type"))
     }
 
     fn base_view(&self, attributes: AttrMap) -> Html { T::view(self, T::Properties::create(attributes)) }
