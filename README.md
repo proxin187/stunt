@@ -56,7 +56,7 @@ impl Component for App {
         }
     }
 
-    fn view(&self, ctx: Context, _properties: ()) -> Tree {
+    fn view(&self, _properties: ()) -> Tree {
         html! {
             <div>
                 <button onclick={ Message::Add } >
