@@ -1,5 +1,7 @@
 //! The basic building blocks for building Html. This module is mostly used by macros.
 
+// TODO: we should just create the virtual path inside the virtual dom instead of here
+
 use crate::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
 
 use crate::component::state::{self, Path, PathNode, PathBuilder};
@@ -22,36 +24,78 @@ macro_rules! impl_t {
 
 impl_t!(&str, String, usize, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8, f64, f32);
 
+/// Represents the kind of the template
+pub enum TemplateKind {
+    /// A result of a single virtual node kind
+    Kind(VirtualKind),
+
+    /// A result of multiple nodes
+    Nodes(Vec<VirtualNode>),
+}
+
+impl TemplateKind {
+    fn nodes(self, path: PathBuilder, scope: Path, callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>) -> Vec<VirtualNode> {
+        match self {
+            TemplateKind::Kind(kind) => vec![VirtualNode::new(callbacks, kind, path.virt, scope)],
+            TemplateKind::Nodes(nodes) => nodes,
+        }
+    }
+}
+
+/// Represents the result of a template.
+pub struct TemplateResult {
+    kinds: Vec<TemplateKind>,
+    display: bool,
+}
+
+impl TemplateResult {
+    /// Create a new template result
+    pub fn new(kinds: Vec<TemplateKind>, display: bool) -> TemplateResult {
+        TemplateResult {
+            kinds,
+            display,
+        }
+    }
+
+    fn next_path(&self, path: PathBuilder, child_index: usize) -> PathBuilder {
+        let node = PathNode::new(child_index, String::from("element"));
+
+        if self.display {
+            PathBuilder::new(path.real.concat(node.clone()), path.virt.concat(node))
+        } else {
+            PathBuilder::new(path.real.concat(node.clone()), path.virt.concat(node))
+        }
+    }
+}
+
 /// The template trait allows a type to be used as a template.
 ///
 /// ## Warning
 /// For the time being this trait is not supposed to be implemented outside the framework.
 pub trait Template {
-    /// Render the template into the virtual dom
-    fn render(&self, path: PathBuilder, scope: Path) -> VirtualKind;
+    /// Render the template into the virtual dom.
+    fn template(&self, path: PathBuilder, scope: Path) -> TemplateResult;
 }
 
 impl<T: std::fmt::Display + NonTreeTemplate + Clone> Template for T {
-    fn render(&self, _: PathBuilder, _: Path) -> VirtualKind {
-        VirtualKind::Template(format!("{}", self))
+    fn template(&self, _: PathBuilder, _: Path) -> TemplateResult {
+        TemplateResult::new(vec![TemplateKind::Kind(VirtualKind::Template(format!("{}", self)))], true)
     }
 }
 
-/*
 impl Template for Children {
-    fn template(&self, path: PathBuilder, _: Path) -> Kind {
-        Kind::Element(VirtualElement::new(String::from("span"), String::new(), Arc::new(self.clone().render(path))))
+    fn template(&self, path: PathBuilder, _: Path) -> TemplateResult {
+        TemplateResult::new(vec![TemplateKind::Nodes(self.clone().render(path))], false)
     }
 }
 
-impl Template for Vec<Tree> {
-    fn template(&self, path: PathBuilder, scope: Path) -> Kind {
-        let children = Children::new(self.clone(), scope);
+impl Template for Html {
+    fn template(&self, path: PathBuilder, scope: Path) -> TemplateResult {
+        let children = Children::new(self.nodes.clone(), self.refs.clone(), scope);
 
         children.template(path, Path::new())
     }
 }
-*/
 
 /// The AttrValue trait represents a value in an attribute.
 ///
@@ -97,7 +141,7 @@ impl AttrMap {
 #[derive(Clone, Default)]
 pub struct Children {
     nodes: Rc<Vec<HtmlNode>>,
-    layout: Vec<NodeRef>,
+    refs: Rc<Vec<NodeRef>>,
     scope: Path,
 }
 
@@ -108,18 +152,18 @@ impl std::fmt::Display for Children {
 }
 
 impl Children {
-    fn new(nodes: Rc<Vec<HtmlNode>>, layout: Vec<NodeRef>, scope: Path) -> Children {
+    fn new(nodes: Rc<Vec<HtmlNode>>, refs: Rc<Vec<NodeRef>>, scope: Path) -> Children {
         Children {
             nodes,
-            layout,
+            refs,
             scope,
         }
     }
 
     fn render(self, path: PathBuilder) -> Vec<VirtualNode> {
-        self.layout.iter()
+        self.refs.iter()
             .enumerate()
-            .flat_map(|(child_index, layout)| layout.render(self.scope.clone(), path.clone(), self.nodes.clone(), child_index))
+            .flat_map(|(child_index, node_ref)| self.nodes[node_ref.index].render(self.scope.clone(), path.clone(), self.nodes.clone(), node_ref.refs.clone(), child_index))
             .collect::<Vec<VirtualNode>>()
     }
 }
@@ -169,19 +213,6 @@ impl HtmlKind {
         }
     }
 
-    fn next_path(&self, path: PathBuilder, index: usize) -> PathBuilder {
-        match self {
-            HtmlKind::Component { name, .. } => {
-                PathBuilder::new(path.real.concat(PathNode::new(index, name.clone())), path.virt)
-            },
-            HtmlKind::Template(_) | HtmlKind::Element(_) => {
-                let node = PathNode::new(index, String::from("other"));
-
-                PathBuilder::new(path.real.concat(node.clone()), path.virt.concat(node))
-            },
-        }
-    }
-
     fn render(
         &self,
         path: PathBuilder,
@@ -189,18 +220,31 @@ impl HtmlKind {
         attributes: AttrMap,
         callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
         children: Children,
+        child_index: usize,
     ) -> Vec<VirtualNode> {
         match self {
-            HtmlKind::Component { builder, .. } => {
+            HtmlKind::Component { builder, name } => {
+                let path = PathBuilder::new(path.real.concat(PathNode::new(child_index, name.clone())), path.virt);
+
                 state::get_or_insert(&path.real, builder)
                     .lock()
                     .base_view(attributes)
                     .render(path)
             },
-            HtmlKind::Template(template) => {
-                vec![VirtualNode::new(callbacks, template.render(path.clone(), scope.clone()), path.virt, scope)]
+            HtmlKind::Template(templates) => {
+                let result = templates.template(path.clone(), scope.clone());
+
+                let path = result.next_path(path, child_index);
+
+                result.kinds.into_iter()
+                    .flat_map(|template| template.nodes(path.clone(), scope.clone(), callbacks.clone()))
+                    .collect::<Vec<VirtualNode>>()
             },
             HtmlKind::Element(element) => {
+                let node = PathNode::new(child_index, String::from("element"));
+
+                let path = PathBuilder::new(path.real.concat(node.clone()), path.virt.concat(node));
+
                 vec![VirtualNode::new(
                     callbacks,
                     VirtualKind::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), Arc::new(children.render(path.clone())))),
@@ -233,66 +277,54 @@ impl HtmlNode {
             attributes,
         }
     }
+
+    fn render(&self, scope: Path, path: PathBuilder, nodes: Rc<Vec<HtmlNode>>, refs: Rc<Vec<NodeRef>>, child_index: usize) -> Vec<VirtualNode> {
+        let mut attributes = self.attributes.clone();
+
+        attributes.insert(String::from("children"), Children::new(nodes.clone(), refs.clone(), scope.clone()));
+
+        self.kind.render(path, scope.clone(), attributes, self.callbacks.clone(), Children::new(nodes, refs, scope), child_index)
+    }
 }
 
 /// Reference to a [`HtmlNode`] and its children.
 #[derive(Clone, Default)]
 pub struct NodeRef {
     index: usize,
-    children: Vec<NodeRef>,
+    refs: Rc<Vec<NodeRef>>,
 }
 
 impl NodeRef {
     /// Create a new [`NodeRef`].
-    pub fn new(index: usize, children: Vec<NodeRef>) -> NodeRef {
+    pub fn new(index: usize, refs: Rc<Vec<NodeRef>>) -> NodeRef {
         NodeRef {
             index,
-            children,
+            refs,
         }
-    }
-
-    fn render(&self, scope: Path, path: PathBuilder, nodes: Rc<Vec<HtmlNode>>, child_index: usize) -> Vec<VirtualNode> {
-        // TODO: this might have to change so that it contains the children in a non-rendered state
-        // instead
-        /*
-        let children = self.children.iter()
-            .map(|child| child.render(scope.clone(), path.clone(), nodes))
-            .collect::<Vec<VirtualNode>>();
-        */
-
-        // node.insert(String::from("children"), Children::new(self.children, scope.clone()));
-
-        nodes[self.index].kind.render(
-            nodes[self.index].kind.next_path(path, child_index),
-            scope.clone(),
-            nodes[self.index].attributes.clone(),
-            nodes[self.index].callbacks.clone(),
-            Children::new(nodes.clone(), self.children.clone(), scope)
-        )
     }
 }
 
 /// Html is returned from [`view`](Component::view). The Html struct stores
-/// all the nodes and the layout of the nodes.
+/// all the nodes and the references to the nodes that describe how they are layed out.
 #[derive(Clone, Default)]
 pub struct Html {
     nodes: Rc<Vec<HtmlNode>>,
-    layout: Vec<NodeRef>,
+    refs: Rc<Vec<NodeRef>>,
 }
 
 impl Html {
     /// Create a new Html tree
-    pub fn new(nodes: Rc<Vec<HtmlNode>>, layout: Vec<NodeRef>) -> Html {
+    pub fn new(nodes: Rc<Vec<HtmlNode>>, refs: Rc<Vec<NodeRef>>) -> Html {
         Html {
             nodes: nodes,
-            layout,
+            refs,
         }
     }
 
     pub(crate) fn render(self, path: PathBuilder) -> Vec<VirtualNode> {
-        self.layout.iter()
+        self.refs.iter()
             .enumerate()
-            .flat_map(|(child_index, layout)| layout.render(path.real.clone(), path.clone(), self.nodes.clone(), child_index))
+            .flat_map(|(child_index, node_ref)| self.nodes[node_ref.index].render(path.real.clone(), path.clone(), self.nodes.clone(), node_ref.refs.clone(), child_index))
             .collect::<Vec<VirtualNode>>()
     }
 }

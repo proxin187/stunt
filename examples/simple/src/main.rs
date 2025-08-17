@@ -1,13 +1,13 @@
-// mod account;
+mod account;
 mod theme;
 
 use theme::{Theme, ThemeState};
-// use account::Account;
+use account::Account;
 
 use stunt::prelude::*;
 use stunt::global;
 
-// use stunt_router::{Router, Switch};
+use stunt_router::{Router, Switch};
 
 
 pub enum Message {
@@ -50,13 +50,18 @@ impl Component for App {
     fn view(&self, _properties: ()) -> Html {
         let theme = global::use_global(|theme: &mut Theme| theme.clone());
 
+        // TODO: there is added a virtual path for the component when there should be none
         html! {
             <div>
-                { "<script>alert(1);</script>" }
-                <button class={ "btn" } onclick={ Message::Add } >
-                    { "increment" }
-                </button>
-                { format!("count: {}", self.count) }
+                { "test here" }
+
+                <Router>
+                    { "<script>alert(1);</script>" }
+                    <button class={ "btn" } onclick={ Message::Add } >
+                        { "increment" }
+                    </button>
+                    { format!("count: {}", self.count) }
+                </Router>
             </div>
         }
     }

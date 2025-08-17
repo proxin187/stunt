@@ -57,7 +57,7 @@ impl HtmlBuilder {
                     layout.push(quote! {
                         ::stunt::component::html::NodeRef::new(
                             #index,
-                            #children,
+                            std::rc::Rc::new(#children),
                         )
                     });
                 },
@@ -77,7 +77,7 @@ impl HtmlBuilder {
                     layout.push(quote! {
                         ::stunt::component::html::NodeRef::new(
                             #index,
-                            std::vec::Vec::new(),
+                            std::rc::Rc::new(std::vec::Vec::new()),
                         )
                     });
                 },
@@ -94,7 +94,7 @@ impl HtmlBuilder {
         quote! {
             ::stunt::component::html::Html::new(
                 std::rc::Rc::new(std::vec![#(#nodes),*]),
-                #layout,
+                std::rc::Rc::new(#layout),
             )
         }
     }
