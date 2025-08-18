@@ -77,8 +77,8 @@ pub mod prelude {
     /// The html macro implements html templating for Rust. A context under the identifier "ctx" must
     /// be in scope of the macro, or else it will return a compile time error.
     ///
-    /// This macro returns a [`tree`](crate::component::tree::Tree) and should always be the
-    /// prefered method for creating a [`tree`](crate::component::tree::Tree).
+    /// This macro returns a [`html`](crate::component::html::Html) and should always be the
+    /// prefered method for creating a [`html`](crate::component::html::Html).
     ///
     /// ## Syntax
     /// The syntax is similar to JSX.

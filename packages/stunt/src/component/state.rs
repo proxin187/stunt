@@ -26,22 +26,6 @@ impl PathNode {
     }
 }
 
-/// PathBuilder represents the path within the virtual dom and the real path
-#[derive(Debug, Clone, Default)]
-pub struct PathBuilder {
-    pub(crate) real: Path,
-    pub(crate) virt: Path,
-}
-
-impl PathBuilder {
-    pub(crate) fn new(real: Path, virt: Path) -> PathBuilder {
-        PathBuilder {
-            real,
-            virt,
-        }
-    }
-}
-
 /// Describes a path from root to an element. This is used to build an XPath query during
 /// reconciliation.
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq)]
