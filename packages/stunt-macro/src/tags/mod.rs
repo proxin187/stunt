@@ -8,10 +8,6 @@ use proc_macro::Span;
 use quote::quote;
 
 
-mod keyword {
-    syn::custom_keyword!(event);
-}
-
 #[derive(Clone)]
 pub struct Event {
     pub name: String,
