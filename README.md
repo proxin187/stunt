@@ -1,11 +1,15 @@
 
 <div align="center">
 <br>
+<a href="https://github.com/proxin187/stunt">
+    <img src="assets/logo.png" width="400">
+</a>
+<br>
 
-[![crates.io](https://img.shields.io/badge/crates.io-stunt-red?style=flat-square&logo=none)](https://crates.io/crates/stunt)
-[![docs.rs](https://img.shields.io/badge/docs.rs-stunt-green?style=flat-square&logo=none)](https://docs.rs/stunt)
-![GitHub License](https://img.shields.io/badge/license-MIT-red?style=flat-square&logo=none)
-![dependencies](https://deps.rs/repo/github/proxin187/stunt/status.svg?style=flat-square)
+[![crates.io](https://img.shields.io/badge/crates.io-stunt-red?style=for-the-badge&logo=none)](https://crates.io/crates/stunt)
+[![docs.rs](https://img.shields.io/badge/docs.rs-stunt-green?style=for-the-badge&logo=none)](https://docs.rs/stunt)
+![GitHub License](https://img.shields.io/badge/license-MIT-red?style=for-the-badge&logo=none)
+![dependencies](https://deps.rs/repo/github/proxin187/stunt/status.svg?style=for-the-badge)
 
 <br>
 
@@ -25,6 +29,18 @@
 - [x] Router implementation
 - [ ] Webworker integration
 - [ ] Full Documentation
+
+## Usage
+This crate is on [crates.io](https://crates.io/crates/stunt) and can be added either through
+adding `stunt` to your dependencies in `Cargo.toml`:
+```toml
+[dependencies]
+stunt = "0.1.1"
+```
+Or running the following Cargo command in your project directory:
+```bash
+cargo add stunt
+```
 
 ## Example
 ```rust

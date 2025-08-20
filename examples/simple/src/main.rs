@@ -53,6 +53,7 @@ impl Component for App {
         html! {
             <Router>
                 <Switch<Account> path={ "/settings/account/:id/:name" }></Switch>
+                <Switch<Account> path={ "/settings/account/:id/:name" }></Switch>
             </Router>
         }
     }
