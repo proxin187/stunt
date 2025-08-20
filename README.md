@@ -11,7 +11,6 @@
 [![crates.io](https://img.shields.io/badge/crates.io-stunt-red?style=for-the-badge&logo=none)](https://crates.io/crates/stunt)
 [![docs.rs](https://img.shields.io/badge/docs.rs-stunt-green?style=for-the-badge&logo=none)](https://docs.rs/stunt)
 ![GitHub License](https://img.shields.io/badge/license-MIT-red?style=for-the-badge&logo=none)
-![dependencies](https://deps.rs/crate/stunt/0.1.0/status.svg?style=for-the-badge)
 
 <br>
 
