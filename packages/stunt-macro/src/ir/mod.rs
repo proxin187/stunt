@@ -30,7 +30,7 @@ pub struct Node {
 impl Default for Node {
     fn default() -> Node {
         Node {
-            name: Ident::new("", Span::call_site()),
+            name: Ident::new("ident", Span::call_site()),
             events: Vec::default(),
             attributes: Vec::default(),
             generics: Vec::default(),
