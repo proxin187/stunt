@@ -41,14 +41,14 @@
 //!         }
 //!     }
 //!
-//!     fn view(&self, _properties: ()) -> Html {
+//!     fn view(&self, _: ()) -> Html {
 //!         html! {
 //!             <div>
 //!                 <button onclick={ Message::Add } >
 //!                     { "increment" }
 //!                 </button>
 //!                 <h1>
-//!                     { format!("count: {}", self.count) }
+//!                     { self.count }
 //!                 </h1>
 //!             </div>
 //!         }
@@ -61,6 +61,7 @@
 //! ```
 
 pub mod component;
+pub mod console;
 pub mod render;
 pub mod global;
 mod virtual_dom;
@@ -74,14 +75,10 @@ pub mod prelude {
     pub use crate::component::html::{Html, AttrMap};
     pub use crate::render::Renderer;
 
-    /// The html macro implements html templating for Rust. A context under the identifier "ctx" must
-    /// be in scope of the macro, or else it will return a compile time error.
+    /// The html macro implements html templating for Rust.
     ///
-    /// This macro returns a [`html`](crate::component::html::Html) and should always be the
-    /// prefered method for creating a [`html`](crate::component::html::Html).
-    ///
-    /// ## Syntax
-    /// The syntax is similar to JSX.
+    /// This macro returns [`Html`](crate::component::html::Html) and should always be the
+    /// prefered method for creating [`Html`](crate::component::html::Html).
     ///
     /// ### Attributes
     /// ```rust,no_run
@@ -184,11 +181,9 @@ pub mod prelude {
     /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
     /// html! {
     ///     {
-    ///         Children::new(vec![
-    ///             html! {
-    ///                 { "you can also use Children as a template" }
-    ///             }
-    ///         ])
+    ///         html! {
+    ///             { "you can also use nested html as a template" }
+    ///         }
     ///     }
     /// }
     /// #     }

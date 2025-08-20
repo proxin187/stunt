@@ -20,7 +20,7 @@
 ## Features
 
 * Macro for writing html with rust expressions, similar to that of JSX.
-* Highly extensible [components](#component).
+* Highly extensible components with support for passing down properties.
 * Use any build tool you like eg. [trunk](https://trunkrs.dev/).
 * Multiple ways to manage the state of your application.
 
@@ -29,7 +29,7 @@
 - [x] Optimized DOM api calls
 - [x] Router implementation
 - [ ] Webworker integration
-- [ ] Full Documentation
+- [ ] Support for desktop and mobile.
 
 ## Usage
 This crate is on [crates.io](https://crates.io/crates/stunt) and can be added either through
@@ -73,14 +73,14 @@ impl Component for App {
         }
     }
 
-    fn view(&self, _properties: ()) -> Html {
+    fn view(&self, _: ()) -> Html {
         html! {
             <div>
                 <button onclick={ Message::Add } >
                     { "increment" }
                 </button>
                 <h1>
-                    { format!("count: {}", self.count) }
+                    { self.count }
                 </h1>
             </div>
         }

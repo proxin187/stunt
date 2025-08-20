@@ -131,7 +131,7 @@ impl VirtualNode {
                 let node = document.create_text_node(&template);
 
                 if let Err(_) = element.append_child(&node) {
-                    web_sys::console::log_1(&format!("failed to set template: {}", path).into());
+                    web_sys::console::error_1(&format!("failed to set template: {}", path).into());
                 }
             },
             _ => {},
@@ -143,7 +143,7 @@ impl VirtualNode {
             for (event, cb) in child.callbacks.iter() {
                 if let Ok(element) = path.get_element_by_path(document) {
                     if let Err(_) = child.attach_listener(element, event, cb) {
-                        web_sys::console::log_1(&format!("failed to attach listener: {}", path).into());
+                        web_sys::console::error_1(&format!("failed to attach listener: {}", path).into());
                     }
                 }
             }
@@ -187,7 +187,7 @@ pub fn reconcile(node: VirtualNode) {
     match vdom.reconcile(&*prev, Path::new(), &document) {
         Ok(()) => *prev = vdom,
         Err(err) => {
-            web_sys::console::log_1(&format!("failed to reconcile: {:?}", err).into());
+            web_sys::console::error_1(&format!("failed to reconcile: {:?}", err).into());
         },
     }
 }
