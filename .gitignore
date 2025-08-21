@@ -1,2 +1,2 @@
 target
-examples/simple/dist
+examples/*/dist
