@@ -1,5 +1,4 @@
 [workspace]
 resolver = "2"
-members = ["packages/*"]
-exclude = ["examples/simple"]
+members = ["packages/*", "examples/*"]
 

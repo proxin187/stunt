@@ -22,7 +22,7 @@ impl Component for Account {
     fn view(&self, properties: AccountProperties) -> Html {
         html! {
             <h1>
-                { format!("id: {}, name: {}", properties.id, properties.name) }
+                { format!("{}-{}", properties.id, properties.name) }
             </h1>
         }
     }

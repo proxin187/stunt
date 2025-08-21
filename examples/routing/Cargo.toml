@@ -1,0 +1,9 @@
+[package]
+name = "routing"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+stunt = { path = "../../packages/stunt", version = "0.1.1" }
+stunt-router = { path = "../../packages/stunt-router", version = "0.1.1" }
+

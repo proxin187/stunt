@@ -40,7 +40,17 @@ impl Default for Node {
 }
 
 impl Node {
-    fn new<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, open: OpenTag) -> Node {
+    fn new(name: Ident, events: Vec<Event>, attributes: Vec<Attribute>, generics: Vec<Type>, children: Vec<Kind>) -> Node {
+        Node {
+            name,
+            events,
+            attributes,
+            generics,
+            children,
+        }
+    }
+
+    fn parse<'a>(tags: &mut Peekable<impl Iterator<Item = &'a Tag>>, open: OpenTag) -> Node {
         let mut children: Vec<Kind> = Vec::new();
 
         while let Some(tag) = tags.peek() {
@@ -92,7 +102,11 @@ impl Ir {
 
         match tags.next() {
             Some(Tag::OpenTag(open)) => {
-                nodes.push(Kind::Node(Node::new(tags, open.clone())));
+                if open.closed {
+                    nodes.push(Kind::Node(Node::new(open.name.clone(), open.events.clone(), open.attributes.clone(), open.generics.clone(), Vec::new())));
+                } else {
+                    nodes.push(Kind::Node(Node::parse(tags, open.clone())));
+                }
             },
             Some(Tag::Template(template)) => {
                 nodes.push(Kind::Template(Template::new(template.value.clone())));

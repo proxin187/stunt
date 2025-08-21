@@ -103,6 +103,7 @@ pub struct OpenTag {
     pub generics: Vec<Type>,
     pub attributes: Vec<Attribute>,
     pub events: Vec<Event>,
+    pub closed: bool,
 }
 
 impl Parse for OpenTag {
@@ -130,13 +131,17 @@ impl Parse for OpenTag {
         let mut attributes: Vec<Attribute> = Vec::new();
         let mut events: Vec<Event> = Vec::new();
 
-        while !input.peek(Token![>]) {
+        while !input.peek(Token![>]) && !input.peek(Token![/]) {
             if input.fork().parse::<Ident>().map(|ident| ident.to_string().starts_with("on")).unwrap_or_default() {
                 events.push(input.parse::<Event>()?);
             } else {
                 attributes.push(input.parse::<Attribute>()?);
             }
         }
+
+        let closed = input.peek(Token![/])
+            .then(|| { let _ = input.parse::<Token![/]>(); true })
+            .unwrap_or_default();
 
         input.parse::<Token![>]>()?;
 
@@ -145,6 +150,7 @@ impl Parse for OpenTag {
             generics,
             attributes,
             events,
+            closed,
         })
     }
 }
