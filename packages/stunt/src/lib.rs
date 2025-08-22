@@ -61,7 +61,6 @@
 //! ```
 
 pub mod component;
-pub mod console;
 pub mod render;
 pub mod global;
 mod virtual_dom;
