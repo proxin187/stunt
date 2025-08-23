@@ -1,4 +1,4 @@
-use crate::component::state::{Path, PathNode};
+use crate::component::path::{Path, PathNode};
 use crate::render::Renderer;
 
 use std::sync::Arc;
@@ -123,7 +123,7 @@ impl VirtualNode {
 
     fn passover(&self, renderer: Renderer, path: Path, document: &web_sys::Document) {
         match &self.kind {
-            VirtualKind::Template(template) => if let Ok(element) = path.get_element_by_path(document) {
+            VirtualKind::Template(template) => if let Ok(element) = renderer.get_element_by_path(&path, document) {
                 let node = document.create_text_node(&template);
 
                 if let Err(_) = element.append_child(&node) {
@@ -137,7 +137,7 @@ impl VirtualNode {
             let path = path.clone().concat(PathNode::new(index, String::from("virtual_node")));
 
             for (event, cb) in child.callbacks.iter() {
-                if let Ok(element) = path.get_element_by_path(document) {
+                if let Ok(element) = renderer.get_element_by_path(&path, document) {
                     if let Err(_) = child.attach_listener(renderer.clone(), element, event, cb) {
                         web_sys::console::error_1(&format!("failed to attach listener: {}", path).into());
                     }
@@ -155,7 +155,7 @@ impl VirtualNode {
                 .map(|child| child.kind.render())
                 .collect::<String>();
 
-            let element = path.get_element_by_path(document)?;
+            let element = renderer.get_element_by_path(&path, document)?;
 
             element.set_inner_html(&children);
 

@@ -2,7 +2,7 @@
 
 use crate::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
 
-use crate::component::state::{Path, PathNode};
+use crate::component::path::{Path, PathNode};
 use crate::component::{Component, BaseComponent};
 
 use crate::render::Renderer;

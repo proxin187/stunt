@@ -1,6 +1,4 @@
-//! The state of each component is stored in the renderer under its [`Path`].
-
-use wasm_bindgen::prelude::*;
+//! A [`Path`] describes a path from root to a node.
 
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -18,7 +16,7 @@ impl PathNode {
     }
 }
 
-/// Describes a path from root to an element. This is used to build an XPath query during
+/// Describes a path from root to a node. This is used to build an XPath query during
 /// reconciliation.
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq)]
 pub struct Path {
@@ -48,17 +46,6 @@ impl Path {
         Path {
             nodes: self.nodes,
         }
-    }
-
-    #[inline]
-    pub(crate) fn get_element_by_path(&self, document: &web_sys::Document) -> Result<web_sys::HtmlElement, JsValue> {
-        let node = document.evaluate(&format!("/html/body{}", self), &document.get_root_node())?
-            .iterate_next()?
-            .ok_or(JsValue::from_str("failed to get node"))?;
-
-        node.dyn_ref::<web_sys::HtmlElement>()
-            .map(|element| element.clone())
-            .ok_or(JsValue::from_str("failed to cast"))
     }
 }
 

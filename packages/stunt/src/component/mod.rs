@@ -1,6 +1,6 @@
 //! This module contains everything related to components.
 
-pub mod state;
+pub mod path;
 pub mod html;
 
 use html::{Html, AttrMap};

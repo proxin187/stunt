@@ -56,7 +56,7 @@
 //! }
 //!
 //! fn main() {
-//!     Renderer::<App>::new().render();
+//!     Renderer::new::<App>().render();
 //! }
 //! ```
 
@@ -72,7 +72,7 @@ pub mod prelude {
 
     pub use crate::component::{Component, Properties};
     pub use crate::component::html::{Html, AttrMap};
-    pub use crate::render::Renderer;
+    pub use crate::render::{Renderer, RenderRoot};
 
     /// The html macro implements html templating for Rust.
     ///
