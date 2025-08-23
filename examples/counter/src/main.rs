@@ -42,7 +42,7 @@ impl Component for App {
 }
 
 fn main() {
-    Renderer::<App>::new().render();
+    Renderer::new::<App>().render();
 }
 
 

@@ -1,14 +1,10 @@
 use crate::component::state::{Path, PathNode};
-use crate::component::state;
-use crate::render;
+use crate::render::Renderer;
 
-use std::sync::{LazyLock, Arc};
+use std::sync::Arc;
 use std::any::Any;
 
 use wasm_bindgen::prelude::*;
-use spin::Mutex;
-
-static PREV: LazyLock<Arc<Mutex<VirtualNode>>> = LazyLock::new(|| Arc::new(Mutex::new(VirtualNode::default())));
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -96,7 +92,7 @@ impl VirtualNode {
         }
     }
 
-    fn attach_listener(&self, old_element: web_sys::HtmlElement, event: &str, cb: &Arc<dyn Any + Send + Sync>) -> Result<(), JsValue> {
+    fn attach_listener(&self, renderer: Renderer, old_element: web_sys::HtmlElement, event: &str, cb: &Arc<dyn Any + Send + Sync>) -> Result<(), JsValue> {
         if let Some(parent) = old_element.parent_node() {
             let new_node = old_element.clone_node_with_deep(true)?;
 
@@ -106,15 +102,15 @@ impl VirtualNode {
             let cb = cb.clone();
 
             let closure = Closure::<dyn Fn()>::new(move || {
-                fn hook_callback(scope: &Path, cb: &Arc<dyn Any + Send + Sync>) {
-                    let component = state::get(&scope);
+                fn hook_callback(renderer: &Renderer, scope: &Path, cb: &Arc<dyn Any + Send + Sync>) {
+                    let component = renderer.get(&scope);
 
                     component.lock().base_callback(cb);
                 }
 
-                hook_callback(&scope, &cb);
+                hook_callback(&renderer, &scope, &cb);
 
-                render::render();
+                renderer.render();
             });
 
             new_node.add_event_listener_with_callback(&event, closure.as_ref().unchecked_ref())?;
@@ -125,7 +121,7 @@ impl VirtualNode {
         Ok(())
     }
 
-    fn passover(&self, path: Path, document: &web_sys::Document) {
+    fn passover(&self, renderer: Renderer, path: Path, document: &web_sys::Document) {
         match &self.kind {
             VirtualKind::Template(template) => if let Ok(element) = path.get_element_by_path(document) {
                 let node = document.create_text_node(&template);
@@ -142,17 +138,17 @@ impl VirtualNode {
 
             for (event, cb) in child.callbacks.iter() {
                 if let Ok(element) = path.get_element_by_path(document) {
-                    if let Err(_) = child.attach_listener(element, event, cb) {
+                    if let Err(_) = child.attach_listener(renderer.clone(), element, event, cb) {
                         web_sys::console::error_1(&format!("failed to attach listener: {}", path).into());
                     }
                 }
             }
 
-            child.passover(path, document);
+            child.passover(renderer.clone(), path, document);
         }
     }
 
-    pub fn reconcile(&self, other: &VirtualNode, path: Path, document: &web_sys::Document) -> Result<(), JsValue> {
+    pub fn reconcile(&self, renderer: Renderer, other: &VirtualNode, path: Path, document: &web_sys::Document) -> Result<(), JsValue> {
         if self.kind.children() != other.kind.children() {
             let children = self.kind.children()
                 .iter()
@@ -163,32 +159,16 @@ impl VirtualNode {
 
             element.set_inner_html(&children);
 
-            self.passover(path, document);
+            self.passover(renderer, path, document);
         } else {
             for (index, (a, b)) in self.kind.children().iter().zip(other.kind.children().iter()).enumerate() {
                 let path = path.clone().concat(PathNode::new(index, String::from("virtual_node")));
 
-                a.reconcile(&b, path, &document)?;
+                a.reconcile(renderer.clone(), &b, path, &document)?;
             }
         }
 
         Ok(())
-    }
-}
-
-pub fn reconcile(node: VirtualNode) {
-    let vdom = VirtualNode::new(Arc::new(Vec::new()), VirtualKind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(vec![node]))), Path::new());
-
-    let mut prev = PREV.lock();
-
-    let window = web_sys::window().expect("no global window exists");
-    let document = window.document().expect("should have a document on window");
-
-    match vdom.reconcile(&*prev, Path::new(), &document) {
-        Ok(()) => *prev = vdom,
-        Err(err) => {
-            web_sys::console::error_1(&format!("failed to reconcile: {:?}", err).into());
-        },
     }
 }
 

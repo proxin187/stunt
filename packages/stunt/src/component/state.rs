@@ -1,14 +1,6 @@
-//! The state of each component is stored globally under its [`Path`].
-
-use crate::component::BaseComponent;
-
-use std::sync::{Arc, LazyLock};
-use std::collections::HashMap;
+//! The state of each component is stored in the renderer under its [`Path`].
 
 use wasm_bindgen::prelude::*;
-use spin::Mutex;
-
-static STATES: LazyLock<Arc<Mutex<HashMap<Path, Arc<Mutex<dyn BaseComponent + Send + Sync>>>>>> = LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -67,28 +59,6 @@ impl Path {
         node.dyn_ref::<web_sys::HtmlElement>()
             .map(|element| element.clone())
             .ok_or(JsValue::from_str("failed to cast"))
-    }
-}
-
-#[inline]
-pub(crate) fn get(path: &Path) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
-    STATES.lock()[path].clone()
-}
-
-#[inline]
-pub(crate) fn get_or_insert(
-    path: &Path,
-    f: impl Fn() -> Arc<Mutex<dyn BaseComponent + Send + Sync>>,
-) -> Arc<Mutex<dyn BaseComponent + Send + Sync>> {
-    let mut states = STATES.lock();
-
-    match states.get(path) {
-        Some(component) => component.clone(),
-        None => {
-            states.insert(path.clone(), (f)());
-
-            states[&path].clone()
-        },
     }
 }
 
