@@ -72,37 +72,21 @@ pub mod prelude {
 
     pub use crate::component::{Component, Properties};
     pub use crate::component::html::{Html, AttrMap};
-    pub use crate::render::{Renderer, RenderRoot};
+    pub use crate::render::Renderer;
 
     /// The html macro implements html templating for Rust.
     ///
-    /// This macro returns [`Html`](crate::component::html::Html) and should always be the
-    /// prefered method for creating [`Html`](crate::component::html::Html).
+    /// This macro returns [`Html`] and should always be the
+    /// prefered method for creating [`Html`].
     ///
     /// ### Attributes
     /// ```rust,no_run
     /// # use stunt::prelude::*;
-    /// #
-    /// # pub struct App;
-    /// #
-    /// # impl Component for App {
-    /// #     type Message = ();
-    /// #     type Properties = ();
-    /// #
-    /// #     fn create() -> App { App }
-    /// #
-    /// #     fn callback(&mut self, _: &Self::Message) {}
-    /// #
-    /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
+    /// # fn main() {
     /// html! {
     ///     <h1 foo={ "bar" } baz={ 44 }></h1>
     /// }
-    /// #     }
-    /// # }
-    /// #
-    /// # fn main() {
-    /// #     Renderer::<App>::new().render();
-    /// # }
+    /// # ;}
     /// ```
     ///
     /// ### Event listeners
@@ -113,84 +97,36 @@ pub mod prelude {
     ///
     /// ```rust,no_run
     /// # use stunt::prelude::*;
-    /// #
-    /// # pub struct App;
-    /// #
-    /// # impl Component for App {
-    /// #     type Message = ();
-    /// #     type Properties = ();
-    /// #
-    /// #     fn create() -> App { App }
-    /// #
-    /// #     fn callback(&mut self, _: &Self::Message) {}
-    /// #
-    /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
+    /// # fn main() {
     /// html! {
     ///     <button onclick={ () }></button>
     /// }
-    /// #     }
-    /// # }
-    /// #
-    /// # fn main() {
-    /// #     Renderer::<App>::new().render();
-    /// # }
+    /// # ;}
     /// ```
     ///
     /// ### Templates
-    /// Templates will render as a Text Node into the DOM, or as html if you template a vector of trees.
+    /// Templates will render as a Text Node into the DOM, or as html if you template a vector of html.
     ///
     /// ```rust,no_run
     /// # use stunt::prelude::*;
-    /// #
-    /// # pub struct App;
-    /// #
-    /// # impl Component for App {
-    /// #     type Message = ();
-    /// #     type Properties = ();
-    /// #
-    /// #     fn create() -> App { App }
-    /// #
-    /// #     fn callback(&mut self, _: &Self::Message) {}
-    /// #
-    /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
+    /// # fn main() {
     /// html! {
     ///     { "this will be inserted as a template" }
     /// }
-    /// #     }
-    /// # }
-    /// #
-    /// # fn main() {
-    /// #     Renderer::<App>::new().render();
-    /// # }
+    /// # ;}
     /// ```
     ///
     /// ```rust,no_run
     /// # use stunt::prelude::*;
-    /// #
-    /// # pub struct App;
-    /// #
-    /// # impl Component for App {
-    /// #     type Message = ();
-    /// #     type Properties = ();
-    /// #
-    /// #     fn create() -> App { App }
-    /// #
-    /// #     fn callback(&mut self, _: &Self::Message) {}
-    /// #
-    /// #     fn view(&self, ctx: Context, _properties: ()) -> Tree {
+    /// # fn main() {
     /// html! {
     ///     {
     ///         html! {
-    ///             { "you can also use nested html as a template" }
+    ///             { "you can also use html as a template" }
     ///         }
     ///     }
     /// }
-    /// #     }
-    /// # }
-    /// #
-    /// # fn main() {
-    /// #     Renderer::<App>::new().render();
-    /// # }
+    /// # ;}
     /// ```
     pub use crate::stunt_macro::html;
 

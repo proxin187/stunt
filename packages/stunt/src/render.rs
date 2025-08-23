@@ -1,4 +1,4 @@
-//! The renderer is the entry point of a stunt application
+//! The renderer is the entry point of a stunt application.
 //!
 //! ## Example
 //! ```rust,no_run
@@ -14,7 +14,7 @@
 //!
 //!     fn callback(&mut self, _: &Self::Message) {}
 //!
-//!     fn view(&self, ctx: Context, _properties: ()) -> Tree {
+//!     fn view(&self, _properties: ()) -> Html {
 //!         html! {
 //!             <div></div>
 //!         }
@@ -22,7 +22,7 @@
 //! }
 //!
 //! fn main() {
-//!     Renderer::<App>::new().render();
+//!     Renderer::new::<App>().render();
 //! }
 //! ```
 
@@ -39,45 +39,28 @@ use std::sync::Arc;
 use std::rc::Rc;
 
 // - Custom panic hook
-// - Custom root node
 // - Node reference, a unique id can be assigned to a struct, and used as id on a element and accessed later
-
-
-/// Represents the root node used by the [`Renderer`].
-pub struct RenderRoot {
-    element: web_sys::Node,
-    xpath: String,
-}
-
-impl RenderRoot {
-    /// Create a new render root.
-    pub fn new(element: web_sys::Node, xpath: String) -> RenderRoot {
-        RenderRoot {
-            element,
-            xpath,
-        }
-    }
-}
 
 /// Represents the renderer.
 #[derive(Clone)]
 pub struct Renderer {
     components: Arc<Mutex<HashMap<Path, Arc<Mutex<dyn BaseComponent + Send + Sync>>>>>,
     previous: Arc<Mutex<VirtualNode>>,
-    root: Rc<RenderRoot>,
+    root: Rc<web_sys::HtmlElement>,
 }
 
 impl Renderer {
-    /// Create a new render instance with a render root of the document body.
+    /// Create a new render instance with the body as root element.
     pub fn new<T: Component + Send + Sync + 'static>() -> Renderer {
         let window = web_sys::window().expect("no global window exists");
         let document = window.document().expect("should have a document on window");
+        let body = document.body().expect("document should have a body");
 
-        Renderer::new_with_root::<T>(RenderRoot::new(document.get_root_node(), String::from("/html/body")))
+        Renderer::new_with_root::<T>(body)
     }
 
-    /// Create a new render instance with a render root.
-    pub fn new_with_root<T: Component + Send + Sync + 'static>(root: RenderRoot) -> Renderer {
+    /// Create a new render instance with a root element.
+    pub fn new_with_root<T: Component + Send + Sync + 'static>(root: web_sys::HtmlElement) -> Renderer {
         let component = Arc::new(Mutex::new(T::create()));
 
         Renderer {
@@ -88,7 +71,7 @@ impl Renderer {
     }
 
     pub(crate) fn get_element_by_path(&self, path: &Path, document: &web_sys::Document) -> Result<web_sys::HtmlElement, JsValue> {
-        let node = document.evaluate(&format!("{}{}", self.root.xpath, path), &self.root.element)?
+        let node = document.evaluate(&format!(".{}", path), &self.root)?
             .iterate_next()?
             .ok_or(JsValue::from_str("failed to get node"))?;
 

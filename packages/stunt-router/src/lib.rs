@@ -13,7 +13,7 @@
 //! ```rust,no_run
 //! use stunt::prelude::*;
 //!
-//! use stunt_router::Routable;
+//! use stunt_router::{Switch, Router, Routable};
 //!
 //!
 //! #[derive(Properties, Routable)]
@@ -30,7 +30,7 @@
 //!
 //!     fn create() -> Account { Account }
 //!
-//!     fn callback(&mut self, _: &()) {}
+//!     fn callback(&mut self, _: &Self::Message) {}
 //!
 //!     fn view(&self, properties: AccountProperties) -> Html {
 //!         html! {
@@ -44,24 +44,24 @@
 //! pub struct App;
 //!
 //! impl Component for App {
-//!     type Message = Message;
+//!     type Message = ();
 //!     type Properties = ();
 //!
 //!     fn create() -> App { App }
 //!
-//!     fn callback(&mut self, _: &Message) {}
+//!     fn callback(&mut self, _: &Self::Message) {}
 //!
 //!     fn view(&self, _: ()) -> Html {
 //!         html! {
 //!             <Router>
-//!                 <Switch<Account> path={ "/settings/account/:id/:name" }></Switch>
+//!                 <Switch<Account> path={ "/settings/account/:id/:name" } />
 //!             </Router>
 //!         }
 //!     }
 //! }
 //!
 //! fn main() {
-//!     Renderer::<App>::new().render();
+//!     Renderer::new::<App>().render();
 //! }
 //! ```
 

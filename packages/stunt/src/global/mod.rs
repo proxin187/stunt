@@ -1,4 +1,3 @@
-
 //! Share a mutable value globally across your application. Globals only allow for one
 //! value per type, if you want to use multiple values of the same type at the same time you should
 //! use a Struct.
@@ -50,7 +49,7 @@
 //!         }
 //!     }
 //!
-//!     fn view(&self, ctx: Context, _properties: ()) -> Tree {
+//!     fn view(&self, _properties: ()) -> Html {
 //!         let theme = global::use_global(|theme: &mut Theme| theme.clone());
 //!
 //!         html! {
@@ -67,7 +66,7 @@
 //! }
 //!
 //! fn main() {
-//!     Renderer::<App>::new().render();
+//!     Renderer::new::<App>().render();
 //! }
 //! ```
 

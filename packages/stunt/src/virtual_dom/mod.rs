@@ -127,7 +127,7 @@ impl VirtualNode {
                 let node = document.create_text_node(&template);
 
                 if let Err(_) = element.append_child(&node) {
-                    web_sys::console::error_1(&format!("failed to set template: {}", path).into());
+                    web_sys::console::error_1(&format!("failed to set template: {:?}", path).into());
                 }
             },
             _ => {},
@@ -139,7 +139,7 @@ impl VirtualNode {
             for (event, cb) in child.callbacks.iter() {
                 if let Ok(element) = renderer.get_element_by_path(&path, document) {
                     if let Err(_) = child.attach_listener(renderer.clone(), element, event, cb) {
-                        web_sys::console::error_1(&format!("failed to attach listener: {}", path).into());
+                        web_sys::console::error_1(&format!("failed to attach listener: {:?}", path).into());
                     }
                 }
             }
