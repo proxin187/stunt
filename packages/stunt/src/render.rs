@@ -70,6 +70,24 @@ impl Renderer {
         }
     }
 
+    /// Create a new render instance with the body as root element and using the passed component.
+    pub fn use_prepared_comp(component: impl Component + Send + Sync + 'static) -> Renderer {
+        let window = web_sys::window().expect("no global window exists");
+        let document = window.document().expect("should have a document on window");
+        let body = document.body().expect("document should have a body");
+
+        Renderer::use_prepared_comp_with_root(component, body)
+    }
+
+    /// Create a new render instance with a root element.
+    pub fn use_prepared_comp_with_root(component: impl Component + Send + Sync + 'static, root: web_sys::HtmlElement) -> Renderer {
+        Renderer {
+            components: Arc::new(Mutex::new(HashMap::from([(Path::new(), Arc::new(Mutex::new(component)) as Arc<Mutex<dyn BaseComponent + Send + Sync>>)]))),
+            previous: Arc::new(Mutex::new(VirtualNode::default())),
+            root: Rc::new(root),
+        }
+    }
+
     pub(crate) fn get_element_by_path(&self, path: &Path, document: &web_sys::Document) -> Result<web_sys::HtmlElement, JsValue> {
         let node = document.evaluate(&format!(".{}", path), &self.root)?
             .iterate_next()?
