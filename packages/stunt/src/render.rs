@@ -12,8 +12,6 @@
 //!
 //!     fn create() -> App { App }
 //!
-//!     fn callback(&mut self, _: &Self::Message) {}
-//!
 //!     fn view(&self, _properties: ()) -> Html {
 //!         html! {
 //!             <div></div>
@@ -38,7 +36,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::rc::Rc;
 
-// - Node reference, a unique id can be assigned to a struct, and used as id on a element and accessed later
 
 /// Represents the renderer.
 #[derive(Clone)]
