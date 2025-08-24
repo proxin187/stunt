@@ -38,7 +38,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::rc::Rc;
 
-// - Custom panic hook
 // - Node reference, a unique id can be assigned to a struct, and used as id on a element and accessed later
 
 /// Represents the renderer.

@@ -17,8 +17,6 @@ impl Component for Account {
 
     fn create() -> Account { Account }
 
-    fn callback(&mut self, _: &()) {}
-
     fn view(&self, properties: AccountProperties) -> Html {
         html! {
             <h1>

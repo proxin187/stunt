@@ -72,6 +72,8 @@ pub mod prelude {
 
     pub use crate::component::{Component, Properties};
     pub use crate::component::html::{Html, AttrMap};
+    pub use crate::component::node_id::NodeId;
+
     pub use crate::render::Renderer;
 
     /// The html macro implements html templating for Rust.

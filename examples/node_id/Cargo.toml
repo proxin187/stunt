@@ -1,0 +1,9 @@
+[package]
+name = "node_id"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+stunt = { path = "../../packages/stunt", version = "0.1.1" }
+web-sys = { version = "0.3.77", features = ["HtmlElement", "HtmlInputElement", "Node"] }
+

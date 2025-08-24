@@ -24,8 +24,6 @@ impl Component for PanicHook {
         unreachable!("create should never be called on the panic hook")
     }
 
-    fn callback(&mut self, _: &()) {}
-
     fn view(&self, _properties: ()) -> Html {
         html! {
             <p>

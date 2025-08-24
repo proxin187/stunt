@@ -30,8 +30,6 @@
 //!
 //!     fn create() -> Account { Account }
 //!
-//!     fn callback(&mut self, _: &Self::Message) {}
-//!
 //!     fn view(&self, properties: AccountProperties) -> Html {
 //!         html! {
 //!             <h1>
@@ -48,8 +46,6 @@
 //!     type Properties = ();
 //!
 //!     fn create() -> App { App }
-//!
-//!     fn callback(&mut self, _: &Self::Message) {}
 //!
 //!     fn view(&self, _: ()) -> Html {
 //!         html! {
@@ -105,8 +101,6 @@ impl Component for Router {
 
     fn create() -> Router { Router }
 
-    fn callback(&mut self, _message: &()) {}
-
     fn view(&self, properties: RouteProperties) -> Html {
         html! {
             <span>
@@ -141,8 +135,6 @@ impl<T: Component> Component for Switch<T> where T::Properties: Routable {
             _marker: PhantomData,
         }
     }
-
-    fn callback(&mut self, _message: &()) {}
 
     fn view(&self, properties: SwitchProperties) -> Html {
         let pathname = web_sys::window()

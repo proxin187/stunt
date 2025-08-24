@@ -1,5 +1,6 @@
 //! This module contains everything related to components.
 
+pub mod node_id;
 pub mod path;
 pub mod html;
 
@@ -24,7 +25,8 @@ pub trait Component: Send + Sync + Sized + 'static {
     fn create() -> Self where Self: Sized;
 
     /// Recieve a callback. Callbacks can safely mutate the state of the component.
-    fn callback(&mut self, callback: &Self::Message);
+    #[allow(unused_variables)]
+    fn callback(&mut self, callback: &Self::Message) {}
 
     /// The view describes the layout of how your component is to be rendered in the DOM.
     fn view(&self, properties: Self::Properties) -> Html;

@@ -14,8 +14,6 @@ impl Component for App {
 
     fn create() -> App { App }
 
-    fn callback(&mut self, _: &()) {}
-
     fn view(&self, _: ()) -> Html {
         html! {
             <Router>
