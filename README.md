@@ -2,7 +2,7 @@
 <div align="center">
 <br>
 <a href="https://github.com/proxin187/stunt">
-    <img src="https://raw.githubusercontent.com/proxin187/stunt/refs/heads/main/assets/logo.png" width="200">
+    <img src="https://raw.githubusercontent.com/proxin187/stunt/refs/heads/main/assets/logo.png?" width="200">
 </a>
 
 <br>
