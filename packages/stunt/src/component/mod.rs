@@ -1,5 +1,6 @@
 //! This module contains everything related to components.
 
+pub mod properties;
 pub mod node_id;
 pub mod path;
 pub mod html;
