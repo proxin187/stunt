@@ -78,7 +78,7 @@ impl Parse for Attribute {
 }
 
 impl Attribute {
-    pub fn tokens(&self) -> TokenStream {
+    pub fn element_tokens(&self) -> TokenStream {
         match self {
             Attribute::Multiple { expr } => {
                 let expr = expr.clone();
@@ -91,6 +91,18 @@ impl Attribute {
 
                 quote! {
                     vec![#[allow(unused_braces)](String::from(#name), std::rc::Rc::new(#value) as std::rc::Rc<dyn ::stunt::component::html::AttrValue>)],
+                }
+            },
+        }
+    }
+
+    pub fn component_tokens(&self) -> TokenStream {
+        match self {
+            Attribute::Multiple { .. } => todo!(),
+            Attribute::Single { name, value } => {
+                quote! {
+                    #[allow(unused_braces)]
+                    let __stunt_token = builder.#name(__stunt_token, #value);
                 }
             },
         }

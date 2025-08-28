@@ -25,7 +25,6 @@
 //! ```
 
 use crate::component::path::Path;
-use crate::component::html::AttrMap;
 use crate::component::{Component, BaseComponent};
 use crate::virtual_dom::{VirtualKind, VirtualElement, VirtualNode};
 
@@ -34,6 +33,7 @@ use spin::Mutex;
 
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::any::Any;
 use std::rc::Rc;
 
 
@@ -116,7 +116,7 @@ impl Renderer {
         let root = self.get(&Path::new());
         let lock = root.lock();
 
-        let render = lock.base_view(AttrMap::from(Vec::new().into_iter())).render(self.clone(), Path::new());
+        let render = lock.base_view(Rc::new(()) as Rc<dyn Any>).render(self.clone(), Path::new());
 
         let vdom = VirtualNode::new(Arc::new(Vec::new()), VirtualKind::Element(VirtualElement::new(String::from("root"), String::new(), Arc::new(render))), Path::new());
 

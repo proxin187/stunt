@@ -174,7 +174,7 @@ impl HtmlKind {
         renderer: Renderer,
         path: Path,
         scope: Path,
-        attributes: AttrMap,
+        properties: Rc<dyn Any>,
         callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
         children: Children,
         child_index: usize,
@@ -185,7 +185,7 @@ impl HtmlKind {
 
                 renderer.get_or_insert(&path, builder)
                     .lock()
-                    .base_view(attributes)
+                    .base_view(properties)
                     .render(renderer, path)
             },
             HtmlKind::Template(templates) => {
@@ -211,7 +211,7 @@ impl HtmlKind {
 pub struct HtmlNode {
     kind: HtmlKind,
     callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
-    attributes: AttrMap,
+    properties: Rc<dyn Any>,
 }
 
 impl HtmlNode {
@@ -219,12 +219,12 @@ impl HtmlNode {
     pub fn new(
         kind: HtmlKind,
         callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
-        attributes: AttrMap
+        properties: Rc<dyn Any>,
     ) -> HtmlNode {
         HtmlNode {
             kind,
             callbacks,
-            attributes,
+            properties,
         }
     }
 
@@ -237,11 +237,9 @@ impl HtmlNode {
         refs: Rc<Vec<NodeRef>>,
         child_index: usize
     ) -> Vec<VirtualNode> {
-        let mut attributes = self.attributes.clone();
+        // TODO: we will have to add the children in the macro generated code
 
-        attributes.insert(String::from("children"), Children::new(nodes.clone(), refs.clone(), scope.clone()));
-
-        self.kind.render(renderer, path, scope.clone(), attributes, self.callbacks.clone(), Children::new(nodes, refs, scope), child_index)
+        self.kind.render(renderer, path, scope.clone(), self.properties.clone(), self.callbacks.clone(), Children::new(nodes, refs, scope), child_index)
     }
 }
 

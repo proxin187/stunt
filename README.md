@@ -22,7 +22,7 @@
 ## Features
 
 * Macro for writing html with rust expressions, similar to that of JSX.
-* Highly extensible components with support for passing down properties.
+* Highly extensible components with compile-time type checked properties.
 * Use any build tool you like eg. [trunk](https://trunkrs.dev/).
 * Multiple ways to manage the state of your application.
 
