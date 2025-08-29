@@ -1,4 +1,4 @@
-use crate::tags::{Event, Attribute, Tag, OpenTag};
+use crate::html::tags::{Event, Attribute, Tag, OpenTag};
 
 use syn::{Ident, Type, ExprBlock};
 

@@ -1,4 +1,4 @@
-use crate::ir::{Ir, Kind};
+use crate::html::intermediate::{Ir, Kind};
 
 use proc_macro2::TokenStream;
 use quote::quote;

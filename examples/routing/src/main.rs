@@ -3,7 +3,7 @@ mod account;
 use account::Account;
 
 use stunt::prelude::*;
-// use stunt_router::*;
+use stunt_router::*;
 
 
 pub struct App;
@@ -16,9 +16,9 @@ impl Component for App {
 
     fn view(&self, _: ()) -> Html {
         html! {
-            <div>
+            <Router>
                 <Account id={ 123 } name={ String::from("test hello") } />
-            </div>
+            </Router>
         }
     }
 }

@@ -112,6 +112,7 @@ name = "routing"
 version = "0.1.0"
 dependencies = [
  "stunt",
+ "stunt-router",
 ]
 
 [[package]]

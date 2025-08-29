@@ -87,7 +87,7 @@ pub trait Routable {
 ///
 /// ## Warning
 /// This type is not supposed to be used outside of the framework.
-#[derive(Properties)]
+#[derive(Properties, Clone)]
 pub struct RouteProperties {
     children: Children,
 }
@@ -114,7 +114,7 @@ impl Component for Router {
 ///
 /// ## Warning
 /// This type is not supposed to be used outside of the framework.
-#[derive(Properties)]
+#[derive(Properties, Clone)]
 pub struct SwitchProperties {
     path: &'static str,
 }
@@ -146,8 +146,10 @@ impl<T: Component> Component for Switch<T> where T::Properties: Routable {
         let attributes = path::parse(&pathname, properties.path).and_then(|path| T::Properties::route(path));
 
         html! {
-            { attributes.map(|attributes| html! { <T ?{ attributes } /> }).unwrap_or_default() }
+            <span />
         }
+
+        // { attributes.map(|attributes| html! { <T ?{ attributes } /> }).unwrap_or_default() }
     }
 }
 
