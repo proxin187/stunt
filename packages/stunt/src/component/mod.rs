@@ -4,7 +4,7 @@ pub mod node_id;
 pub mod path;
 pub mod html;
 
-use html::Html;
+use html::{Html, Children};
 
 use std::sync::Arc;
 use std::any::Any;
@@ -68,15 +68,24 @@ pub trait Properties: Clone {
     }
 }
 
-impl Properties for () {}
+impl<T: Buildable> Properties for T {}
 
-/// Buildable is a marker trait for buildable properties.
-pub trait Buildable {
+/// The Buildable trait creates a builder, The Buildable trait provides a blanket implementation of [`Properties`].
+pub trait Buildable: Clone {
     /// The builder type.
-    type Builder;
+    type Builder: PreBuild;
 
     /// Create the builder.
     fn builder() -> Self::Builder;
+}
+
+/// The PreBuild trait represents properties that arent built yet.
+pub trait PreBuild {
+    /// Insert children into the properties.
+    fn children(&mut self, _children: Children) {}
+
+    /// Build the properties.
+    fn build(&self) -> Rc<dyn Any>;
 }
 
 impl Buildable for () {
@@ -85,11 +94,16 @@ impl Buildable for () {
     fn builder() -> EmptyBuilder { EmptyBuilder }
 }
 
-/// Build a ().
+/// A builder for ().
+#[derive(Clone)]
 pub struct EmptyBuilder;
 
-impl EmptyBuilder {
-    pub fn build(self) -> () { () }
+impl PreBuild for EmptyBuilder {
+    fn build(&self) -> Rc<dyn Any> { Rc::new(()) }
+}
+
+impl PreBuild for () {
+    fn build(&self) -> Rc<dyn Any> { Rc::new(()) }
 }
 
 

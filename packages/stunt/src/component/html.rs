@@ -3,11 +3,12 @@
 use crate::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
 
 use crate::component::path::{Path, PathNode};
-use crate::component::{Component, BaseComponent};
+use crate::component::{Component, BaseComponent, PreBuild};
 
 use crate::render::Renderer;
 
 use std::collections::HashMap;
+use std::cell::RefCell;
 use std::sync::Arc;
 use std::any::Any;
 use std::rc::Rc;
@@ -75,10 +76,6 @@ impl<T: Iterator<Item = Vec<(String, Rc<dyn AttrValue>)>>> From<T> for AttrMap {
 }
 
 impl AttrMap {
-    fn insert<T: AttrValue>(&mut self, key: String, value: T) {
-        self.attributes.insert(key, Rc::new(value));
-    }
-
     /// Get a value from a key. This function returns None if the key doesnt exist, or if the
     /// return type doesnt match the type of the value.
     pub fn get<'a, T: Any + Clone>(&'a self, key: &str) -> Option<T> {
@@ -174,7 +171,7 @@ impl HtmlKind {
         renderer: Renderer,
         path: Path,
         scope: Path,
-        properties: Rc<dyn Any>,
+        properties: Rc<RefCell<dyn PreBuild>>,
         callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
         children: Children,
         child_index: usize,
@@ -185,7 +182,7 @@ impl HtmlKind {
 
                 renderer.get_or_insert(&path, builder)
                     .lock()
-                    .base_view(properties)
+                    .base_view(properties.borrow().build())
                     .render(renderer, path)
             },
             HtmlKind::Template(templates) => {
@@ -211,20 +208,20 @@ impl HtmlKind {
 pub struct HtmlNode {
     kind: HtmlKind,
     callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
-    properties: Rc<dyn Any>,
+    properties: Rc<RefCell<dyn PreBuild>>,
 }
 
 impl HtmlNode {
     /// Create a new [`HtmlNode`].
-    pub fn new(
+    pub fn new<T: PreBuild + 'static>(
         kind: HtmlKind,
         callbacks: Arc<Vec<(String, Arc<dyn Any + Send + Sync>)>>,
-        properties: Rc<dyn Any>,
+        properties: T,
     ) -> HtmlNode {
         HtmlNode {
             kind,
             callbacks,
-            properties,
+            properties: Rc::new(RefCell::new(properties)),
         }
     }
 
@@ -237,9 +234,11 @@ impl HtmlNode {
         refs: Rc<Vec<NodeRef>>,
         child_index: usize
     ) -> Vec<VirtualNode> {
-        // TODO: we will have to add the children in the macro generated code
+        let children = Children::new(nodes, refs, scope.clone());
 
-        self.kind.render(renderer, path, scope.clone(), self.properties.clone(), self.callbacks.clone(), Children::new(nodes, refs, scope), child_index)
+        self.properties.borrow_mut().children(children.clone());
+
+        self.kind.render(renderer, path, scope, self.properties.clone(), self.callbacks.clone(), children, child_index)
     }
 }
 

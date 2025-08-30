@@ -10,7 +10,7 @@ use html::codegen::HtmlBuilder;
 use html::tags::Intermediate;
 use html::intermediate::Ir;
 
-use properties::{Field, BuilderFields, BuilderFunctions, BuilderTokenType, BuilderFieldsInit, BuilderMarkers, BuilderFieldsBuild};
+use properties::{Field, BuilderFields, BuilderFunctions, BuilderTokenType, BuilderFieldsInit, BuilderMarkers, BuilderFieldsBuild, BuilderChildren};
 
 
 #[proc_macro]
@@ -40,14 +40,13 @@ pub fn properties(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let builder_fields_init = BuilderFieldsInit::new(&fields);
             let builder_markers = BuilderMarkers::new(&fields);
             let builder_fields_build = BuilderFieldsBuild::new(&fields);
+            let builder_children = BuilderChildren::new(&fields);
 
             let name = input.ident;
             let builder_name = syn::Ident::new(&format!("_{}Builder", name), name.span());
 
             return proc_macro::TokenStream::from(quote! {
-                impl stunt::component::Properties for #name {}
-
-                impl stunt::component::Buildable for #name {
+                impl ::stunt::component::Buildable for #name {
                     type Builder = #builder_name;
 
                     fn builder() -> Self::Builder {
@@ -64,15 +63,21 @@ pub fn properties(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     #builder_fields
                 }
 
+                impl ::stunt::component::PreBuild for #builder_name {
+                    #builder_children
+
+                    fn build(&self) -> ::std::rc::Rc<dyn ::std::any::Any> {
+                        ::std::rc::Rc::new(#name {
+                            #builder_fields_build
+                        })
+                    }
+                }
+
                 impl #builder_name {
                     #builder_functions
 
                     #[allow(missing_docs)]
-                    pub fn build(self, _token: #builder_token_type) -> #name {
-                        #name {
-                            #builder_fields_build
-                        }
-                    }
+                    pub fn typecheck(&self, _token: #builder_token_type) {}
                 }
             });
         }

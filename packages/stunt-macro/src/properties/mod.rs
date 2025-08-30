@@ -59,14 +59,16 @@ impl<'a> ToTokens for BuilderFunctions<'a> {
         for field in self.fields.iter() {
             let Field { ident, marker_ident, ty } = &field;
 
-            tokens.extend(quote! {
-                #[allow(missing_docs)]
-                pub fn #ident<Token>(&mut self, token: Token, value: #ty) -> #marker_ident<Token> {
-                    self.#ident.replace(value);
+            if ident.to_string() != "children" {
+                tokens.extend(quote! {
+                    #[allow(missing_docs)]
+                    pub fn #ident<Token>(&mut self, token: Token, value: #ty) -> #marker_ident<Token> {
+                        self.#ident.replace(value);
 
-                    #marker_ident(token)
-                }
-            });
+                        #marker_ident(token)
+                    }
+                });
+            }
         }
     }
 }
@@ -88,9 +90,11 @@ impl<'a> ToTokens for BuilderTokenType<'a> {
         let mut token_type = quote! { () };
 
         for field in self.fields.iter() {
-            let Field { marker_ident, .. } = &field;
+            let Field { ident, marker_ident, .. } = &field;
 
-            token_type = quote! { #marker_ident<#token_type> };
+            if ident.to_string() != "children" {
+                token_type = quote! { #marker_ident<#token_type> };
+            }
         }
 
         tokens.extend(quote! { #token_type });
@@ -136,12 +140,14 @@ impl<'a> BuilderMarkers<'a> {
 impl<'a> ToTokens for BuilderMarkers<'a> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         for field in self.fields.iter() {
-            let Field { marker_ident, .. } = &field;
+            let Field { ident, marker_ident, .. } = &field;
 
-            tokens.extend(quote! {
-                #[allow(non_camel_case_types, missing_docs)]
-                pub struct #marker_ident<Token>(Token);
-            });
+            if ident.to_string() != "children" {
+                tokens.extend(quote! {
+                    #[allow(non_camel_case_types, missing_docs)]
+                    pub struct #marker_ident<Token>(Token);
+                });
+            }
         }
     }
 }
@@ -164,7 +170,31 @@ impl<'a> ToTokens for BuilderFieldsBuild<'a> {
             let Field { ident, .. } = &field;
 
             tokens.extend(quote! {
-                #ident: self.#ident.unwrap(),
+                #ident: self.#ident.clone().expect("internal error"),
+            });
+        }
+    }
+}
+
+pub struct BuilderChildren<'a> {
+    fields: &'a [Field],
+}
+
+impl<'a> BuilderChildren<'a> {
+    pub fn new(fields: &'a [Field]) -> BuilderChildren<'a> {
+        BuilderChildren {
+            fields,
+        }
+    }
+}
+
+impl<'a> ToTokens for BuilderChildren<'a> {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        if self.fields.iter().any(|field| field.ident.to_string() == "children") {
+            tokens.extend(quote! {
+                fn children(&mut self, children: Children) {
+                    self.children.replace(children);
+                }
             });
         }
     }

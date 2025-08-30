@@ -39,7 +39,7 @@ impl HtmlBuilder {
                             ::stunt::component::html::HtmlNode::new(
                                 ::stunt::component::html::HtmlKind::Element(::stunt::component::html::HtmlElement::new(#str_name.to_string(), ::std::vec![#attributes])),
                                 ::std::sync::Arc::new(::std::vec![#events]),
-                                ::std::rc::Rc::new(()),
+                                (),
                             )
                         });
                     } else {
@@ -51,10 +51,11 @@ impl HtmlBuilder {
                             let mut builder = <<#name<#(#generics),*> as ::stunt::component::Component>::Properties as ::stunt::component::Buildable>::builder();
                             let __stunt_token = ();
                             #properties
+                            builder.typecheck(__stunt_token);
                             ::stunt::component::html::HtmlNode::new(
                                 ::stunt::component::html::HtmlKind::create_component::<#name<#(#generics),*>>(String::from(#str_name)),
                                 ::std::sync::Arc::new(::std::vec![#events]),
-                                ::std::rc::Rc::new(builder.build(__stunt_token)),
+                                builder,
                             )
                         }});
                     }
@@ -77,7 +78,7 @@ impl HtmlBuilder {
                             #[allow(unused_braces)]
                             ::stunt::component::html::HtmlKind::Template(::std::sync::Arc::new(#block)),
                             ::std::sync::Arc::new(std::vec::Vec::new()),
-                            ::std::rc::Rc::new(()),
+                            (),
                         )
                     });
 
