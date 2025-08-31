@@ -1,7 +1,5 @@
 use stunt::prelude::*;
 
-use stunt_router::Routable;
-
 
 #[derive(Properties, Clone)]
 pub struct AccountProperties {

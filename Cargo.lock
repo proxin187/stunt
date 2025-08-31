@@ -160,7 +160,6 @@ dependencies = [
 name = "stunt-router"
 version = "0.1.1"
 dependencies = [
- "stunt",
  "stunt-router-macro",
  "web-sys",
 ]

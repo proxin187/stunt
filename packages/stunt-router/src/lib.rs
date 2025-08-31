@@ -61,26 +61,36 @@
 //! }
 //! ```
 
-mod path;
-
 pub use stunt_router_macro::Routable;
 
-use stunt::component::html::{AttrValue, Children};
+/// The Routable trait allows an enum to be routed.
+pub trait Routable {
+    /// Returns the appropriate route based on the path.
+    fn route(path: &[&str]) -> Self where Self: Sized;
+}
 
-use stunt::prelude::*;
+/// Get the current route.
+#[inline]
+pub fn route<T: Routable>() -> T {
+    let pathname = web_sys::window()
+        .expect("no window found")
+        .location()
+        .pathname()
+        .expect("failed to get pathname");
 
-use std::collections::HashMap;
-use std::marker::PhantomData;
-use std::rc::Rc;
+    let path = pathname.split('/').collect::<Vec<&str>>();
 
+    T::route(&path)
+}
 
+/*
 /// The Routable trait allows a type to be taken in as properties from a Route.
 pub trait Routable {
     /// The route function ensures that the correct attributes where passed and casts each one into a [`AttrValue`].
     ///
     /// ## Warning
     /// This function is not supposed to be called outside the framework.
-    fn route(map: HashMap<String, String>) -> Option<Vec<(String, Rc<dyn AttrValue>)>>;
+    fn route(map: HashMap<String, String>) -> Option<Vec<(String, Rc<dyn Any>)>>;
 }
 
 /// The properties of a [`Router`].
@@ -145,12 +155,14 @@ impl<T: Component> Component for Switch<T> where T::Properties: Routable {
 
         let attributes = path::parse(&pathname, properties.path).and_then(|path| T::Properties::route(path));
 
+        // TODO: we cannot use this way of routing anymore, we will have to do it the same way yew does it
+
         html! {
             <span />
+            // { attributes.map(|attributes| html! { <T id={ 123 } name={ "test" } /> }).unwrap_or_default() }
         }
-
-        // { attributes.map(|attributes| html! { <T ?{ attributes } /> }).unwrap_or_default() }
     }
 }
+*/
 
 

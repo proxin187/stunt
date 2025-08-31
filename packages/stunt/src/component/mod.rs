@@ -20,7 +20,7 @@ pub trait Component: Send + Sync + Sized + 'static {
     type Message: 'static;
 
     /// The [`Properties`] will be passed down from the parent to the [`view`](Component::view).
-    type Properties: Properties;
+    type Properties: Properties + Buildable;
 
     /// Create your component.
     fn create() -> Self

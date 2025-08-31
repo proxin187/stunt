@@ -16,8 +16,8 @@ pub fn route_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     let ty = &field.ty;
 
                     quote! {
-                        if let Some(value) = map.get(#key).and_then(|value| { use std::str::FromStr; #ty::from_str(&value).ok() }) {
-                            new.push((String::from(#key), std::rc::Rc::new(value) as std::rc::Rc<dyn ::stunt::component::html::AttrValue>));
+                        if let Some(value) = map.get(#key).and_then(|value| <#ty as ::std::str::FromStr>::from_str(&value).ok()) {
+                            new.push((String::from(#key), ::std::rc::Rc::new(value) as ::std::rc::Rc<dyn ::std::any::Any>));
                         } else {
                             return None;
                         }
@@ -31,8 +31,8 @@ pub fn route_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             return proc_macro::TokenStream::from(quote! {
                 impl ::stunt_router::Routable for #name {
                     fn route(
-                        map: std::collections::HashMap<String, String>
-                    ) -> Option<Vec<(String, std::rc::Rc<dyn ::stunt::component::html::AttrValue>)>> {
+                        map: ::std::collections::HashMap<String, String>
+                    ) -> Option<Vec<(String, ::std::rc::Rc<dyn ::std::any::Any>)>> {
                         let mut new = Vec::new();
                         #(#fields);*
                         Some(new)

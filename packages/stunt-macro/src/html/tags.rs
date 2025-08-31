@@ -43,10 +43,10 @@ impl Event {
 
 #[derive(Clone)]
 pub enum Attribute {
-    Multiple {
+    Dynamic {
         expr: ExprBlock,
     },
-    Single {
+    Static {
         name: Ident,
         value: ExprBlock,
     },
@@ -54,12 +54,13 @@ pub enum Attribute {
 
 impl Parse for Attribute {
     fn parse(input: ParseStream) -> Result<Attribute> {
-        if input.peek(Token![?]) {
+        if input.peek(Token![unsafe]) {
+            input.parse::<Token![unsafe]>()?;
             input.parse::<Token![?]>()?;
 
             let expr: ExprBlock = input.parse()?;
 
-            Ok(Attribute::Multiple {
+            Ok(Attribute::Dynamic {
                 expr,
             })
         } else {
@@ -69,7 +70,7 @@ impl Parse for Attribute {
 
             let value: ExprBlock = input.parse()?;
 
-            Ok(Attribute::Single {
+            Ok(Attribute::Static {
                 name,
                 value,
             })
@@ -80,17 +81,20 @@ impl Parse for Attribute {
 impl Attribute {
     pub fn element_tokens(&self) -> TokenStream {
         match self {
-            Attribute::Multiple { expr } => {
+            Attribute::Dynamic { expr } => {
                 let expr = expr.clone();
 
                 quote! { #expr }
             },
-            Attribute::Single { name, value } => {
+            Attribute::Static { name, value } => {
                 let name = format!("{}", name);
                 let value = value.clone();
 
                 quote! {
-                    vec![#[allow(unused_braces)](String::from(#name), std::rc::Rc::new(#value) as std::rc::Rc<dyn ::stunt::component::html::AttrValue>)],
+                    ::std::vec![
+                        #[allow(unused_braces)]
+                        (::std::string::String::from(#name), ::std::rc::Rc::new(#value) as ::std::rc::Rc<dyn ::stunt::component::html::AttrValue>)
+                    ],
                 }
             },
         }
@@ -98,8 +102,17 @@ impl Attribute {
 
     pub fn component_tokens(&self) -> TokenStream {
         match self {
-            Attribute::Multiple { .. } => todo!(),
-            Attribute::Single { name, value } => {
+            Attribute::Dynamic { expr } => {
+                quote! {
+                    #[allow(unused_braces)]
+                    let __stunt_expr: ::std::vec::Vec<(::std::string::String, ::std::rc::Rc<dyn ::std::any::Any>)> = #expr;
+
+                    for (__stunt_name, __stunt_value) in __stunt_expr {
+                        builder.insert_dynamic(__stunt_name, __stunt_expr);
+                    }
+                }
+            },
+            Attribute::Static { name, value } => {
                 quote! {
                     #[allow(unused_braces)]
                     let __stunt_token = builder.#name(__stunt_token, #value);

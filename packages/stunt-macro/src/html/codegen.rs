@@ -1,4 +1,5 @@
 use crate::html::intermediate::{Ir, Kind};
+use crate::html::tags::Attribute;
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -47,11 +48,15 @@ impl HtmlBuilder {
                             .map(|attribute| attribute.component_tokens())
                             .collect::<TokenStream>();
 
+                        let maybe_typecheck = node.attributes.iter()
+                            .all(|attribute| matches!(attribute, Attribute::Static { .. }))
+                            .then_some(quote! { builder.typecheck(__stunt_token); });
+
                         self.nodes.push(quote! {{
                             let mut builder = <<#name<#(#generics),*> as ::stunt::component::Component>::Properties as ::stunt::component::Buildable>::builder();
                             let __stunt_token = ();
                             #properties
-                            builder.typecheck(__stunt_token);
+                            #maybe_typecheck
                             ::stunt::component::html::HtmlNode::new(
                                 ::stunt::component::html::HtmlKind::create_component::<#name<#(#generics),*>>(String::from(#str_name)),
                                 ::std::sync::Arc::new(::std::vec![#events]),
