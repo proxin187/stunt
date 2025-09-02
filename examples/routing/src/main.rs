@@ -6,14 +6,18 @@ use stunt::prelude::*;
 use stunt_router::Routable;
 
 
+#[derive(Routable)]
 pub enum Route {
+    #[at("/account/:id/:name")]
     Account {
         id: usize,
         name: String,
     },
+    #[not_found]
     NotFound,
 }
 
+/*
 impl Routable for Route {
     fn route(path: &[&str]) -> Route {
         match path {
@@ -25,6 +29,7 @@ impl Routable for Route {
         }
     }
 }
+*/
 
 pub struct App;
 
