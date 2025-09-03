@@ -1,5 +1,5 @@
 use syn::parse::{Parse, ParseStream, Error, Result};
-use syn::{DeriveInput, Data, LitStr, Ident, Attribute};
+use syn::{DeriveInput, Data, LitStr, Ident, Attribute, Fields};
 use syn::spanned::Spanned;
 
 use proc_macro2::Span;
@@ -55,17 +55,23 @@ impl Path {
 }
 
 enum VariantKind {
-    At(Path),
+    At {
+        path: Path,
+        fields: Fields,
+    },
     NotFound,
 }
 
 impl VariantKind {
-    pub fn new(attr: &Attribute) -> Result<VariantKind> {
+    pub fn new(attr: &Attribute, fields: Fields) -> Result<VariantKind> {
         if attr.path().is_ident("at") {
             let literal: LitStr = attr.parse_args::<LitStr>()?;
             let path = Path::new(literal.value())?;
 
-            Ok(VariantKind::At(path))
+            Ok(VariantKind::At {
+                path,
+                fields,
+            })
         } else if attr.path().is_ident("not_found") {
             Ok(VariantKind::NotFound)
         } else {
@@ -75,8 +81,45 @@ impl VariantKind {
 
     pub fn pattern(&self) -> proc_macro2::TokenStream {
         match self {
-            VariantKind::At(path) => path.pattern(),
+            VariantKind::At { path, .. } => path.pattern(),
             VariantKind::NotFound => quote! { _ },
+        }
+    }
+
+    pub fn condition(&self) -> Option<proc_macro2::TokenStream> {
+        match self {
+            VariantKind::At { fields, .. } => {
+                let tokens = fields.iter()
+                    .map(|field| {
+                        let ty = &field.ty;
+                        let ident = &field.ident;
+
+                        quote! { <#ty as ::std::str::FromStr>::from_str(#ident).is_ok() }
+                    });
+
+                Some(quote! {
+                    if #(#tokens)&&*
+                })
+            },
+            VariantKind::NotFound => None,
+        }
+    }
+
+    pub fn fields(&self) -> Option<proc_macro2::TokenStream> {
+        match self {
+            VariantKind::At { fields, .. } => {
+                let tokens = fields.iter()
+                    .map(|field| {
+                        let ident = &field.ident;
+
+                        quote! { #ident: std::str::FromStr::from_str(#ident).expect("internal error") }
+                    });
+
+                Some(quote! {
+                    #(#tokens),*
+                })
+            },
+            VariantKind::NotFound => None,
         }
     }
 }
@@ -94,12 +137,14 @@ impl Variant {
         }
     }
 
-    pub fn tokens(&self) -> proc_macro2::TokenStream {
+    pub fn tokens(&self, enum_ident: Ident) -> proc_macro2::TokenStream {
         let pattern = self.kind.pattern();
+        let condition = self.kind.condition();
+        let fields = self.kind.fields();
         let ident = &self.ident;
 
         quote! {
-            #pattern => #ident {}
+            #pattern #condition => #enum_ident::#ident { #fields }
         }
     }
 }
@@ -120,7 +165,7 @@ impl Parse for Routable {
                 for variant in data.variants {
                     match variant.attrs.iter().filter(|attr| attr.path().is_ident("at") || attr.path().is_ident("not_found")).next() {
                         Some(attr) => {
-                            variants.push(Variant::new(variant.ident.clone(), VariantKind::new(attr)?));
+                            variants.push(Variant::new(variant.ident.clone(), VariantKind::new(attr, variant.fields)?));
                         },
                         None => {
                             return Err(Error::new(variant.ident.span(), "An `at` or `not_found` attribute must be present"));
@@ -143,19 +188,13 @@ impl Routable {
         let ident = &self.ident;
 
         let variants = self.variants.iter()
-            .map(|variant| variant.tokens());
+            .map(|variant| variant.tokens(self.ident.clone()));
 
         quote! {
             impl ::stunt_router::Routable for #ident {
                 fn route(__path: &[&str]) -> #ident {
                     match __path {
                         #(#variants),*
-
-                        ["api", "account", id, name] if <usize as std::str::FromStr>::from_str(id).is_ok() && <String as std::str::FromStr>::from_str(name).is_ok() => Route::Account {
-                            id: std::str::FromStr::from_str(id).expect("internal error"),
-                            name: std::str::FromStr::from_str(name).expect("internal error"),
-                        },
-                        _ => Route::NotFound,
                     }
                 }
             }
