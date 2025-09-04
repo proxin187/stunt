@@ -18,10 +18,14 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut builder = HtmlBuilder::new();
 
     let intermediate: Intermediate = parse_macro_input!(input as Intermediate);
+    let mut tags = intermediate.tags.iter().peekable();
 
-    let ir = Ir::new(&mut intermediate.tags.iter().peekable());
+    let ir = Ir::new(&mut tags);
 
-    proc_macro::TokenStream::from(builder.build(ir))
+    match tags.next() {
+        Some(tag) => proc_macro::TokenStream::from(syn::Error::new(tag.span().into(), "Only one root node is allowed").to_compile_error()),
+        None => proc_macro::TokenStream::from(builder.build(ir)),
+    }
 }
 
 #[proc_macro_derive(Properties)]
