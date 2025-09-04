@@ -12,11 +12,10 @@
 //! ## Example
 //! ```rust,no_run
 //! use stunt::prelude::*;
+//! use stunt_router::Routable;
 //!
-//! use stunt_router::{Switch, Router, Routable};
 //!
-//!
-//! #[derive(Properties, Routable)]
+//! #[derive(Properties, Clone)]
 //! pub struct AccountProperties {
 //!     id: usize,
 //!     name: String,
@@ -33,10 +32,21 @@
 //!     fn view(&self, properties: AccountProperties) -> Html {
 //!         html! {
 //!             <h1>
-//!                 { format!("id: {}, name: {}", properties.id, properties.name) }
+//!                 { format!("{}-{}", properties.id, properties.name) }
 //!             </h1>
 //!         }
 //!     }
+//! }
+//!
+//! #[derive(Routable)]
+//! pub enum Route {
+//!     #[at("/account/:id/:name")]
+//!     Account {
+//!         id: usize,
+//!         name: String,
+//!     },
+//!     #[not_found]
+//!     NotFound,
 //! }
 //!
 //! pub struct App;
@@ -48,10 +58,15 @@
 //!     fn create() -> App { App }
 //!
 //!     fn view(&self, _: ()) -> Html {
-//!         html! {
-//!             <Router>
-//!                 <Switch<Account> path={ "/settings/account/:id/:name" } />
-//!             </Router>
+//!         match stunt_router::route::<Route>() {
+//!             Route::Account { id, name } => html! { <Account id={ id } name={ name } /> },
+//!             Route::NotFound => {
+//!                 html! {
+//!                     <h1>
+//!                         { "404: Not Found" }
+//!                     </h1>
+//!                 }
+//!             },
 //!         }
 //!     }
 //! }

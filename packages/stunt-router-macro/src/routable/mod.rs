@@ -19,6 +19,13 @@ impl PathNode {
             .unwrap_or_else(|| PathNode::Static(node.to_string()))
     }
 
+    pub fn validate(&self, fields: &Fields) -> bool {
+        match self {
+            PathNode::Static(_) => true,
+            PathNode::Segment(segment) => fields.iter().any(|field| field.ident.clone().map(|ident| ident.to_string() == segment.to_string()).unwrap_or_default()),
+        }
+    }
+
     pub fn pattern(&self) -> proc_macro2::TokenStream {
         match self {
             PathNode::Static(string) => quote! { #string },
@@ -44,11 +51,17 @@ impl Path {
         })
     }
 
+    pub fn validate(&self, fields: &Fields) -> bool {
+        self.path.iter()
+            .all(|path| path.validate(fields))
+    }
+
     pub fn pattern(&self) -> proc_macro2::TokenStream {
         let paths = self.path.iter()
             .map(|path| path.pattern());
 
         quote! {
+            #[deny(unused_variables)]
             [#(#paths),*]
         }
     }
@@ -68,10 +81,14 @@ impl VariantKind {
             let literal: LitStr = attr.parse_args::<LitStr>()?;
             let path = Path::new(literal.value())?;
 
-            Ok(VariantKind::At {
-                path,
-                fields,
-            })
+            if path.validate(&fields) {
+                Ok(VariantKind::At {
+                    path,
+                    fields,
+                })
+            } else {
+                Err(Error::new(attr.path().span(), "Fields and path dont match"))
+            }
         } else if attr.path().is_ident("not_found") {
             Ok(VariantKind::NotFound)
         } else {

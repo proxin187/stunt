@@ -17,20 +17,6 @@ pub enum Route {
     NotFound,
 }
 
-/*
-impl Routable for Route {
-    fn route(path: &[&str]) -> Route {
-        match path {
-            ["api", "account", id, name] if <usize as std::str::FromStr>::from_str(id).is_ok() && <String as std::str::FromStr>::from_str(name).is_ok() => Route::Account {
-                id: std::str::FromStr::from_str(id).expect("internal error"),
-                name: std::str::FromStr::from_str(name).expect("internal error"),
-            },
-            _ => Route::NotFound,
-        }
-    }
-}
-*/
-
 pub struct App;
 
 impl Component for App {
