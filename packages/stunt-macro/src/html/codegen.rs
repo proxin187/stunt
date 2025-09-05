@@ -49,7 +49,7 @@ impl HtmlBuilder {
                             .collect::<TokenStream>();
 
                         let maybe_typecheck = node.attributes.iter()
-                            .all(|attribute| matches!(attribute, Attribute::Static { .. }))
+                            .all(|attribute| matches!(attribute, Attribute { .. }))
                             .then_some(quote! { builder.typecheck(__stunt_token); });
 
                         self.nodes.push(quote! {{
