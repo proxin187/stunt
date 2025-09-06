@@ -185,6 +185,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "tailwindcss"
+version = "0.1.0"
+dependencies = [
+ "stunt",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"

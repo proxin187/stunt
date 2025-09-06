@@ -67,7 +67,7 @@ impl Path {
     }
 }
 
-enum VariantKind {
+enum AttributeKind {
     At {
         path: Path,
         fields: Fields,
@@ -75,14 +75,14 @@ enum VariantKind {
     NotFound,
 }
 
-impl VariantKind {
-    pub fn new(attr: &Attribute, fields: Fields) -> Result<VariantKind> {
+impl AttributeKind {
+    pub fn new(attr: &Attribute, fields: Fields) -> Result<AttributeKind> {
         if attr.path().is_ident("at") {
             let literal: LitStr = attr.parse_args::<LitStr>()?;
             let path = Path::new(literal.value())?;
 
             if path.validate(&fields) {
-                Ok(VariantKind::At {
+                Ok(AttributeKind::At {
                     path,
                     fields,
                 })
@@ -90,7 +90,7 @@ impl VariantKind {
                 Err(Error::new(attr.path().span(), "Fields and path dont match"))
             }
         } else if attr.path().is_ident("not_found") {
-            Ok(VariantKind::NotFound)
+            Ok(AttributeKind::NotFound)
         } else {
             Err(Error::new(attr.path().span(), "An `at` or `not_found` attribute must be present"))
         }
@@ -98,14 +98,14 @@ impl VariantKind {
 
     pub fn pattern(&self) -> proc_macro2::TokenStream {
         match self {
-            VariantKind::At { path, .. } => path.pattern(),
-            VariantKind::NotFound => quote! { _ },
+            AttributeKind::At { path, .. } => path.pattern(),
+            AttributeKind::NotFound => quote! { _ },
         }
     }
 
     pub fn condition(&self) -> Option<proc_macro2::TokenStream> {
         match self {
-            VariantKind::At { fields, .. } => {
+            AttributeKind::At { fields, .. } => {
                 let tokens = fields.iter()
                     .map(|field| {
                         let ty = &field.ty;
@@ -118,13 +118,13 @@ impl VariantKind {
                     if #(#tokens)&&*
                 })
             },
-            VariantKind::NotFound => None,
+            AttributeKind::NotFound => None,
         }
     }
 
     pub fn fields(&self) -> Option<proc_macro2::TokenStream> {
         match self {
-            VariantKind::At { fields, .. } => {
+            AttributeKind::At { fields, .. } => {
                 let tokens = fields.iter()
                     .map(|field| {
                         let ident = &field.ident;
@@ -136,33 +136,36 @@ impl VariantKind {
                     #(#tokens),*
                 })
             },
-            VariantKind::NotFound => None,
+            AttributeKind::NotFound => None,
         }
     }
 }
 
 struct Variant {
     ident: Ident,
-    kind: VariantKind,
+    attributes: Vec<AttributeKind>,
 }
 
 impl Variant {
-    pub fn new(ident: Ident, kind: VariantKind) -> Variant {
+    pub fn new(ident: Ident, attributes: Vec<AttributeKind>) -> Variant {
         Variant {
             ident,
-            kind,
+            attributes,
         }
     }
 
     pub fn tokens(&self, enum_ident: Ident) -> proc_macro2::TokenStream {
-        let pattern = self.kind.pattern();
-        let condition = self.kind.condition();
-        let fields = self.kind.fields();
         let ident = &self.ident;
 
-        quote! {
-            #pattern #condition => #enum_ident::#ident { #fields }
-        }
+        self.attributes.iter()
+            .map(|attribute| {
+                let pattern = attribute.pattern();
+                let condition = attribute.condition();
+                let fields = attribute.fields();
+
+                quote! { #pattern #condition => #enum_ident::#ident { #fields }, }
+            })
+            .collect()
     }
 }
 
@@ -180,9 +183,15 @@ impl Parse for Routable {
                 let mut variants: Vec<Variant> = Vec::new();
 
                 for variant in data.variants {
+                    // TODO: finish this lol
+                    // we have to parse multiple attributes
+                    let attributes = variant.attrs.iter()
+                        .filter_map(|attr| AttributeKind::new(attr, variant.fields));
+
+                    variants.push(Variant::new(variant.ident.clone(), AttributeKind::new(attr, variant.fields)?));
+
                     match variant.attrs.iter().filter(|attr| attr.path().is_ident("at") || attr.path().is_ident("not_found")).next() {
                         Some(attr) => {
-                            variants.push(Variant::new(variant.ident.clone(), VariantKind::new(attr, variant.fields)?));
                         },
                         None => {
                             return Err(Error::new(variant.ident.span(), "An `at` or `not_found` attribute must be present"));
@@ -211,7 +220,7 @@ impl Routable {
             impl ::stunt_router::Routable for #ident {
                 fn route(__path: &[&str]) -> #ident {
                     match __path {
-                        #(#variants),*
+                        #(#variants)*
                     }
                 }
             }
