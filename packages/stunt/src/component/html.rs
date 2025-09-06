@@ -7,7 +7,6 @@ use crate::component::{Component, BaseComponent, PreBuild};
 
 use crate::render::Renderer;
 
-use std::collections::HashMap;
 use std::cell::RefCell;
 use std::sync::Arc;
 use std::any::Any;
@@ -54,42 +53,6 @@ impl Template for Html {
     }
 }
 
-/// The AttrValue trait represents a value in an attribute.
-///
-/// The trait provides a blanket implementation for types that implement Any + Display.
-pub trait AttrValue: Any + std::fmt::Display {}
-
-impl<T: Any + std::fmt::Display> AttrValue for T {}
-
-/// Represents a map of attributes. Only a wrapper around HashMap.
-#[derive(Clone, Default)]
-pub struct AttrMap {
-    attributes: HashMap<String, Rc<dyn AttrValue>>,
-}
-
-impl<T: Iterator<Item = Vec<(String, Rc<dyn AttrValue>)>>> From<T> for AttrMap {
-    fn from(from: T) -> AttrMap {
-        AttrMap {
-            attributes: from.into_iter().flatten().collect(),
-        }
-    }
-}
-
-impl AttrMap {
-    /// Get a value from a key. This function returns None if the key doesnt exist, or if the
-    /// return type doesnt match the type of the value.
-    pub fn get<'a, T: Any + Clone>(&'a self, key: &str) -> Option<T> {
-        self.attributes.get(key)
-            .and_then(|attr| (attr.as_ref() as &dyn Any).downcast_ref().cloned())
-    }
-
-    fn render(&self) -> String {
-        self.attributes.iter()
-            .map(|(key, value)| format!("{}=\"{}\"", key, value))
-            .collect()
-    }
-}
-
 /// Represents the children of a node.
 #[derive(Clone, Default)]
 pub struct Children {
@@ -125,16 +88,22 @@ impl Children {
 #[derive(Clone)]
 pub struct HtmlElement {
     name: String,
-    attributes: AttrMap,
+    attributes: Vec<(String, Rc<dyn std::fmt::Display>)>,
 }
 
 impl HtmlElement {
     /// Create a new html element.
-    pub fn new(name: String, attributes: Vec<Vec<(String, Rc<dyn AttrValue>)>>) -> HtmlElement {
+    pub fn new(name: String, attributes: Vec<(String, Rc<dyn std::fmt::Display>)>) -> HtmlElement {
         HtmlElement {
             name,
-            attributes: AttrMap::from(attributes.into_iter()),
+            attributes,
         }
+    }
+
+    fn attributes(&self) -> String {
+        self.attributes.iter()
+            .map(|(key, value)| format!("{}=\"{}\"", key, value))
+            .collect()
     }
 }
 
@@ -195,7 +164,7 @@ impl HtmlKind {
 
                 vec![VirtualNode::new(
                     callbacks,
-                    VirtualKind::Element(VirtualElement::new(element.name.clone(), element.attributes.render(), Arc::new(children.render(renderer, path.clone())))),
+                    VirtualKind::Element(VirtualElement::new(element.name.clone(), element.attributes(), Arc::new(children.render(renderer, path.clone())))),
                     scope,
                 )]
             },

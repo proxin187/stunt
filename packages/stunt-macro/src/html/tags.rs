@@ -68,10 +68,8 @@ impl Attribute {
         let value = &self.value;
 
         quote! {
-            ::std::vec![
-                #[allow(unused_braces)]
-                (::std::string::String::from(#name), ::std::rc::Rc::new(#value) as ::std::rc::Rc<dyn ::stunt::component::html::AttrValue>)
-            ],
+            #[allow(unused_braces)]
+            (::std::string::String::from(#name), ::std::rc::Rc::new(#value) as ::std::rc::Rc<dyn ::std::fmt::Display>),
         }
     }
 

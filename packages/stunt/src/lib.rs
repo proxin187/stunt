@@ -71,7 +71,7 @@ pub mod prelude {
     //! Re-export of common types.
 
     pub use crate::component::{Component, Properties};
-    pub use crate::component::html::{Html, AttrMap};
+    pub use crate::component::html::Html;
     pub use crate::component::node_id::NodeId;
 
     pub use crate::render::Renderer;
