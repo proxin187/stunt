@@ -3,3 +3,4 @@ examples/*/dist
 examples/*/Cargo.lock
 examples/*/node_modules
 examples/*/package-lock.json
+examples/tailwindcss/styles/output.css
