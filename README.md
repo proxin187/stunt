@@ -46,6 +46,8 @@ cargo add stunt
 ```
 
 ## Example
+More examples can be found at [examples](https://github.com/proxin187/stunt/tree/main/examples).
+
 ```rust
 use stunt::prelude::*;
 
@@ -93,6 +95,10 @@ fn main() {
     Renderer::new::<App>().render();
 }
 ```
+
+## Contributing
+We highly appreciate all contributions whether its a bug fix, feature, or documentation.
+If you encounter any bugs or otherwise weird behaviour we would really appreciate if you submitted an issue for us to look into.
 
 ## License
 stunt is licensed under the MIT license.
