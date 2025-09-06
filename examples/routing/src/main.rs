@@ -14,6 +14,7 @@ pub enum Route {
         name: String,
     },
     #[not_found]
+    #[at("/404")]
     NotFound,
 }
 

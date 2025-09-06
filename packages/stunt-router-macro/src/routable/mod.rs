@@ -105,7 +105,7 @@ impl AttributeKind {
 
     pub fn condition(&self) -> Option<proc_macro2::TokenStream> {
         match self {
-            AttributeKind::At { fields, .. } => {
+            AttributeKind::At { fields, .. } if !fields.is_empty() => {
                 let tokens = fields.iter()
                     .map(|field| {
                         let ty = &field.ty;
@@ -118,7 +118,7 @@ impl AttributeKind {
                     if #(#tokens)&&*
                 })
             },
-            AttributeKind::NotFound => None,
+            _ => None,
         }
     }
 
@@ -183,19 +183,15 @@ impl Parse for Routable {
                 let mut variants: Vec<Variant> = Vec::new();
 
                 for variant in data.variants {
-                    // TODO: finish this lol
-                    // we have to parse multiple attributes
                     let attributes = variant.attrs.iter()
-                        .filter_map(|attr| AttributeKind::new(attr, variant.fields));
+                        .filter(|attr| attr.path().is_ident("at") || attr.path().is_ident("not_found"))
+                        .map(|attr| AttributeKind::new(attr, variant.fields.clone()))
+                        .collect::<Result<Vec<AttributeKind>>>()?;
 
-                    variants.push(Variant::new(variant.ident.clone(), AttributeKind::new(attr, variant.fields)?));
-
-                    match variant.attrs.iter().filter(|attr| attr.path().is_ident("at") || attr.path().is_ident("not_found")).next() {
-                        Some(attr) => {
-                        },
-                        None => {
-                            return Err(Error::new(variant.ident.span(), "An `at` or `not_found` attribute must be present"));
-                        },
+                    if !attributes.is_empty() {
+                        variants.push(Variant::new(variant.ident.clone(), attributes));
+                    } else {
+                        return Err(Error::new(variant.ident.span(), "An `at` or `not_found` attribute must be present"));
                     }
                 }
 

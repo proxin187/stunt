@@ -16,7 +16,7 @@
 
 <br>
 
-<strong>A frontend web framework for developing reactive user interfaces with Rust.</strong>
+<strong>A frontend web framework for developing reactive user interfaces.</strong>
 </div>
 
 ## Features
