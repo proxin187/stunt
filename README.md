@@ -38,7 +38,7 @@ This crate is on [crates.io](https://crates.io/crates/stunt) and can be added ei
 adding `stunt` to your dependencies in `Cargo.toml`:
 ```toml
 [dependencies]
-stunt = "0.1.1"
+stunt = "0.1.3"
 ```
 Or running the following Cargo command in your project directory:
 ```bash

@@ -1,6 +1,6 @@
 [package]
 name = "stunt-router-macro"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 
 description = "Macros for the stunt router"

@@ -123,7 +123,7 @@ dependencies = [
 
 [[package]]
 name = "stunt"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "spin",
  "stunt-macro",
@@ -133,7 +133,7 @@ dependencies = [
 
 [[package]]
 name = "stunt-macro"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -142,7 +142,7 @@ dependencies = [
 
 [[package]]
 name = "stunt-router"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "stunt-router-macro",
  "web-sys",
@@ -150,7 +150,7 @@ dependencies = [
 
 [[package]]
 name = "stunt-router-macro"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "proc-macro2",
  "quote",
