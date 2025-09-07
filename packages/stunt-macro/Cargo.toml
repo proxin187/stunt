@@ -1,6 +1,6 @@
 [package]
 name = "stunt-macro"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 
 description = "Built-in macros for stunt"
@@ -10,7 +10,6 @@ repository = "https://github.com/proxin187/stunt"
 keywords = ["web", "javascript", "gui", "wasm", "webasm"]
 categories = ["gui", "wasm", "web-programming"]
 license = "MIT OR Apache-2.0"
-
 
 [lib]
 proc-macro = true

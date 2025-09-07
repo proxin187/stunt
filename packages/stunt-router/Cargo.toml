@@ -1,6 +1,6 @@
 [package]
 name = "stunt-router"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 
 description = "Powerful router for stunt"
@@ -13,6 +13,6 @@ license = "MIT OR Apache-2.0"
 
 
 [dependencies]
-stunt-router-macro = { path = "../stunt-router-macro", version = "0.1.0" }
+stunt-router-macro = { path = "../stunt-router-macro", version = "0.1.2" }
 web-sys = { version = "0.3.77", features = ["Document", "HtmlElement", "Element", "Node", "Window", "console", "Location"] }
 

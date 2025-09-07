@@ -1,6 +1,6 @@
 [package]
 name = "stunt"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 
 description = "A declarative web framework for Rust/Wasm"
@@ -16,7 +16,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-stunt-macro = { path = "../stunt-macro", version = "0.1.1" }
+stunt-macro = { path = "../stunt-macro", version = "0.1.2" }
 spin = "0.10.0"
 wasm-bindgen = "0.2.100"
 web-sys = { version = "0.3.77", features = ["Document", "XPathResult", "HtmlElement", "Element", "Node", "Text", "Window", "console"] }
