@@ -1,8 +1,9 @@
 //! This module contains everything related to components.
 
-pub mod node_id;
-pub mod path;
+pub mod render;
+pub mod global;
 pub mod html;
+mod virtual_dom;
 
 use html::{Html, Children};
 

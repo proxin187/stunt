@@ -1,6 +1,19 @@
 use stunt::prelude::*;
 
 
+struct Register {
+    username: String,
+    id: usize,
+}
+
+mod services {
+    use super::*;
+
+    #[service("/api/register")]
+    pub fn register(register: Register) {
+    }
+}
+
 pub enum Message {
     Add,
 }
@@ -23,6 +36,11 @@ impl Component for App {
         match message {
             Message::Add => {
                 self.count += 1;
+
+                services::register(Register {
+                    username: String::from("user"),
+                    id: 123,
+                });
             },
         }
     }
@@ -41,8 +59,12 @@ impl Component for App {
     }
 }
 
+#[stunt_main]
 fn main() {
     Renderer::new::<App>().render();
+
+    stunt::backend::Entry::new()
+        .service(String::from("/api/register"), services::register);
 }
 
 

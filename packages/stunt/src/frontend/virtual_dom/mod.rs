@@ -1,5 +1,5 @@
-use crate::component::path::{Path, PathNode};
-use crate::render::Renderer;
+use crate::frontend::html::path::{Path, PathNode};
+use crate::frontend::render::Renderer;
 
 use std::sync::Arc;
 use std::any::Any;

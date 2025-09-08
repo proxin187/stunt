@@ -1,11 +1,13 @@
 //! The basic building blocks for building Html. This module is mostly used by macros.
 
-use crate::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
+pub mod node_id;
+pub mod path;
 
-use crate::component::path::{Path, PathNode};
-use crate::component::{Component, BaseComponent, PreBuild};
+use crate::frontend::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
+use crate::frontend::render::Renderer;
 
-use crate::render::Renderer;
+use crate::frontend::html::path::{Path, PathNode};
+use crate::frontend::{Component, BaseComponent, PreBuild};
 
 use std::cell::RefCell;
 use std::sync::Arc;

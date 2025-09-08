@@ -1,5 +1,8 @@
 #![warn(missing_docs)]
 
+// TODO: we can make this into a full stack framework. We can have advanced signal system where the
+// frontend can send signals to the backend with a convenient api
+
 //! # Stunt Web Framework Documentation
 //!
 //! stunt is a frontend web framework for developing reactive user interfaces with Rust.
@@ -60,21 +63,19 @@
 //! }
 //! ```
 
-pub mod component;
-pub mod render;
-pub mod global;
-mod virtual_dom;
+pub mod backend;
+pub mod frontend;
 
 pub(crate) use stunt_macro;
 
 pub mod prelude {
     //! Re-export of common types.
 
-    pub use crate::component::{Component, Properties};
-    pub use crate::component::html::Html;
-    pub use crate::component::node_id::NodeId;
+    pub use crate::frontend::{Component, Properties};
+    pub use crate::frontend::html::Html;
+    pub use crate::frontend::html::node_id::NodeId;
 
-    pub use crate::render::Renderer;
+    pub use crate::frontend::render::Renderer;
 
     /// The html macro implements html templating for Rust.
     ///
@@ -135,6 +136,12 @@ pub mod prelude {
     /// This macro will implement the [`Properties`] trait for a
     /// named Struct.
     pub use crate::stunt_macro::Properties;
+
+    /// Create a server-side service.
+    pub use crate::stunt_macro::service;
+
+    /// The entry point of a stunt application.
+    pub use crate::stunt_macro::stunt_main;
 }
 
 

@@ -1,6 +1,7 @@
 #![feature(proc_macro_diagnostic)]
 
 mod properties;
+mod service;
 mod html;
 
 use syn::{parse_macro_input, DeriveInput, Data, Fields};
@@ -50,7 +51,7 @@ pub fn properties(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let builder_name = syn::Ident::new(&format!("_{}Builder", name), name.span());
 
             return proc_macro::TokenStream::from(quote! {
-                impl ::stunt::component::Buildable for #name {
+                impl ::stunt::frontend::Buildable for #name {
                     type Builder = #builder_name;
 
                     fn builder() -> Self::Builder {
@@ -67,7 +68,7 @@ pub fn properties(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     #builder_fields
                 }
 
-                impl ::stunt::component::PreBuild for #builder_name {
+                impl ::stunt::frontend::PreBuild for #builder_name {
                     #builder_children
 
                     fn build(&self) -> ::std::rc::Rc<dyn ::std::any::Any> {
@@ -88,6 +89,16 @@ pub fn properties(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     }
 
     proc_macro::TokenStream::from(syn::Error::new(input.ident.span(), "You can only derive Properties for Structs with Named fields").to_compile_error())
+}
+
+#[proc_macro_attribute]
+pub fn service(input: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    item
+}
+
+#[proc_macro_attribute]
+pub fn stunt_main(input: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    item
 }
 
 
