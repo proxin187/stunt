@@ -63,7 +63,10 @@
 //! }
 //! ```
 
+#[cfg(not(target_arch = "wasm32"))]
 pub mod backend;
+
+#[cfg(target_arch = "wasm32")]
 pub mod frontend;
 
 pub(crate) use stunt_macro;

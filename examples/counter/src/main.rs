@@ -1,6 +1,12 @@
 use stunt::prelude::*;
 
 
+#[service("/api/register")]
+pub struct Register;
+
+impl stunt::backend::Service for Register {
+}
+
 struct Register {
     username: String,
     id: usize,
