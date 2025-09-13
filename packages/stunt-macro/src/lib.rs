@@ -96,9 +96,4 @@ pub fn service(input: proc_macro::TokenStream, item: proc_macro::TokenStream) ->
     item
 }
 
-#[proc_macro_attribute]
-pub fn stunt_main(input: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    item
-}
-
 

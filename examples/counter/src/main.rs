@@ -1,22 +1,40 @@
 use stunt::prelude::*;
+use stunt::backend::NullTransport;
+
+use serde::{Serialize, Deserialize};
 
 
+#[derive(Serialize, Deserialize)]
 #[service("/api/register")]
-pub struct Register;
-
-impl stunt::backend::Service for Register {
-}
-
-struct Register {
+pub struct Register {
     username: String,
     id: usize,
 }
 
-mod services {
-    use super::*;
+impl ServiceCaller for Register {
+    fn path() -> &'static str {
+        "/api/register"
+    }
 
-    #[service("/api/register")]
-    pub fn register(register: Register) {
+    fn call(self) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Register {
+    pub fn new(username: String, id: usize) -> Register {
+        Register {
+            username,
+            id,
+        }
+    }
+}
+
+impl Service for Register {
+    type Output = NullTransport;
+
+    fn handle(self) -> Result<NullTransport, Box<dyn std::error::Error>> {
+        Ok(NullTransport)
     }
 }
 
@@ -43,10 +61,7 @@ impl Component for App {
             Message::Add => {
                 self.count += 1;
 
-                services::register(Register {
-                    username: String::from("user"),
-                    id: 123,
-                });
+                Register::new(String::from("user"), 123).call();
             },
         }
     }
@@ -65,12 +80,13 @@ impl Component for App {
     }
 }
 
-#[stunt_main]
 fn main() {
-    Renderer::new::<App>().render();
-
-    stunt::backend::Entry::new()
-        .service(String::from("/api/register"), services::register);
+    if cfg!(target_arch = "wasm32") {
+        Renderer::new::<App>().render();
+    } else {
+        stunt::backend::Entry::new()
+            .service(String::from("/api/register"), services::register);
+    }
 }
 
 

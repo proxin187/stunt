@@ -2,6 +2,9 @@
 
 // TODO: we can make this into a full stack framework. We can have advanced signal system where the
 // frontend can send signals to the backend with a convenient api
+//
+// TODO: We can have the project lsp target_arch be native (x86_64) and then do the conditional code
+// inside the library.
 
 //! # Stunt Web Framework Documentation
 //!
@@ -63,10 +66,7 @@
 //! }
 //! ```
 
-#[cfg(not(target_arch = "wasm32"))]
 pub mod backend;
-
-#[cfg(target_arch = "wasm32")]
 pub mod frontend;
 
 pub(crate) use stunt_macro;
@@ -77,8 +77,9 @@ pub mod prelude {
     pub use crate::frontend::{Component, Properties};
     pub use crate::frontend::html::Html;
     pub use crate::frontend::html::node_id::NodeId;
-
     pub use crate::frontend::render::Renderer;
+
+    pub use crate::backend::{Service, ServiceCaller};
 
     /// The html macro implements html templating for Rust.
     ///
@@ -140,11 +141,8 @@ pub mod prelude {
     /// named Struct.
     pub use crate::stunt_macro::Properties;
 
-    /// Create a server-side service.
+    /// Assing a path to a server-side service.
     pub use crate::stunt_macro::service;
-
-    /// The entry point of a stunt application.
-    pub use crate::stunt_macro::stunt_main;
 }
 
 

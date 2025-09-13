@@ -2,30 +2,51 @@
 
 use std::collections::HashMap;
 
-use erased_serde::{Serialize, Deserializer};
+use erased_serde::Serialize as ErasedSerialize;
+use serde::{Serialize, Deserialize};
 
 
-pub trait ServiceTransport<'a>: Serialize + Deserializer<'a> {}
+/// Represents an empty [`ServiceTransport`].
+#[derive(Serialize, Deserialize)]
+pub struct NullTransport;
 
-pub trait Service<'a, I, R: ServiceTransport<'a>> {
-    fn call(&self, input: I) -> Result<R, Box<dyn std::error::Error>>;
+/// Represents the client-side caller to a [`Service`].
+pub trait ServiceCaller: Service {
+    /// Get the path of the service.
+    fn path() -> &'static str;
+
+    /// Call the service.
+    fn call(self) -> Self::Output;
+}
+
+/// Represents a server-side service.
+pub trait Service: ErasedSerialize {
+    /// The type that the service will output.
+    type Output: ErasedSerialize;
+
+    /// Handle a call to the service.
+    fn handle(self) -> Result<Self::Output, Box<dyn std::error::Error>>;
 }
 
 /// The entry point of the backend of a stunt application.
-pub struct ServiceHandler<'a> {
-    services: HashMap<String, Box<dyn Service<'a, dyn ServiceTransport<'a>, dyn ServiceTransport<'a>>>>,
+pub struct ServiceHandler {
+    services: HashMap<String, Box<dyn Service<Output = dyn ErasedSerialize>>>,
 }
 
-impl<'a> ServiceHandler<'a> {
+impl ServiceHandler {
     /// Create a new ServiceHandler point.
-    pub fn new() -> ServiceHandler<'a> {
+    pub fn new() -> ServiceHandler {
         ServiceHandler {
             services: HashMap::new(),
         }
     }
 
     /// Add a backend service.
-    pub fn service(mut self, path: String, service: Box<dyn Service<'a, dyn ServiceTransport<'a>, dyn ServiceTransport<'a>>>) -> ServiceHandler<'a> {
+    pub fn service(
+        mut self,
+        path: String,
+        service: Box<dyn Service<Output = dyn ErasedSerialize>>
+    ) -> ServiceHandler {
         self.services.insert(path, service);
 
         self
