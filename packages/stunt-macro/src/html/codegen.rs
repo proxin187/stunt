@@ -37,8 +37,8 @@ impl HtmlBuilder {
                             .collect::<TokenStream>();
 
                         self.nodes.push(quote! {
-                            ::stunt::frontend::html::HtmlNode::new(
-                                ::stunt::frontend::html::HtmlKind::Element(::stunt::frontend::html::HtmlElement::new(#str_name.to_string(), ::std::vec![#attributes])),
+                            ::stunt::html::HtmlNode::new(
+                                ::stunt::html::HtmlKind::Element(::stunt::html::HtmlElement::new(#str_name.to_string(), ::std::vec![#attributes])),
                                 ::std::sync::Arc::new(::std::vec![#events]),
                                 (),
                             )
@@ -53,12 +53,12 @@ impl HtmlBuilder {
                             .then_some(quote! { builder.typecheck(__stunt_token); });
 
                         self.nodes.push(quote! {{
-                            let mut builder = <<#name<#(#generics),*> as ::stunt::frontend::Component>::Properties as ::stunt::frontend::Buildable>::builder();
+                            let mut builder = <<#name<#(#generics),*> as ::stunt::Component>::Properties as ::stunt::Buildable>::builder();
                             let __stunt_token = ();
                             #properties
                             #maybe_typecheck
-                            ::stunt::frontend::html::HtmlNode::new(
-                                ::stunt::frontend::html::HtmlKind::create_component::<#name<#(#generics),*>>(String::from(#str_name)),
+                            ::stunt::html::HtmlNode::new(
+                                ::stunt::html::HtmlKind::create_component::<#name<#(#generics),*>>(String::from(#str_name)),
                                 ::std::sync::Arc::new(::std::vec![#events]),
                                 builder,
                             )
@@ -68,7 +68,7 @@ impl HtmlBuilder {
                     let children = self.build_nodes(&node.children);
 
                     layout.push(quote! {
-                        ::stunt::frontend::html::NodeRef::new(
+                        ::stunt::html::NodeRef::new(
                             #index,
                             ::std::rc::Rc::new(#children),
                         )
@@ -79,16 +79,16 @@ impl HtmlBuilder {
                     let index = self.nodes.len();
 
                     self.nodes.push(quote! {
-                        ::stunt::frontend::html::HtmlNode::new(
+                        ::stunt::html::HtmlNode::new(
                             #[allow(unused_braces)]
-                            ::stunt::frontend::html::HtmlKind::Template(::std::sync::Arc::new(#block)),
+                            ::stunt::html::HtmlKind::Template(::std::sync::Arc::new(#block)),
                             ::std::sync::Arc::new(std::vec::Vec::new()),
                             (),
                         )
                     });
 
                     layout.push(quote! {
-                        ::stunt::frontend::html::NodeRef::new(
+                        ::stunt::html::NodeRef::new(
                             #index,
                             ::std::rc::Rc::new(std::vec::Vec::new()),
                         )
@@ -105,7 +105,7 @@ impl HtmlBuilder {
         let nodes = &self.nodes;
 
         quote! {
-            ::stunt::frontend::html::Html::new(
+            ::stunt::html::Html::new(
                 ::std::rc::Rc::new(::std::vec![#(#nodes),*]),
                 ::std::rc::Rc::new(#layout),
             )

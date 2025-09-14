@@ -51,7 +51,7 @@ pub fn properties(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let builder_name = syn::Ident::new(&format!("_{}Builder", name), name.span());
 
             return proc_macro::TokenStream::from(quote! {
-                impl ::stunt::frontend::Buildable for #name {
+                impl ::stunt::Buildable for #name {
                     type Builder = #builder_name;
 
                     fn builder() -> Self::Builder {
@@ -68,7 +68,7 @@ pub fn properties(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     #builder_fields
                 }
 
-                impl ::stunt::frontend::PreBuild for #builder_name {
+                impl ::stunt::PreBuild for #builder_name {
                     #builder_children
 
                     fn build(&self) -> ::std::rc::Rc<dyn ::std::any::Any> {

@@ -1,5 +1,5 @@
 use stunt::prelude::*;
-use stunt::backend::NullTransport;
+use stunt::service::{Service, ServiceCaller, NullTransport};
 
 use serde::{Serialize, Deserialize};
 
@@ -12,13 +12,7 @@ pub struct Register {
 }
 
 impl ServiceCaller for Register {
-    fn path() -> &'static str {
-        "/api/register"
-    }
-
-    fn call(self) -> Self::Output {
-        todo!()
-    }
+    fn path() -> &'static str { "/api/register" }
 }
 
 impl Register {
@@ -84,8 +78,6 @@ fn main() {
     if cfg!(target_arch = "wasm32") {
         Renderer::new::<App>().render();
     } else {
-        stunt::backend::Entry::new()
-            .service(String::from("/api/register"), services::register);
     }
 }
 

@@ -1,10 +1,7 @@
 //! This module contains everything related to backend services.
 
-use std::collections::HashMap;
-
 use erased_serde::Serialize as ErasedSerialize;
 use serde::{Serialize, Deserialize};
-
 
 /// Represents an empty [`ServiceTransport`].
 #[derive(Serialize, Deserialize)]
@@ -15,8 +12,12 @@ pub trait ServiceCaller: Service {
     /// Get the path of the service.
     fn path() -> &'static str;
 
-    /// Call the service.
-    fn call(self) -> Self::Output;
+    fn call(&self) -> Result<Self::Output, Box<dyn std::error::Error>> {
+        let mut response = ureq::post("127.0.0.1/api/register")
+            .send_json(self)?;
+
+        Ok(response.body_mut().read_json::<Self::Output>()?)
+    }
 }
 
 /// Represents a server-side service.
@@ -26,31 +27,6 @@ pub trait Service: ErasedSerialize {
 
     /// Handle a call to the service.
     fn handle(self) -> Result<Self::Output, Box<dyn std::error::Error>>;
-}
-
-/// The entry point of the backend of a stunt application.
-pub struct ServiceHandler {
-    services: HashMap<String, Box<dyn Service<Output = dyn ErasedSerialize>>>,
-}
-
-impl ServiceHandler {
-    /// Create a new ServiceHandler point.
-    pub fn new() -> ServiceHandler {
-        ServiceHandler {
-            services: HashMap::new(),
-        }
-    }
-
-    /// Add a backend service.
-    pub fn service(
-        mut self,
-        path: String,
-        service: Box<dyn Service<Output = dyn ErasedSerialize>>
-    ) -> ServiceHandler {
-        self.services.insert(path, service);
-
-        self
-    }
 }
 
 
