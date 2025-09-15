@@ -1,8 +1,8 @@
 //! Re-export of common types.
 
-pub use crate::{Component, Properties};
-pub use crate::html::Html;
-pub use crate::render::Renderer;
+pub use crate::frontend::{Component, Properties};
+pub use crate::frontend::html::Html;
+pub use crate::frontend::render::Renderer;
 
 /// The html macro implements html templating for Rust.
 ///
@@ -58,13 +58,13 @@ pub use crate::render::Renderer;
 /// }
 /// # ;}
 /// ```
-pub use crate::stunt_macro::html;
+pub use stunt_macro::html;
 
 /// This macro will implement the [`Properties`] trait for a
 /// named Struct.
-pub use crate::stunt_macro::Properties;
+pub use stunt_macro::Properties;
 
-/// Assing a path to a server-side service.
-pub use crate::stunt_macro::service;
+/// Create a server-side service.
+pub use stunt_macro::service;
 
 

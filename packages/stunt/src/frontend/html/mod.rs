@@ -3,11 +3,11 @@
 pub mod node_id;
 pub mod path;
 
-use crate::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
-use crate::render::Renderer;
+use crate::frontend::virtual_dom::{VirtualNode, VirtualKind, VirtualElement};
+use crate::frontend::render::Renderer;
 
-use crate::html::path::{Path, PathNode};
-use crate::{Component, BaseComponent, PreBuild};
+use crate::frontend::html::path::{Path, PathNode};
+use crate::frontend::{Component, BaseComponent, PreBuild};
 
 use std::cell::RefCell;
 use std::sync::Arc;

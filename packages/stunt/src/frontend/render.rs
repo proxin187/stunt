@@ -24,9 +24,9 @@
 //! }
 //! ```
 
-use crate::html::path::Path;
-use crate::virtual_dom::{VirtualKind, VirtualElement, VirtualNode};
-use crate::{Component, BaseComponent};
+use crate::frontend::html::path::Path;
+use crate::frontend::virtual_dom::{VirtualKind, VirtualElement, VirtualNode};
+use crate::frontend::{Component, BaseComponent};
 
 use wasm_bindgen::prelude::*;
 use spin::Mutex;

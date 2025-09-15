@@ -1,10 +1,9 @@
 use stunt::prelude::*;
-use stunt::service::{Service, ServiceCaller, NullTransport};
+use stunt::backend::{Service, ServiceCaller, NullTransport};
 
 use serde::{Serialize, Deserialize};
 
 
-#[derive(Serialize, Deserialize)]
 #[service("/api/register")]
 pub struct Register {
     username: String,
@@ -13,6 +12,13 @@ pub struct Register {
 
 impl ServiceCaller for Register {
     fn path() -> &'static str { "/api/register" }
+
+    fn call(&self) -> impl Future<Output = Result<Self::Output, Box<dyn std::error::Error>>> {
+        let mut response = stunt::backend::__macro::ureq::post("127.0.0.1/api/register")
+            .send_json(self)?;
+
+        Ok(response.body_mut().read_json::<Self::Output>()?)
+    }
 }
 
 impl Register {
@@ -74,7 +80,7 @@ impl Component for App {
     }
 }
 
-fn main() {
+async fn main() {
     if cfg!(target_arch = "wasm32") {
         Renderer::new::<App>().render();
     } else {

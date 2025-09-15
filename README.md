@@ -16,7 +16,7 @@
 
 <br>
 
-<strong>A frontend web framework for developing reactive user interfaces.</strong>
+<strong>A full-stack web framework bridging the gap between backend and frontend.</strong>
 </div>
 
 ## Features
