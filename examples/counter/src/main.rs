@@ -1,7 +1,10 @@
+#![no_main]
+
 use stunt::prelude::*;
 use stunt::backend::{Service, NullTransport};
 
 use serde::{Serialize, Deserialize};
+use wasm_bindgen::prelude::*;
 
 
 #[derive(Serialize, Deserialize)]
@@ -47,12 +50,12 @@ impl Component for App {
         }
     }
 
-    fn callback(&mut self, message: &Message) {
+    async fn callback(&mut self, message: &Message) {
         match message {
             Message::Add => {
                 self.count += 1;
 
-                if let Ok(register) = Register::new(String::from("user"), 123).call() {
+                if let Ok(register) = Register::new(String::from("user"), 123).call().await {
                 }
             },
         }
@@ -72,7 +75,8 @@ impl Component for App {
     }
 }
 
-fn main() {
+#[wasm_bindgen]
+pub async fn main() {
     if cfg!(target_arch = "wasm32") {
         Renderer::new::<App>().render();
     } else {

@@ -4,6 +4,7 @@ mod virtual_dom;
 
 use std::sync::Arc;
 use std::any::Any;
+use std::pin::Pin;
 use std::rc::Rc;
 
 use html::{Children, Html};
@@ -25,7 +26,7 @@ pub trait Component: Send + Sync + Sized + 'static {
 
     /// Recieve a callback. Callbacks can safely mutate the state of the component.
     #[allow(unused_variables)]
-    fn callback(&mut self, callback: &Self::Message) {}
+    fn callback(&mut self, callback: &Self::Message) -> impl Future<Output = ()> { async {} }
 
     /// The view describes the layout of how your component is to be rendered in the DOM.
     fn view(&self, properties: Self::Properties) -> Html;
@@ -38,16 +39,23 @@ pub trait Component: Send + Sync + Sized + 'static {
 /// ## Warning
 /// This trait is not meant to be used outside the framework.
 pub trait BaseComponent {
-    /// Low-level implementation of a callback.
-    fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>);
+    /// Dyn compatible implementation of a callback.
+    fn base_callback<'a>(&'a mut self, callback: &'a Arc<dyn Any + Send + Sync>) -> Pin<Box<dyn Future<Output = ()> + 'a>>
+    where
+        Self: Sync + 'a;
 
     /// Low-level implementation of a view.
     fn base_view(&self, properties: Rc<dyn Any>) -> Html;
 }
 
 impl<T: Component> BaseComponent for T {
-    fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>) {
-        T::callback(self, callback.downcast_ref().expect("invalid callback type"))
+    fn base_callback<'a>(&'a mut self, callback: &'a Arc<dyn Any + Send + Sync>) -> Pin<Box<dyn Future<Output = ()> + 'a>>
+    where
+        Self: Sync + 'a
+    {
+        Box::pin(async move {
+            T::callback(self, callback.downcast_ref().expect("invalid callback type")).await;
+        })
     }
 
     fn base_view(&self, properties: Rc<dyn Any>) -> Html { T::view(self, T::Properties::into_properties(properties)) }

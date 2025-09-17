@@ -3,30 +3,6 @@ use web_sys::js_sys::JsString;
 use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::prelude::*;
 
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use spin::Mutex;
-
-
-pub struct Status {
-    ready: AtomicBool,
-    json: Mutex<Result<String, JsValue>>,
-}
-
-impl Status {
-    pub fn new() -> Status {
-        Status {
-            ready: AtomicBool::new(false),
-            json: Mutex::new(Ok(String::default())),
-        }
-    }
-
-    pub fn wait(&self) -> Result<String, JsValue> {
-        while self.ready.load(Ordering::Relaxed) != true {}
-
-        self.json.lock().clone()
-    }
-}
 
 struct Url {
     protocol: String,
@@ -51,8 +27,7 @@ impl Url {
 }
 
 #[inline]
-pub fn post(path: String, body: String) -> Arc<Status> {
-    let status = Arc::new(Status::new());
+pub async fn post(path: String, body: String) -> Result<String, JsValue> {
     let window = web_sys::window().expect("no window found");
     let url = Url::new(&window, path).expect("failed to create url");
     let opts = RequestInit::new();
@@ -63,24 +38,26 @@ pub fn post(path: String, body: String) -> Arc<Status> {
 
     opts.set_body(&JsString::from(body));
 
-    let clone = status.clone();
-
+    /*
     wasm_bindgen_futures::spawn_local((async move || {
-        match fetch(format!("https://jsonplaceholder.typicode.com/todos/1"), opts, window).await {
+        match  {
             Ok(json) => {
                 let string = json.dyn_into::<JsString>().expect("failed to cast");
+
+                web_sys::console::log_1(&format!("done async: {:?}", string).into());
 
                 *clone.json.lock() = Ok(string.into());
             },
             Err(err) => {
+                web_sys::console::log_1(&format!("error async: {:?}", err).into());
+
                 *clone.json.lock() = Err(err);
             },
         }
+    */
 
-        clone.ready.store(true, Ordering::Relaxed);
-    })());
-
-    Arc::clone(&status)
+    fetch(format!("https://jsonplaceholder.typicode.com/todos/1"), opts, window).await
+        .map(|value| value.dyn_into::<JsString>().expect("failed to cast").into())
 }
 
 async fn fetch(url: String, opts: RequestInit, window: Window) -> Result<JsValue, JsValue> {

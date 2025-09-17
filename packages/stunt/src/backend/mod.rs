@@ -22,9 +22,13 @@ pub trait Service: ErasedSerialize {
     fn handle(self) -> Result<Self::Output, Box<dyn std::error::Error>>;
 
     /// Call the service.
-    fn call(&self) -> Result<Self::Output, Box<dyn std::error::Error>> {
-        let json = http::post(Self::PATH.to_string(), String::new())
-            .wait();
+    #[allow(async_fn_in_trait)]
+    async fn call(&self) -> Result<Self::Output, Box<dyn std::error::Error>> {
+        web_sys::console::log_1(&format!("called: {:?}", Self::PATH).into());
+
+        let json = http::post(Self::PATH.to_string(), String::new()).await;
+
+        web_sys::console::log_1(&format!("json: {:?}", json).into());
 
         todo!()
     }
