@@ -4,10 +4,40 @@ mod virtual_dom;
 
 use std::sync::Arc;
 use std::any::Any;
-use std::pin::Pin;
 use std::rc::Rc;
 
-use html::{Children, Html};
+use crate::frontend::html::{Children, Html};
+use crate::frontend::render::Renderer;
+use crate::frontend::html::path::Path;
+
+
+/// A [`Link`] allows you to callback to a component from anywhere in your codebase, the link can be cloned and will still point
+/// to the same component.
+#[derive(Clone)]
+pub struct Link {
+    renderer: Renderer,
+    scope: Path,
+}
+
+impl Link {
+    /// Create a new link.
+    pub fn new(renderer: Renderer, scope: Path) -> Link {
+        Link {
+            renderer,
+            scope,
+        }
+    }
+
+    /// Call the callback attached to the link.
+    pub fn callback<T: Component>(&self, message: T::Message) {
+        let message: Arc<dyn Any + Send + Sync> = Arc::new(message);
+        let component = self.renderer.get(&self.scope);
+
+        component.lock().base_callback(&message, self.clone());
+
+        self.renderer.render();
+    }
+}
 
 /// A component is one of the basic building blocks within stunt. A component can pass messages
 /// to its callback and receive properties from the parent.
@@ -15,7 +45,7 @@ use html::{Children, Html};
 /// You can implement component on virtually any type.
 pub trait Component: Send + Sync + Sized + 'static {
     /// The message type will be passed to the [`callback`](Component::callback).
-    type Message: 'static;
+    type Message: Any + Send + Sync + 'static;
 
     /// The [`Properties`] will be passed down from the parent to the [`view`](Component::view).
     type Properties: Properties + Buildable;
@@ -26,7 +56,7 @@ pub trait Component: Send + Sync + Sized + 'static {
 
     /// Recieve a callback. Callbacks can safely mutate the state of the component.
     #[allow(unused_variables)]
-    fn callback(&mut self, callback: &Self::Message) -> impl Future<Output = ()> { async {} }
+    fn callback(&mut self, callback: &Self::Message, link: Link) {}
 
     /// The view describes the layout of how your component is to be rendered in the DOM.
     fn view(&self, properties: Self::Properties) -> Html;
@@ -40,22 +70,15 @@ pub trait Component: Send + Sync + Sized + 'static {
 /// This trait is not meant to be used outside the framework.
 pub trait BaseComponent {
     /// Dyn compatible implementation of a callback.
-    fn base_callback<'a>(&'a mut self, callback: &'a Arc<dyn Any + Send + Sync>) -> Pin<Box<dyn Future<Output = ()> + 'a>>
-    where
-        Self: Sync + 'a;
+    fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>, link: Link);
 
     /// Low-level implementation of a view.
     fn base_view(&self, properties: Rc<dyn Any>) -> Html;
 }
 
 impl<T: Component> BaseComponent for T {
-    fn base_callback<'a>(&'a mut self, callback: &'a Arc<dyn Any + Send + Sync>) -> Pin<Box<dyn Future<Output = ()> + 'a>>
-    where
-        Self: Sync + 'a
-    {
-        Box::pin(async move {
-            T::callback(self, callback.downcast_ref().expect("invalid callback type")).await;
-        })
+    fn base_callback(&mut self, callback: &Arc<dyn Any + Send + Sync>, link: Link) {
+        T::callback(self, callback.downcast_ref().expect("invalid callback type"), link)
     }
 
     fn base_view(&self, properties: Rc<dyn Any>) -> Html { T::view(self, T::Properties::into_properties(properties)) }

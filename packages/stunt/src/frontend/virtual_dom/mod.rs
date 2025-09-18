@@ -1,5 +1,6 @@
 use crate::frontend::html::path::{Path, PathNode};
 use crate::frontend::render::Renderer;
+use crate::frontend::Link;
 
 use std::sync::Arc;
 use std::any::Any;
@@ -105,7 +106,7 @@ impl VirtualNode {
                 fn hook_callback(renderer: &Renderer, scope: &Path, cb: &Arc<dyn Any + Send + Sync>) {
                     let component = renderer.get(&scope);
 
-                    component.lock().base_callback(cb);
+                    component.lock().base_callback(cb, Link::new(renderer.clone(), scope.clone()));
                 }
 
                 hook_callback(&renderer, &scope, &cb);

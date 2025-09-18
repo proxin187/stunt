@@ -1,6 +1,6 @@
 //! Re-export of common types.
 
-pub use crate::frontend::{Component, Properties};
+pub use crate::frontend::{Component, Properties, Link};
 pub use crate::frontend::html::Html;
 pub use crate::frontend::render::Renderer;
 
