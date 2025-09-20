@@ -3,8 +3,14 @@ use stunt::backend::{Service, NullTransport};
 
 use serde::{Serialize, Deserialize};
 
+#[cfg(not(target_arch = "wasm32"))]
+use actix_web::{web, HttpServer, App as ActixApp};
 
-#[derive(Serialize, Deserialize)]
+#[cfg(not(target_arch = "wasm32"))]
+use actix_files::Files;
+
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Register {
     username: String,
     id: usize,
@@ -24,12 +30,15 @@ impl Service for Register {
 
     type Output = NullTransport;
 
-    fn handle(self) -> Result<NullTransport, Box<dyn std::error::Error>> {
-        Ok(NullTransport)
+    fn handle(self) -> NullTransport {
+        println!("username: {}, id: {}", self.username, self.id);
+
+        NullTransport
     }
 }
 
 pub enum Message {
+    Registered,
     Add,
 }
 
@@ -49,15 +58,13 @@ impl Component for App {
 
     fn callback(&mut self, message: &Message, link: Link) {
         match message {
+            Message::Registered => {
+            },
             Message::Add => {
                 self.count += 1;
 
-                link.callback::<App>(Message::Add);
-
-                /*
-                if let Ok(register) = Register::new(String::from("user"), 123).call() {
-                }
-                */
+                Register::new(String::from("user"), 123)
+                    .call(move |_| link.callback::<App>(Message::Registered));
             },
         }
     }
@@ -76,11 +83,24 @@ impl Component for App {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 fn main() {
-    if cfg!(target_arch = "wasm32") {
-        Renderer::new::<App>().render();
-    } else {
-    }
+    Renderer::new::<App>().render();
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    println!("listening on 127.0.0.1:8080, dir: {:?}", std::env::current_dir());
+
+    HttpServer::new(|| {
+        ActixApp::new()
+            .service(Files::new("/dist", "."))
+            .route(Register::PATH, web::post().to(Register::actix_handler))
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
 
 

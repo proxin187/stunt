@@ -1,7 +1,9 @@
 use web_sys::{Request, RequestInit, RequestMode, Response, Window};
-use web_sys::js_sys::JsString;
 use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::prelude::*;
+
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 
 struct Url {
@@ -27,37 +29,19 @@ impl Url {
 }
 
 #[inline]
-pub async fn post(path: String, body: String) -> Result<String, JsValue> {
+pub async fn post<Input: Serialize + ?Sized, Output: DeserializeOwned>(path: String, input: &Input) -> Result<Output, JsValue> {
     let window = web_sys::window().expect("no window found");
-    let url = Url::new(&window, path).expect("failed to create url");
+    let url = Url::new(&window, path)?;
     let opts = RequestInit::new();
 
     opts.set_method("POST");
 
     opts.set_mode(RequestMode::Cors);
 
-    opts.set_body(&JsString::from(body));
+    opts.set_body(&serde_wasm_bindgen::to_value(&input)?);
 
-    /*
-    wasm_bindgen_futures::spawn_local((async move || {
-        match  {
-            Ok(json) => {
-                let string = json.dyn_into::<JsString>().expect("failed to cast");
-
-                web_sys::console::log_1(&format!("done async: {:?}", string).into());
-
-                *clone.json.lock() = Ok(string.into());
-            },
-            Err(err) => {
-                web_sys::console::log_1(&format!("error async: {:?}", err).into());
-
-                *clone.json.lock() = Err(err);
-            },
-        }
-    */
-
-    fetch(format!("https://jsonplaceholder.typicode.com/todos/1"), opts, window).await
-        .map(|value| value.dyn_into::<JsString>().expect("failed to cast").into())
+    fetch(url.to_string(), opts, window).await
+        .and_then(|value| serde_wasm_bindgen::from_value(value).map_err(|err| JsValue::from_str(&err.to_string())))
 }
 
 async fn fetch(url: String, opts: RequestInit, window: Window) -> Result<JsValue, JsValue> {
