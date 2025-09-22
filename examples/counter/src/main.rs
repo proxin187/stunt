@@ -95,7 +95,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         ActixApp::new()
-            .service(Files::new("/dist", "."))
+            .service(Files::new("/", "./dist"))
             .route(Register::PATH, web::post().to(Register::actix_handler))
     })
     .bind(("127.0.0.1", 8080))?

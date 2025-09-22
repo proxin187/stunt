@@ -1,4 +1,5 @@
 use web_sys::{Request, RequestInit, RequestMode, Response, Window};
+use web_sys::js_sys::Object;
 use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::prelude::*;
 
@@ -9,20 +10,24 @@ use serde::de::DeserializeOwned;
 struct Url {
     protocol: String,
     hostname: String,
+    port: String,
     path: String,
 }
 
 impl std::fmt::Display for Url {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        f.write_fmt(format_args!("{}//{}{}", self.protocol, self.hostname, self.path))
+        f.write_fmt(format_args!("{}{}", self.protocol, self.path))
     }
 }
 
 impl Url {
     fn new(window: &Window, path: String) -> Result<Url, JsValue> {
+        let location = window.location();
+
         Ok(Url {
-            protocol: window.location().protocol()?,
-            hostname: window.location().hostname()?,
+            protocol: location.protocol()?,
+            hostname: location.hostname()?,
+            port: location.port()?,
             path,
         })
     }
@@ -36,9 +41,9 @@ pub async fn post<Input: Serialize + ?Sized, Output: DeserializeOwned>(path: Str
 
     opts.set_method("POST");
 
-    opts.set_mode(RequestMode::Cors);
+    // opts.set_body(serde_wasm_bindgen::to_value(&input)?);
 
-    opts.set_body(&serde_wasm_bindgen::to_value(&input)?);
+    opts.set_body(&JsValue::from_str("{ \"username\": \"test\", \"id\": 69 }"));
 
     fetch(url.to_string(), opts, window).await
         .and_then(|value| serde_wasm_bindgen::from_value(value).map_err(|err| JsValue::from_str(&err.to_string())))
