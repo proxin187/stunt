@@ -10,6 +10,11 @@ use actix_web::{web, HttpServer, App as ActixApp};
 use actix_files::Files;
 
 
+#[derive(Serialize, Deserialize)]
+pub struct RegisterResponse {
+    name: String,
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Register {
     username: String,
@@ -28,12 +33,14 @@ impl Register {
 impl Service for Register {
     const PATH: &'static str = "/api/register";
 
-    type Output = NullTransport;
+    type Output = RegisterResponse;
 
-    fn handle(self) -> NullTransport {
+    fn handle(self) -> RegisterResponse {
         println!("username: {}, id: {}", self.username, self.id);
 
-        NullTransport
+        RegisterResponse {
+            name: self.username,
+        }
     }
 }
 
@@ -93,10 +100,13 @@ fn main() {
 async fn main() -> std::io::Result<()> {
     println!("listening on 127.0.0.1:8080, dir: {:?}", std::env::current_dir());
 
+    // TODO: it doesnt work with curl either, we get "Request did not meet this resource's requirements"
+    //
+    // it works with curl if we use -X
     HttpServer::new(|| {
         ActixApp::new()
-            .service(Files::new("/", "./dist"))
             .route(Register::PATH, web::post().to(Register::actix_handler))
+            .service(Files::new("/", "./dist"))
     })
     .bind(("127.0.0.1", 8080))?
     .run()

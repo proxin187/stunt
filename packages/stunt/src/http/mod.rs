@@ -43,7 +43,7 @@ pub async fn post<Input: Serialize + ?Sized, Output: DeserializeOwned>(path: Str
 
     // opts.set_body(serde_wasm_bindgen::to_value(&input)?);
 
-    opts.set_body(&JsValue::from_str("{ \"username\": \"test\", \"id\": 69 }"));
+    opts.set_body(&JsValue::from_str("{\"username\":\"test\",\"id\":69}"));
 
     fetch(url.to_string(), opts, window).await
         .and_then(|value| serde_wasm_bindgen::from_value(value).map_err(|err| JsValue::from_str(&err.to_string())))
