@@ -361,16 +361,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "counter"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-web",
- "serde",
- "stunt",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1070,6 +1060,18 @@ name = "regex-syntax"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
+
+[[package]]
+name = "register"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-web",
+ "serde",
+ "stunt",
+ "stunt-router",
+ "web-sys",
+]
 
 [[package]]
 name = "routing"

@@ -1,5 +1,4 @@
-use web_sys::{Request, RequestInit, RequestMode, Response, Window};
-use web_sys::js_sys::Object;
+use web_sys::{Request, RequestInit, Response, Window};
 use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::prelude::*;
 
@@ -9,8 +8,6 @@ use serde::de::DeserializeOwned;
 
 struct Url {
     protocol: String,
-    hostname: String,
-    port: String,
     path: String,
 }
 
@@ -26,8 +23,6 @@ impl Url {
 
         Ok(Url {
             protocol: location.protocol()?,
-            hostname: location.hostname()?,
-            port: location.port()?,
             path,
         })
     }
@@ -41,9 +36,7 @@ pub async fn post<Input: Serialize + ?Sized, Output: DeserializeOwned>(path: Str
 
     opts.set_method("POST");
 
-    // opts.set_body(serde_wasm_bindgen::to_value(&input)?);
-
-    opts.set_body(&JsValue::from_str("{\"username\":\"test\",\"id\":69}"));
+    opts.set_body(&JsValue::from_str(&serde_json::to_string(input).map_err(|err| JsValue::from_str(&err.to_string()))?));
 
     fetch(url.to_string(), opts, window).await
         .and_then(|value| serde_wasm_bindgen::from_value(value).map_err(|err| JsValue::from_str(&err.to_string())))

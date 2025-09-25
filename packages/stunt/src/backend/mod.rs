@@ -1,14 +1,34 @@
 //! This module contains everything related to the backend.
+//!
+//! ## Example
+//! ```rust,no_run
+//! use stunt::prelude::*;
+//!
+//! pub struct App;
+//!
+//! impl Component for App {
+//!     type Message = ();
+//!     type Properties = ();
+//!
+//!     fn create() -> App { App }
+//!
+//!     fn view(&self, _properties: ()) -> Html {
+//!         html! {
+//!             <div></div>
+//!         }
+//!     }
+//! }
+//!
+//! fn main() {
+//!     Renderer::new::<App>().render();
+//! }
+//! ```
 
 use crate::http;
 
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-
-/// Represents an empty [`ServiceTransport`].
-#[derive(Serialize, Deserialize)]
-pub struct NullTransport;
 
 /// Represents a server-side service.
 pub trait Service: Serialize + Clone + Sized + 'static {
