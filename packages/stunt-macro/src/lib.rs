@@ -1,7 +1,6 @@
 #![feature(proc_macro_diagnostic)]
 
 mod properties;
-mod service;
 mod html;
 
 use syn::{parse_macro_input, DeriveInput, Data, Fields};
@@ -89,11 +88,6 @@ pub fn properties(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     }
 
     proc_macro::TokenStream::from(syn::Error::new(input.ident.span(), "You can only derive Properties for Structs with Named fields").to_compile_error())
-}
-
-#[proc_macro_attribute]
-pub fn service(input: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    item
 }
 
 

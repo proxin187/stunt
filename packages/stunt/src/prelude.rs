@@ -64,7 +64,4 @@ pub use stunt_macro::html;
 /// named Struct.
 pub use stunt_macro::Properties;
 
-/// Create a server-side service.
-pub use stunt_macro::service;
-
 
