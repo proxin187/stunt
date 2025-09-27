@@ -11,12 +11,12 @@ use stunt_router::Routable;
 use actix_web::{web, HttpServer, App as ActixApp};
 
 #[cfg(not(target_arch = "wasm32"))]
-use actix_files::Files;
+use actix_files::{NamedFile, Files};
 
 
 #[derive(Routable)]
 pub enum Route {
-    #[at("/register")]
+    #[at("/")]
     Register,
     #[at("/register/:user_id")]
     Registered {
@@ -36,7 +36,6 @@ impl Component for App {
     fn create() -> App { App }
 
     fn view(&self, _: ()) -> Html {
-        // TODO: implement "typecheck" for emptybuilder to fix bug
         match stunt_router::route::<Route>() {
             Route::Register => html! {
                 <Register />
@@ -68,7 +67,8 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         ActixApp::new()
             .route(register::Api::PATH, web::post().to(register::Api::actix_handler))
-            .service(Files::new("/", "./dist"))
+            .service(Files::new("/static/", "./dist"))
+            .default_service(web::get().to(async || NamedFile::open("./dist/index.html")))
     })
     .bind(("127.0.0.1", 8080))?
     .run()

@@ -16,15 +16,15 @@
 
 <br>
 
-<strong>A full-stack web framework bridging the gap between backend and frontend.</strong>
+<strong>An isomorphic web framework for Rust.</strong>
 </div>
 
 ## Features
 
+* Isomorphic, define backend services and easily call into them from the frontend.
 * Macro for writing html with rust expressions, similar to that of JSX.
 * Highly extensible components with compile-time type checked properties.
 * Use any build tool you like eg. [trunk](https://trunkrs.dev/).
-* Multiple ways to manage the state of your application.
 
 ## Goals
 

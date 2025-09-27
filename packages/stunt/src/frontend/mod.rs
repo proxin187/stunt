@@ -126,6 +126,11 @@ impl Buildable for () {
 #[derive(Clone)]
 pub struct EmptyBuilder;
 
+impl EmptyBuilder {
+    #[allow(missing_docs)]
+    pub fn typecheck(&self, __stunt_token: ()) {}
+}
+
 impl PreBuild for EmptyBuilder {
     fn build(&self) -> Rc<dyn Any> { Rc::new(()) }
 }

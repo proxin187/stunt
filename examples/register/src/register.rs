@@ -61,6 +61,8 @@ impl Component for Register {
     fn callback(&mut self, message: &Message, link: Link) {
         match message {
             Message::Response(response) => {
+                web_sys::console::log_1(&format!("user_id: {}", response.user_id).into());
+
                 // TODO: here we have to redirect
             },
             Message::Register => {
