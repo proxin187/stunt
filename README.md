@@ -19,6 +19,9 @@
 <strong>An isomorphic web framework for Rust.</strong>
 </div>
 
+> [!WARNING]
+> stunt is currently undergoing a large change in api and is NOT ready for production use at the moment.
+
 ## Features
 
 * <strong>Isomorphic</strong>: Write server logic alongside client-side components, and call server logic from the client with [services](). Services can also integrate with foreign APIs.
