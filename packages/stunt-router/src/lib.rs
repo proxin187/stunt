@@ -1,8 +1,9 @@
+#![feature(trim_prefix_suffix)]
 #![warn(missing_docs)]
 
 //! # Stunt Router Documentation
 //!
-//! The Stunt Router is the standard router implementation for stunt.
+//! The Stunt Router is the router implementation for stunt.
 //!
 //! ## Features
 //!
@@ -78,10 +79,17 @@
 
 pub use stunt_router_macro::Routable;
 
+use wasm_bindgen::prelude::*;
+use web_sys::CustomEvent;
+
+
 /// The Routable trait allows an enum to be routed.
 pub trait Routable {
     /// Returns the appropriate route based on the path.
     fn route(path: &[&str]) -> Self where Self: Sized;
+
+    /// Reconstructs the path of the route.
+    fn path(self) -> String;
 }
 
 /// Get the current route.
@@ -93,9 +101,35 @@ pub fn route<T: Routable>() -> T {
         .pathname()
         .expect("failed to get pathname");
 
-    let path = pathname.split('/').collect::<Vec<&str>>();
+    let path = pathname.split('/')
+        .collect::<Vec<&str>>();
 
-    T::route(&path)
+    T::route(&path.trim_suffix(&["/"]))
+}
+
+/// Register a callback for updates on the router.
+#[inline]
+pub fn register_callback(f: impl Fn() + 'static) {
+    let window = web_sys::window().expect("no window found");
+
+    let closure = Closure::<dyn Fn()>::new(f);
+
+    window.add_event_listener_with_callback("RouterUpdate", closure.as_ref().unchecked_ref()).expect("failed to add event listener");
+
+    closure.forget();
+}
+
+/// Update the url and dispatch a router callback.
+#[inline]
+pub fn redirect<T: Routable>(route: T) {
+    let window = web_sys::window().expect("no window found");
+    let history = window.history().expect("no history found");
+
+    history.replace_state_with_url(&JsValue::null(), "", Some(route.path().as_str())).expect("failed to replace url");
+
+    let event = CustomEvent::new("RouterUpdate").expect("failed to create event");
+
+    window.dispatch_event(&event).expect("failed to dispatch");
 }
 
 

@@ -4,6 +4,9 @@ pub use crate::frontend::{Component, Properties, Link};
 pub use crate::frontend::html::Html;
 pub use crate::frontend::render::Renderer;
 
+#[cfg(not(target_arch = "wasm32"))]
+pub use crate::backend::Service;
+
 /// The html macro implements html templating for Rust.
 ///
 /// This macro returns [`Html`] and should always be the

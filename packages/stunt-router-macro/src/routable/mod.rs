@@ -1,5 +1,7 @@
+//! This entire module is kind of clusterfucked and unreadable, atleast it works :)
+
 use syn::parse::{Parse, ParseStream, Error, Result};
-use syn::{DeriveInput, Data, LitStr, Ident, Attribute, Fields};
+use syn::{DeriveInput, Data, LitStr, Ident, Attribute, Fields, Field};
 use syn::spanned::Spanned;
 
 use proc_macro2::Span;
@@ -19,19 +21,24 @@ impl PathNode {
             .unwrap_or_else(|| PathNode::Static(node.to_string()))
     }
 
-    pub fn validate(&self, fields: &Fields) -> bool {
+    fn validate(&self, fields: &Fields) -> bool {
         match self {
             PathNode::Static(_) => true,
             PathNode::Segment(segment) => fields.iter().any(|field| field.ident.clone().map(|ident| ident.to_string() == segment.to_string()).unwrap_or_default()),
         }
     }
 
-    pub fn pattern(&self) -> proc_macro2::TokenStream {
+    fn pattern(&self) -> proc_macro2::TokenStream {
         match self {
             PathNode::Static(string) => quote! { #string },
-            PathNode::Segment(ident) => {
-                quote! { #ident }
-            },
+            PathNode::Segment(ident) => quote! { #ident },
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        match self {
+            PathNode::Static(string) => string.is_empty(),
+            PathNode::Segment(_) => false,
         }
     }
 }
@@ -51,18 +58,35 @@ impl Path {
         })
     }
 
-    pub fn validate(&self, fields: &Fields) -> bool {
+    fn validate(&self, fields: &Fields) -> bool {
         self.path.iter()
             .all(|path| path.validate(fields))
     }
 
-    pub fn pattern(&self) -> proc_macro2::TokenStream {
+    fn pattern(&self) -> proc_macro2::TokenStream {
         let paths = self.path.iter()
             .map(|path| path.pattern());
 
         quote! {
             #[deny(unused_variables)]
             [#(#paths),*]
+        }
+    }
+
+    fn path(&self) -> proc_macro2::TokenStream {
+        if self.path.iter().all(|path| path.is_empty()) {
+            quote! { [String::from("/")] }
+        } else {
+            let paths = self.path.iter()
+                .map(|path| {
+                    let pattern = path.pattern();
+
+                    quote! { format!("{}/", #pattern) }
+                });
+
+            quote! {
+                [#(#paths),*]
+            }
         }
     }
 }
@@ -76,7 +100,7 @@ enum AttributeKind {
 }
 
 impl AttributeKind {
-    pub fn new(attr: &Attribute, fields: Fields) -> Result<AttributeKind> {
+    fn new(attr: &Attribute, fields: Fields) -> Result<AttributeKind> {
         if attr.path().is_ident("at") {
             let literal: LitStr = attr.parse_args::<LitStr>()?;
             let path = Path::new(literal.value())?;
@@ -96,14 +120,14 @@ impl AttributeKind {
         }
     }
 
-    pub fn pattern(&self) -> proc_macro2::TokenStream {
+    fn map_path(&self, f: impl Fn(&Path) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         match self {
-            AttributeKind::At { path, .. } => path.pattern(),
+            AttributeKind::At { path, .. } => f(path),
             AttributeKind::NotFound => quote! { _ },
         }
     }
 
-    pub fn condition(&self) -> Option<proc_macro2::TokenStream> {
+    fn condition(&self) -> Option<proc_macro2::TokenStream> {
         match self {
             AttributeKind::At { fields, .. } if !fields.is_empty() => {
                 let tokens = fields.iter()
@@ -122,15 +146,10 @@ impl AttributeKind {
         }
     }
 
-    pub fn fields(&self) -> Option<proc_macro2::TokenStream> {
+    fn map_fields(&self, f: impl Fn(&Field) -> proc_macro2::TokenStream) -> Option<proc_macro2::TokenStream> {
         match self {
             AttributeKind::At { fields, .. } => {
-                let tokens = fields.iter()
-                    .map(|field| {
-                        let ident = &field.ident;
-
-                        quote! { #ident: std::str::FromStr::from_str(#ident).expect("internal error") }
-                    });
+                let tokens = fields.iter().map(f);
 
                 Some(quote! {
                     #(#tokens),*
@@ -154,18 +173,41 @@ impl Variant {
         }
     }
 
-    pub fn tokens(&self, enum_ident: Ident) -> proc_macro2::TokenStream {
+    fn route_tokens(&self) -> proc_macro2::TokenStream {
         let ident = &self.ident;
 
         self.attributes.iter()
             .map(|attribute| {
-                let pattern = attribute.pattern();
+                let pattern = attribute.map_path(|path| path.pattern());
                 let condition = attribute.condition();
-                let fields = attribute.fields();
+                let fields = attribute.map_fields(|field| {
+                    let ident = &field.ident;
 
-                quote! { #pattern #condition => #enum_ident::#ident { #fields }, }
+                    quote! { #ident: std::str::FromStr::from_str(#ident).expect("internal error") }
+                });
+
+                quote! { #pattern #condition => Self::#ident { #fields }, }
             })
             .collect()
+    }
+
+    fn path_tokens(&self) -> proc_macro2::TokenStream {
+        let ident = &self.ident;
+
+        let attributes = self.attributes.iter()
+            .filter(|attribute| !matches!(attribute, AttributeKind::NotFound))
+            .map(|attribute| {
+                let pattern = attribute.map_path(|path| path.path());
+                let fields = attribute.map_fields(|field| {
+                    let ident = &field.ident;
+
+                    quote! { #ident }
+                });
+
+                quote! { Self::#ident { #fields } => #pattern.concat(), }
+            });
+
+        quote! { #(#attributes),*}
     }
 }
 
@@ -209,14 +251,23 @@ impl Routable {
     pub fn tokens(&self) -> proc_macro2::TokenStream {
         let ident = &self.ident;
 
-        let variants = self.variants.iter()
-            .map(|variant| variant.tokens(self.ident.clone()));
+        let route_variants = self.variants.iter()
+            .map(|variant| variant.route_tokens());
+
+        let path_variants = self.variants.iter()
+            .map(|variant| variant.path_tokens());
 
         quote! {
             impl ::stunt_router::Routable for #ident {
-                fn route(__path: &[&str]) -> #ident {
+                fn route(__path: &[&str]) -> Self {
                     match __path {
-                        #(#variants)*
+                        #(#route_variants)*
+                    }
+                }
+
+                fn path(self) -> String {
+                    match self {
+                        #(#path_variants)*
                     }
                 }
             }

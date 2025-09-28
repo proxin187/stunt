@@ -21,17 +21,9 @@
 
 ## Features
 
-* Isomorphic, define backend services and easily call into them from the frontend.
-* Macro for writing html with rust expressions, similar to that of JSX.
-* Highly extensible components with compile-time type checked properties.
-* Use any build tool you like eg. [trunk](https://trunkrs.dev/).
-
-## Goals
-
-- [x] Optimized DOM api calls
-- [x] Router implementation
-- [ ] Webworker integration
-- [ ] Support for desktop and mobile.
+* <strong>Isomorphic</strong>: Write server logic alongside client-side components, and call server logic from the client with [services](). Services can also integrate with foreign APIs.
+* <strong>Html Macro</strong>: Macro for writing html with rust expressions, similar to that of JSX.
+* <strong>Type checked</strong>: Compile-time type checking of components to prevent runtime bugs.
 
 ## Usage
 This crate is on [crates.io](https://crates.io/crates/stunt) and can be added either through

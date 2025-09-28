@@ -54,6 +54,10 @@ pub trait Component: Send + Sync + Sized + 'static {
     fn create() -> Self
     where Self: Sized;
 
+    /// Called once on the first render.
+    #[allow(unused_variables)]
+    fn once(&mut self, link: Link) {}
+
     /// Recieve a callback. Callbacks can safely mutate the state of the component.
     #[allow(unused_variables)]
     fn callback(&mut self, callback: &Self::Message, link: Link) {}

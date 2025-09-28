@@ -39,6 +39,7 @@ pub trait Service: Serialize + Clone + Sized + 'static {
     type Output: Serialize + DeserializeOwned;
 
     /// Handle a call to the service.
+    #[cfg(not(target_arch = "wasm32"))]
     fn handle(self) -> Self::Output;
 
     /// Call the service.

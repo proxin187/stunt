@@ -1,11 +1,12 @@
 mod register;
 
+use stunt::prelude::*;
+use stunt_router::Routable;
+
 use register::Register;
 
-use stunt::prelude::*;
-use stunt::backend::Service;
-
-use stunt_router::Routable;
+#[cfg(not(target_arch = "wasm32"))]
+use register::RegisterApi;
 
 #[cfg(not(target_arch = "wasm32"))]
 use actix_web::{web, HttpServer, App as ActixApp};
@@ -34,6 +35,11 @@ impl Component for App {
     type Properties = ();
 
     fn create() -> App { App }
+
+    // TODO: implement once
+    fn once(&mut self, link: Link) {
+        stunt_router::register_callback(move || link.callback::<App>(()));
+    }
 
     fn view(&self, _: ()) -> Html {
         match stunt_router::route::<Route>() {
@@ -66,7 +72,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         ActixApp::new()
-            .route(register::Api::PATH, web::post().to(register::Api::actix_handler))
+            .route(RegisterApi::PATH, web::post().to(RegisterApi::actix_handler))
             .service(Files::new("/static/", "./dist"))
             .default_service(web::get().to(async || NamedFile::open("./dist/index.html")))
     })

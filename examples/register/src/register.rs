@@ -1,3 +1,5 @@
+use crate::Route;
+
 use stunt::prelude::*;
 use stunt::frontend::html::node_id::NodeId;
 use stunt::backend::Service;
@@ -11,28 +13,20 @@ pub struct Response {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct Api {
+pub struct RegisterApi {
     username: String,
     password: String,
 }
 
-impl Api {
-    pub fn new(username: String, password: String) -> Api {
-        Api {
-            username,
-            password,
-        }
-    }
-}
-
-impl Service for Api {
+impl Service for RegisterApi {
     const PATH: &'static str = "/api/register";
 
     type Output = Response;
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn handle(self) -> Response {
         Response {
-            user_id: self.username.bytes().fold(0, |acc, byte| acc * byte as usize) ^ self.password.bytes().fold(0, |acc, byte| acc * byte as usize),
+            user_id: self.username.bytes().fold(1, |acc, byte| acc * byte as usize) ^ self.password.bytes().fold(1, |acc, byte| acc * byte as usize),
         }
     }
 }
@@ -61,16 +55,15 @@ impl Component for Register {
     fn callback(&mut self, message: &Message, link: Link) {
         match message {
             Message::Response(response) => {
-                web_sys::console::log_1(&format!("user_id: {}", response.user_id).into());
-
-                // TODO: here we have to redirect
+                stunt_router::redirect(Route::Registered { user_id: response.user_id });
             },
             Message::Register => {
-                let username = self.username.cast::<web_sys::HtmlInputElement>().expect("failed to cast").value();
-                let password = self.password.cast::<web_sys::HtmlInputElement>().expect("failed to cast").value();
+                let register = RegisterApi {
+                    username: self.username.cast::<web_sys::HtmlInputElement>().expect("failed to cast").value(),
+                    password: self.password.cast::<web_sys::HtmlInputElement>().expect("failed to cast").value(),
+                };
 
-                Api::new(username, password)
-                    .call(move |response| link.callback::<Register>(Message::Response(response)));
+                register.call(move |response| link.callback::<Register>(Message::Response(response)));
             },
         }
     }
